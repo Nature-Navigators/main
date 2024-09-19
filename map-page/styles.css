@@ -14,7 +14,7 @@ body {
 }
 
 .image-section {
-    flex: 1;
+    flex: 3; 
     overflow: hidden;
 }
 
@@ -25,7 +25,7 @@ body {
 }
 
 .list-section {
-    flex: 1;
+    flex: 1.4; 
     overflow-y: auto; /* Allows vertical scrolling */
     background-color: #f0f0f0; /* Background color for the list section */
 }
@@ -35,10 +35,11 @@ body {
 }
 
 .rectangle {
-    background-color: #4CAF50; /* Green color */
+    background-color: #4CAF50; 
     color: white;
     margin: 10px 0;
     padding: 20px;
     border-radius: 5px;
     text-align: center;
+    width: calc(100% - 40px); /* Make rectangles fatter */
 }
