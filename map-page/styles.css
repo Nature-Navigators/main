@@ -34,17 +34,21 @@ body {
 }
 
 .scrollable-list {
-    padding: 20px;
+    padding: 0;
 }
 
 .rectangle {
-    background-color: #4CAF50; 
+    background-color: #ffffff; 
     color: white;
-    margin: 10px 0;
+    margin: 0;
     padding: 20px;
     border-radius: 5px;
     text-align: center;
-    width: calc(100% - 40px); /* Make rectangles fatter */
+    width: calc(100% - 20px); /* Make rectangles fatter */
+    height: calc((100vh / 4) - 20px);
+    box-sizing: border-box;
+    border: 1px solid #ccc; /* Grey border */
+    border-bottom: none; 
 }
 
 
