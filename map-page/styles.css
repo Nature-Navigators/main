@@ -1,6 +1,5 @@
 
 /*sidebar styles*/
-
 * {
     margin: 0;
     padding: 0;
@@ -9,11 +8,13 @@
 
 body {
     font-family: Arial, sans-serif;
+    background-color: #eaeaea;
 }
 
 .container {
     display: flex;
     height: 100vh;
+    flex-wrap: wrap; 
 }
 
 .image-section {
@@ -24,38 +25,86 @@ body {
 .image-section img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures the image covers the area */
+    object-fit: cover; 
 }
 
 .list-section {
     flex: 1.4; 
-    overflow-y: auto; /* Allows vertical scrolling */
-    background-color: #f0f0f0; /* Background color for the list section */
+    overflow-y: auto; 
+    background-color: #f0f0f0; 
+    padding: 10px; 
 }
 
 .scrollable-list {
     padding: 0;
 }
 
+/* Rectangle Styles */
 .rectangle {
+    display: flex; 
+    align-items: flex-start; 
+    padding: 15px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    margin: 10px 0; 
     background-color: #ffffff; 
-    color: white;
-    margin: 0;
-    padding: 20px;
-    border-radius: 5px;
-    text-align: center;
-    width: calc(100% - 20px); /* Make rectangles fatter */
-    height: calc((100vh / 4) - 20px);
-    box-sizing: border-box;
-    border: 1px solid #ccc; /* Grey border */
-    border-bottom: none; 
+    transition: transform 0.2s;
+    flex-basis: calc(25% - 20px); 
 }
 
+.rectangle:hover {
+    transform: translateY(-2px); 
+}
 
+.rectangle img {
+    width: 150px;  
+    height: 150px; 
+    margin-right: 15px; 
+    border-radius: 5px; 
+    border: 1px solid #ccc; 
+}
 
+.text-container {
+    display: flex; 
+    flex-direction: column; 
+}
 
+.rectangle h3 {
+    margin: 0 0 5px 0; 
+    font-size: 1.3em; 
+    color: #2c3e50; 
+    font-weight: bold; 
+}
 
+.rectangle p {
+    margin: 0; 
+    color: #7f8c8d; 
+    line-height: 1.5; /
+}
 
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .rectangle {
+        flex-basis: calc(33.33% - 20px); 
+    }
+}
+
+@media (max-width: 900px) {
+    .rectangle {
+        flex-basis: calc(50% - 20px); 
+    }
+}
+
+@media (max-width: 600px) {
+    .rectangle {
+        flex-basis: 100%;
+    }
+
+    .image-section {
+        flex: 1; 
+        height: 200px; 
+    }
+}
 
 /*page styles*/
 
