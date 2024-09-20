@@ -34,11 +34,12 @@ body {
     background-color: #f0f0f0; 
     padding: 10px; 
     margin-top: 60px;
-    height: 80%;
+    height: 100%;
     overflow: scroll;
 }
 
 .scrollable-list {
+
     padding: 0;
 }
 
@@ -112,7 +113,7 @@ body {
 /*page styles*/
 
 .image-section{
-    max-height: 90%;
+    max-height: 100%;
 }
 
 .header{
