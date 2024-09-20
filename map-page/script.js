@@ -65,4 +65,21 @@ function createRectangles() {
 
 
 // Call the function to create rectangles on page load
-window.onload = createRectangles;
+window.onload = onLoad;
+
+function onLoad() {
+    createRectangles();
+    adjustWidth();
+}
+
+
+function adjustWidth() {
+    var sidebarSearch = document.getElementById("sidebar-search");
+    var searchBox = document.getElementById("search-box");
+    var windowWidth = window.innerWidth;
+    var newWidth = (windowWidth*0.30); 
+    sidebarSearch.style.width = newWidth+"px"; 
+    searchBox.style.width = ((newWidth*0.9))+"px"; 
+}
+
+window.onresize = adjustWidth;
