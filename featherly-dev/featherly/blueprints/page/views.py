@@ -5,7 +5,7 @@ page = Blueprint('page', __name__, template_folder='templates')
 @page.route('/')
 def home():
     # landing page
-    return render_template('page/home.html')
+    return render_template('page/signup.html')
     # return "Hello Worldddd"
 
 @page.route('/signup')
