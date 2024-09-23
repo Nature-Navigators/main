@@ -6,13 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Featherly - Sign In</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/authstyle.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body class="signup">
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
-        <h1>FEATHERLY</h1>
+        <h1>Featherly</h1>
     </div>
+    <nav class="nav-icons">
+        <a href="/" title="Home"><i class="fas fa-home"></i></a>
+        <a href="/map" title="Map"><i class="fas fa-map"></i></a>
+        <a href="" title="Social Media"><i class="fa-solid fa-users"></i></a>
+    </nav>
     <div class="container">
         <div class="form-container">
             <div class="form-box">

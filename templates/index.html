@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <nav class="nav-icons">
+        <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+    </nav>
     <div class="image-fader">
         <img src="{{url_for('static', filename='images/bird1.jpg')}}"/>
         <img src="{{url_for('static', filename='images/bird2.jpg')}}"/>
@@ -36,7 +40,9 @@
                     <h3>Bird of the Day</h2>
                     <p>See what the mystery bird of the day is!</p>
                 </div>
-                <button>Go!</button>
+                <form action="{{ url_for('bird') }}" method="get">
+                    <button type="submit">Go!</button>
+                </form>
             </div>
             <div class="card">
                 <div>

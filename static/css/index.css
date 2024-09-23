@@ -130,3 +130,21 @@ button:hover {
         margin-bottom: 10vw;
     }
 }
+
+.nav-icons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+}
+
+.nav-icons a {
+    color: rgb(69, 149, 202);
+    margin-left: 15px;
+    font-size: 1.5em;
+    text-decoration: none;
+}
+
+.nav-icons a:hover {
+    color: #ddd;
+}

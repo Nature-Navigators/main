@@ -46,7 +46,6 @@ body.signup {
     color: rgb(0, 0, 0);
 }
 
-
 .form-container {
     display: flex;
     justify-content: center;
@@ -171,4 +170,22 @@ img.perch {
     text-decoration: none;
     font-weight: bold;
     position: relative;
+}
+
+.nav-icons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+}
+
+.nav-icons a {
+    color: rgb(255, 255, 255);
+    margin-left: 15px;
+    font-size: 1.5em;
+    text-decoration: none;
+}
+
+.nav-icons a:hover {
+    color: #ddd;
 }

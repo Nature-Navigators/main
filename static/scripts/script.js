@@ -7,37 +7,37 @@ const rectangles = [
         imageUrl: 'https://www.birds.cornell.edu/home/wp-content/uploads/2023/09/334289821-Baltimore_Oriole-Matthew_Plante.jpg', 
         title: 'Baltimore Oriole',
         description: 'The Baltimore Oriole is a vibrant songbird known for its striking orange and black plumage. These birds are often found in open woodlands, orchards, and suburban areas during the warmer months.',
-        url: 'https://www.allaboutbirds.org/guide/Baltimore_Oriole/overview' 
+        url: '/bird' 
     },
     { 
         imageUrl: 'https://example.com/bird2.jpg', 
         title: 'Bird 2', 
         description: 'Bird 2 description.',
-        url: 'https://example.com/bird2' 
+        url: '/bird' 
     },
     { 
         imageUrl: 'https://example.com/bird3.jpg', 
         title: 'Bird 3', 
         description: 'Bird 3 description.',
-        url: 'https://example.com/bird3' 
+        url: '/bird' 
     },
     { 
         imageUrl: 'https://example.com/bird4.jpg', 
         title: 'Bird 4', 
         description: 'Bird 4 description.',
-        url: 'https://example.com/bird4' 
+        url: '/bird' 
     },
     { 
         imageUrl: 'https://example.com/bird5.jpg', 
         title: 'Bird 5', 
         description: 'Bird 5 description.',
-        url: 'https://example.com/bird5' 
+        url: '/bird' 
     },
     { 
         imageUrl: 'https://example.com/bird6.jpg', 
         title: 'Bird 6', 
         description: 'Bird 6 description.',
-        url: 'https://example.com/bird6' 
+        url: '/bird' 
     },
 ];
 
@@ -67,8 +67,12 @@ function createRectangles() {
         rectangle.appendChild(img);
         rectangle.appendChild(textContainer); 
 
+        // rectangle.onclick = () => {
+        //     window.open(rect.url, '_blank'); 
+        // };
+
         rectangle.onclick = () => {
-            window.open(rect.url, '_blank'); 
+            window.location.href = (rect.url)
         };
 
         rectangle.style.cursor = 'pointer';

@@ -19,5 +19,9 @@ def signin():
 def signup():
     return render_template("signup.html")
 
+@app.route('/bird')
+def bird():
+    return render_template("bird.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
