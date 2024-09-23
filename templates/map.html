@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css')}}">
+</head>
+<body>
+    <div class="header">   
+        Featherly
+    </div>
+    <div class="container">
+        <div id="sidebar-search">
+            <div id="search-box">
+                <input type="text" placeholder="  Search Species" id="search-input"></input>
+                <img src="{{url_for('static', filename='images/search.png')}}" id="search">
+            </div>
+            <img id="filter" src="{{url_for('static', filename='images/filter.png')}}">
+        </div>
+        <div class="list-section">
+            <div class="scrollable-list" id="scrollableList">
+                
+            </div>
+        </div>
+        <div class="image-section">
+            <img src="{{url_for('static', filename='images/floridamap.png')}}">
+        </div>
+    </div>
+    <script src="{{url_for('static', filename='scripts/script.js')}}"></script>
+</body>
+</html>

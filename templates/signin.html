@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Featherly - Sign In</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/authstyle.css')}}">
+</head>
+
+<body class="signin">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
+        <h1>FEATHERLY</h1>
+    </div>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-box">
+                <h2>Welcome back to your perch!</h2>
+                <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
+                <form>
+                    <input type="text" placeholder="Username" required>
+                    <input type="password" placeholder="Password" required>
+                    <button class="sign-in-button">Sign In</button>
+                    <p class="link"><a href="/signup">Need to create an account?</a></p>
+                    <p class="forgot"><a href="">Forgot password?</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

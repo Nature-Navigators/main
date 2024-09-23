@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css')}}">
+</head>
+<body>
+    <div class="image-fader">
+        <img src="{{url_for('static', filename='images/bird1.jpg')}}"/>
+        <img src="{{url_for('static', filename='images/bird2.jpg')}}"/>
+        <img src="{{url_for('static', filename='images/bird3.jpg')}}"/>
+        <img src="{{url_for('static', filename='images/bird4.jpg')}}"/>
+    </div>
+    <div id="textSide">
+        <div id="mainHeader">
+            <h2>Welcome to</h2>
+            <h1>Featherly</h1>
+            <p id="subtitle">A site for bird watchers--old and new</p>
+        </div>
+        <div id="cards">
+            <div class="card">
+                <div>
+                    <img class="cardImg" alt="location icon" src="{{url_for('static', filename='images/pin-loc.webp')}}">
+                </div>
+                <div class="cardText">
+                    <h3>Birds Near Me</h2>
+                    <p>View all the varied types of birds near your location!</p>
+                </div>
+                <form action="{{ url_for('map') }}" method="get">
+                    <button type="submit">Go!</button>
+                </form>
+            </div>
+            <div class="card">
+                <div>
+                    <img class="cardImg" alt="sparrow icon" src="{{url_for('static', filename='images/sparrow-icon.webp')}}">
+                </div>
+                <div class="cardText">
+                    <h3>Bird of the Day</h2>
+                    <p>See what the mystery bird of the day is!</p>
+                </div>
+                <button>Go!</button>
+            </div>
+            <div class="card">
+                <div>
+                    <img class="cardImg" alt="profile icon" src="{{url_for('static', filename='images/profile-icon.webp')}}">
+                </div>
+                <div class="cardText">
+                    <h3>Social Media</h2>
+                    <p>Talk about and post pictures of all the birds you see!</p>
+                </div>
+                <button>Go!</button>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>
