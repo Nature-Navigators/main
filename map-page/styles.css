@@ -158,17 +158,46 @@ body {
 
 #filter{
     width:24px;
-    float:right;
-    margin-top: 7px;
+    position: absolute;
+    right: 1px;
+    top: 8px;
 }
 
 #search{
-    z-index: 10;
     width:40px;
-    float:right;
     position: absolute;
-    right: 34px;
+    right: 10vh;
     top: 2px;
+}
+
+#site-name{
+
+}
+
+#location{
+    position:absolute;
+    width:max-content;
+    height: max-content;
+    right:16px;
+    top:58px;
+}
+
+#location-input{
+    border-radius:6px;
+    border-style: solid;
+    border-color: #2c3e50;
+    border-width: 1px;
+    width:220px;
+    height: 32px;
+    padding-left: 8px;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+
+#location-icon{
+    position:absolute;
+    right:4px;
+    width:27px;
+    top:4px;
 }
 
 
