@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media</title>
+    <link rel="stylesheet" href="../static/css/social.css">
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const domNode = document.getElementById('app');
+
+        // Header Component
+        function Header() {
+            return (
+                <div className="header">
+                
+                </div>
+            );
+        }
+
+        // Sidebar Component
+        function Sidebar() {
+            return (
+                <div className="sidebar">
+                    <h2>Top Birding Events Near You</h2>
+                </div>
+            );
+        }
+
+        // Comment Section Component
+        function CommentSection({ comments, onAddComment }) {
+            const [comment, setComment] = React.useState("");
+
+            const handleAddComment = () => {
+                if (comment.trim()) {
+                    onAddComment(comment);
+                    setComment("");
+                }
+            };
+
+            return (
+                <div>
+                    <div className="comment-box">
+                        <textarea
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Add a comment..."
+                        />
+                        <button onClick={handleAddComment}>Comment</button>
+                    </div>
+                    <div className="comments-list">
+                        {comments.map((c, index) => (
+                            <p key={index}>{c}</p>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Post Component
+        function Post({ title, image, content }) {
+            const [comments, setComments] = React.useState([]);
+
+            const addComment = (comment) => {
+                setComments([...comments, comment]);
+            };
+
+            return (
+                <div className="post">
+                    <div className="post-header">
+                        <div className="profile-info">
+                            <img src="../static/images/raven.png" alt="Profile Picture" className="profile-pic" />
+                            <div className="profile-name-time">
+                                <span className="profile-name">John Doe</span>
+                                <span className="post-time">• 2 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>{title}</h3>
+                    <img src={image} alt="Post Image" />
+                    <p>{content}</p>
+                    <CommentSection comments={comments} onAddComment={addComment} />
+                </div>
+            );
+        }
+
+        // Main Content Component
+        function Content() {
+            const posts = [
+                {
+                    image: "../static/images/bird3.jpg",
+                },
+                {
+                    image: "../static/images/bird2.jpg",
+                },
+                {
+                    image: "../static/images/bird1.jpg",
+                }
+            ];
+
+            return (
+                <div className="content">
+                    {posts.map((post, index) => (
+                        <Post key={index} title={post.title} image={post.image} content={post.content} />
+                    ))}
+                </div>
+            );
+        }
+
+        // HomePage Component
+        function HomePage() {
+            return (
+                <div>
+                    <Header />
+                    <div className="container">
+                        <Sidebar />
+                        <Content />
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(domNode);
+        root.render(<HomePage />);
+    </script>
+</body>
+
+</html>
