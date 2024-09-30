@@ -160,3 +160,146 @@ body {
     white-space: nowrap;
     /* Prevent wrapping of text */
 }
+
+/*sidebar*/
+
+.events-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.event-item {
+    background-color:#f6f7f8;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius:5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-image-container {
+    position: relative;
+}
+
+.event-image {
+    width:100%;
+    border-radius:5px;
+    object-fit: cover;
+}
+
+.favorite-icon {
+    position:absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 20px;
+    color: red;
+    cursor:pointer;
+}
+
+.event-details {
+    padding-top: 10px;
+}
+
+.event-details h4 {
+    margin: 0 0 5px;
+    font-size:16px;
+    font-weight: bold;
+}
+
+.event-details p {
+    margin:0 ;
+    font-size: 14px;
+    color: #555;
+}
+
+
+/*navbar*/
+
+
+.navbar {
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #513e30; 
+    padding:10px 20px;
+}
+
+
+.navbar-left {
+    display:flex;
+    gap: 10px; 
+}
+
+/* Beige search bar */
+.beige-search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #f5e8d4; 
+    border-radius: 20px;
+    padding: 5px 10px;
+    width: 250px;
+}
+
+.beige-search-bar input{
+    border: none;
+    background:none ;
+    padding: 5px;
+    flex-grow:1;
+    color: black;
+    font-size: 14px;
+}
+
+.light-red-search-bar  input::placeholder,
+.beige-search-bar input::placeholder {
+    color: #000000;
+    opacity: 0.7;
+}
+.light-red-search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #d9a7a0; 
+    border-radius: 20px;
+    padding: 5px 10px;
+    width: 250px;
+}
+
+.light-red-search-bar input {
+    border:none;
+    background: none;
+    padding : 5px;
+    flex-grow: 1;
+    color: black;
+    font-size:14px;
+}
+
+.icon-left{
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.icon-right{
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+}
+
+
+.navbar-right{
+    display: flex;
+    align-items: center;
+}
+
+.navbar-right  .location-icon,
+.navbar-right .extra-icon {
+    margin-left: 10px;
+}
+
+
+.navbar-right img{
+    width:30px;
+    height:30px;
+    cursor: pointer;
+}
+
+
+
