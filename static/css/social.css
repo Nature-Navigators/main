@@ -4,19 +4,9 @@ body {
     background-color: #f6f7f8;
 }
 
-.header {
-    background-color: hsl(357, 70%, 5%);
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-}
-
 .container {
     display: flex;
     flex-direction: row-reverse;
-    /* Sidebar on the right */
     padding: 20px;
 }
 
@@ -38,129 +28,153 @@ body {
 .post {
     border-bottom: 1px solid #e6e6e6;
     padding: 10px 0;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     max-width: 50%;
-    /* Ensure posts take the same width as images */
     margin-left: auto;
-    /* Center posts if needed */
     margin-right: auto;
-    /* Center posts if needed */
+    font-size: medium;
 }
 
 .post-header {
     display: flex;
-    align-items: center;
-    /* Align items vertically */
-    background-color: #f6f7f8;
-    /* padding: 5px 10px; */
+    justify-content: flex-start;
+    align-items:center;
+    background-color: white;
     font-size: 14px;
     color: #333;
     width: 100%;
-    /* Make sure header takes the full width */
 }
 
-.post h3 {
-    margin: 10px 0 5px;
-}
-
-.post img {
-    width: 100%;
-    /* Make image full width of the post */
-    display: block;
-    margin: 10px 0;
-    /* Adjust margins as needed */
-}
-
-.post p {
-    margin: 5px 0;
-}
-
-.comment-box {
-    display: flex;
-    flex-direction: column;
-    margin-top: 10px;
-    border-top: 1px solid #e6e6e6;
-    padding-top: 10px;
-    max-width: 100%;
-    /* Ensure comment box is full width */
-}
-
-.comment-box textarea {
-    width: 100%;
-    /* Keep it at 100% of its container */
-    padding: 10px;
-    font-size: 14px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.comment-box button {
-    align-self: flex-start;
-    padding: 10px 20px;
-    background-color: #0079d3;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.comment-icons {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-}
-
-.comment-icons .icon {
-    margin-left: 10px;
-    font-size: 20px;
-    cursor: pointer;
-    border: 2px solid #0079d3;
-    border-radius: 50%;
-    padding: 5px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.profile-pic {
+    justify-self: start;
+    margin-left: 15px;
+    margin-right: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 40px  !important;
+    height: 40px !important;
+    object-fit: scale-down;
 }
 
 .profile-info {
     display: flex;
     align-items: center;
-    /* Align items vertically */
     width: 100%;
-    /* Make profile info take full width of the post */
     justify-content: flex-start;
-        /* Align items to the left */
-}
-
-.profile-pic {
-    justify-content: flex-start;
-    width: 40px;
-    height: 40px;
-    object-fit: scale-down;
-    /* Ensures the image scales properly within the circle */
-    margin-right: 5px;
-    /* Space between the image and text */
 }
 
 .profile-name-time {
     display: flex;
-    /* Use flex to align items in a row */
+    flex-direction: row;
     align-items: center;
-    /* Align items vertically */
-    width: calc(100% - 50px);
-    /* Adjust for profile picture width */
 }
 
 .profile-name {
+    font-weight: bold;
     margin-right: 5px;
-    /* Space between name and time */
 }
 
 .post-time {
+    font-size: 12px;
+    color: #666;
     white-space: nowrap;
-    /* Prevent wrapping of text */
+}
+.post img {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
 }
 
+.text-and-icons {
+    margin-bottom: 10px; 
+}
+
+.likes-and-icons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.likes {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+p {
+    margin: 0;
+}
+
+.post-icons {
+    display: flex;
+}
+
+.icon-button {
+    display: flex;
+    flex-direction: column;
+    font-size: large;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    opacity: 0.7;
+}
+
+/* comment section */
+.comment-section {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-top: 10px;
+    line-height: 2.4em;
+ }
+
+.comment-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.comment-input {
+    flex-grow: 1;
+    border: none;
+    border-bottom: 1px solid #e6e6e6;
+    background-color: transparent;
+    padding: 2px;
+    font-size: 16px;
+    outline: none;
+    resize: none;
+}
+.send-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.comments-list {
+    margin-bottom: 10px;
+}
+
+.comments-list p {
+    margin: 8px 0 !important;
+}
+
+.view-comments {
+    color: rgb(13, 120, 242);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.view-comments:hover {
+    text-decoration: none;
+}
+
+.comments-list p {
+    margin: 5px 0;
+}
 /*sidebar*/
 
 .events-list {
@@ -302,4 +316,4 @@ body {
 }
 
 
-
+/* <CommentSection comments= { comments } onAddComment= {addComment } /> */

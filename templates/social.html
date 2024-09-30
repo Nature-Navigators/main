@@ -100,85 +100,142 @@
             );
         }
 
-        // Comment Section Component
-        function CommentSection({ comments, onAddComment }) {
-            const [comment, setComment] = React.useState("");
-
+    function CommentSection({ comments, onAddComment, username }) {
+            const [comment, setComment] = React.useState(""); 
+            const [showAllComments, setShowAllComments] = React.useState(false); 
             const handleAddComment = () => {
-                if (comment.trim()) {
-                    onAddComment(comment);
-                    setComment("");
+                if (comment.trim() && username) { 
+                    onAddComment({ username, text: comment });
+                    setComment(""); 
                 }
             };
+
+            const displayedComments = showAllComments ? comments : comments.slice(0, 2);
 
             return (
                 <div>
                     <div className="comment-box">
-                        <textarea
+                        <input
+                            type="text"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Add a comment..."
+                            className="comment-input"
                         />
-                        <button onClick={handleAddComment}>Comment</button>
+                        <button onClick={handleAddComment} className="send-icon">
+                            <img src="../static/images/send.svg" alt="Send" />
+                        </button>
                     </div>
+
                     <div className="comments-list">
-                        {comments.map((c, index) => (
-                            <p key={index}>{c}</p>
+                        {displayedComments.map((c, index) => (
+                            <p key={index}>
+                                <strong>{c.username}:</strong> {c.text}
+                            </p>
                         ))}
                     </div>
+
+                    {/* if there are more than 2 comments, show "hide comments" option */}
+                    {comments.length > 2 && (
+                        <p className="view-comments" onClick={() => setShowAllComments(!showAllComments)}>
+                            {showAllComments ? `Hide comments` : `View all ${comments.length} comments`}
+                        </p>
+                    )}
                 </div>
             );
         }
 
-        // Post Component
-        function Post({ title, image, content }) {
-            const [comments, setComments] = React.useState([]);
+
+    function Post({ title, image, content, likes, comments, username }) {
+            const [commentList, setComments] = React.useState(comments || []);
 
             const addComment = (comment) => {
-                setComments([...comments, comment]);
+                setComments([...commentList, comment]);
             };
 
             return (
                 <div className="post">
                     <div className="post-header">
+                        <img src="../static/images/raven.png" alt="Profile Picture" className="profile-pic" />
+
                         <div className="profile-info">
-                            <img src="../static/images/raven.png" alt="Profile Picture" className="profile-pic" />
                             <div className="profile-name-time">
                                 <span className="profile-name">John Doe</span>
                                 <span className="post-time">• 2 hours ago</span>
                             </div>
                         </div>
                     </div>
-                    <h3>{title}</h3>
+
                     <img src={image} alt="Post Image" />
-                    <p>{content}</p>
-                    <CommentSection comments={comments} onAddComment={addComment} />
+
+                    <div className="post-info">
+                        <div className="text-and-icons">
+                            <div className="likes-and-icons">
+                                <div className="likes">{likes} likes</div>
+                                <div className="post-icons">
+                                    <button className="icon-button">🐤</button>
+                                    <button className="icon-button">📍</button>
+                                    <button className="icon-button">❤️</button>
+                                </div>
+                            </div>
+                            <p>{content}</p>
+                        </div>
+                    </div>
+
+                    <CommentSection comments={commentList} onAddComment={addComment} username={username} />
                 </div>
             );
         }
 
-        // Main Content Component
-        function Content() {
-            const posts = [
-                {
-                    image: "../static/images/bird3.jpg",
-                },
-                {
-                    image: "../static/images/bird2.jpg",
-                },
-                {
-                    image: "../static/images/bird1.jpg",
-                }
-            ];
 
-            return (
-                <div className="content">
-                    {posts.map((post, index) => (
-                        <Post key={index} title={post.title} image={post.image} content={post.content} />
-                    ))}
-                </div>
-            );
-        }
+    // Main Content Component
+    function Content() {
+        const posts = [
+            {
+                content: "Saw a blue bird",
+                image: "../static/images/bird3.jpg",
+                likes: 120,
+                comments: [
+                    { username: "Mike", text: "Beautiful!" },
+                    { username: "Anna", text: "Where was this?" },
+                    { username: "John", text: "Amazing shot!" }
+                ],
+            },
+            {
+                content: "Saw a kingfisher",
+                image: "../static/images/bird2.jpg",
+                likes: 85,
+                comments: [
+                    { username: "Sarah", text: "Wow!" },
+                    { username: "David", text: "Great capture!" }
+                ],
+            },
+            {
+                content: "Saw a red bird",
+                image: "../static/images/bird1.jpg",
+                likes: 42,
+                comments: [
+                    { username: "Emily", text: "Love the colors!" },
+                    { username: "Alex", text: "Such a rare sight!" }
+                ],
+            },
+        ];
+
+        return (
+            <div className="content">
+                {posts.map((post, index) => (
+                    <Post
+                        key={index}
+                        title={post.title}
+                        image={post.image}
+                        content={post.content}
+                        likes={post.likes}
+                        comments={post.comments}
+                    />
+                ))}
+            </div>
+        );
+    }
 
         // HomePage Component
         function HomePage() {
