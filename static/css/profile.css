@@ -151,6 +151,7 @@ body {
   
   /* ============================ pop up ===================================== */
   #gray_out {
+    visibility: hidden;
     background: rgba(0, 0, 0, 0.3);
     top: 0px;
     left: 0px;
@@ -159,6 +160,7 @@ body {
     height:100%;
   }
   .popup {
+    visibility:hidden;
     top: 10%;
     left: 25%;
     position:fixed;
