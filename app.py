@@ -19,6 +19,10 @@ def signin():
 def signup():
     return render_template("signup.html")
 
+@app.route('/profile')
+def profile():
+    return render_template("profile.html")
+
 @app.route('/bird')
 def bird():
     return render_template("bird.html")
