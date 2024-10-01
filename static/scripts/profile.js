@@ -1,4 +1,5 @@
 
+
 function showGallery() {
     document.getElementById('gallery').style.display = 'grid';
     document.getElementById('badges').style.display = 'none';
@@ -24,16 +25,20 @@ function hidePostPopup() {
     grayOut(false);
 }
 
+
 function grayOut(shouldGray)
 {
     if(shouldGray)
     {
         document.getElementById('gray_out').style.visibility = 'visible';
+        document.getElementsByTagName('body')[0].style.setProperty('overflow-y', 'hidden');
+
 
     }
     else
     {
         document.getElementById('gray_out').style.visibility = 'hidden';
+        document.getElementsByTagName('body')[0].style.setProperty('overflow-y', 'scroll');
 
     }
 }
