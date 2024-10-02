@@ -4,6 +4,7 @@ body {
     padding: 0;
     box-sizing: border-box;
     min-height: 100vh;
+    height:100%;
     font-family: "Poppins", sans-serif;
   }
   
@@ -24,15 +25,17 @@ body {
     background: url("/static/images/cute.jpg") no-repeat 50% 20% / cover;
     min-height: calc(100px + 5vw);
   }
-  
+
   .header .container .left_column {
     padding: 25px 20px;
     text-align: center;
     max-width: 100%;
     position: relative;
-    margin: auto;
+    
+   
+    
   }
-  
+
   .header .container .left_column .profile_pic {
     position: absolute;
     top: -60px;
@@ -362,7 +365,7 @@ body {
   @media (min-width: 1017px) {
     .header .container .left_column {
       margin: 0;
-      margin-right: auto;
+      margin-right: 30px;
     }
     .header .container .right_column nav {
       flex-direction: row;
