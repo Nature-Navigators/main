@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css')}}">
-    <script src="{{url_for('static', filename='scripts/profile.js')}}"></script>
     <title>Profile Page</title>
     <style>
         .badges {
@@ -18,11 +17,15 @@
         <div class="container">
           <div class="left_column">
             <div class="profile_pic">
-              <img src="/static/images/birder.jpeg"/>
+              <button>
+                <img src="/static/images/birder.jpeg"/>
+                
+              </button>
+              <p>Edit Profile</p>
               <span></span>
             </div>
-            <h2>Jane Doe</h2>
-            <p>Professional Photographer</p>
+            <h2 id="name">Jane Doe</h2>
+            <p id="title">Professional Photographer</p>
             <button>Follow</button>
             <ul class="about">
               <span>120 Followers</span>
@@ -98,20 +101,48 @@
           <div id="gray_out"></div>
 
         </div>
+
+        <!-- Popup for Adding a Post -->
         <div class="popup" id="add_post_popup">
           <button id="cancel_button" onclick="hidePostPopup()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
           <h1>Create a Post</h1>
 
           <div class="popup_body">
-            <div>
+            <div class="popup_upload_img_div">
               <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
               <h3>Upload an image</h3>
             </div>
-            <textarea placeholder="Write a caption here!"></textarea>
-            <button>Post</button>
+            <div class="text_div">
+              <textarea placeholder="Write a caption here!"></textarea>
+              <button>Post</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popup for Profile Editing -->
+        <div class="popup" id="edit_profile_popup">
+          <button id="cancel_button" onclick="hideProfilePopup()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
+          <h1>Edit Your Profile</h1>
+
+          <div class="popup_body">
+            <div class="popup_upload_img_div">
+              <h3>Profile Image</h3>
+              <button id="upload_profile_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
+            </div>
+            <div class="text_div" id="edit_profile_form">
+              <h3>Name</h3>
+              <input placeholder="Enter your name">
+              <h3>Title</h3>
+              <input placeholder="Enter your title">
+              <h3>Bio</h3>
+              <textarea placeholder="Edit your bio"></textarea>
+              <button>Save</button>
+            </div>
           </div>
         </div>
       </div>
- 
+      <script src="{{url_for('static', filename='scripts/profile.js')}}"></script>
+
 </body>
+
 </html>
