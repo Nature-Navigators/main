@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media</title>
+    <link rel="stylesheet" href="../static/css/social.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const domNode = document.getElementById('app');
+
+// Header Component
+        function Header() {
+            return (
+                <div className="header-container">
+                    <div className="logo">
+                        <img src="../static/images/raven.png" alt="Featherly Logo" />
+                        <h1>Featherly</h1>
+                    </div>
+                    <div className="search-bars">
+                        <div className="beige-search-bar">
+                            <i className="fas fa-search icon-left"></i>
+                            <input type="text" placeholder="Search" />
+                            <img src="../static/images/profile.png" alt="Profile Icon" className="icon-right" />
+                        </div>
+                        <div className="light-red-search-bar">
+                            <i className="fas fa-search icon-left"></i>
+                            <input type="text" placeholder="Search" />
+                            <img src="../static/images/birdicon.png" alt="Bird Icon" className="icon-right" />
+                        </div>
+                    </div>
+                    <nav className="nav-icons">
+                        <a href="/" title="Home"><i className="fas fa-home"></i></a>
+                        <a href="/map" title="Map"><i className="fas fa-map"></i></a>
+                        <a href="/profile" title="Profile"><i className="fa-solid fa-user"></i></a>
+                        <a href="/signin" title="Sign In"><i className="fas fa-sign-in-alt"></i></a>
+                    </nav>
+                </div>
+            );
+        }
+
+        // Sidebar Component
+        function Sidebar() {
+            const events = [
+            {
+                name: "Spring Bird Migration Walk",
+                date: "October 3,2024",
+                time: "8:00 AM",
+                location: "City Park, Denver",
+                image: "../static/images/birdevent1.jpg",
+            },{
+                name: "Bird Photography Workshop",
+                date:"October 10, 2024",
+                time:"10:00 AM",
+                location: "Central Botanical Gardens" ,
+                image: "../static/images/birdevent2.jpg",
+            },
+            {
+                name: "Birdwatching 101",
+                date:"October 14, 2024",
+                time: "9:30 AM",
+                location: "Riverwood Nature Reserve",
+                image: "../static/images/birdevent3.jpg",
+            },
+            {
+                name: "Falconry Experience",
+                date:"October 20, 2024",
+                time: "2:00 PM",
+                location: "Eagles Nest Sanctuary" ,
+                image: "../static/images/birdevent4.jpg",
+            }];
+            return (
+                <div className="sidebar">
+                <h2>Top Birding Events Near You</h2>
+                <ul className="events-list" >
+                    {events.map((event, index) => (
+                        <li key={index} className="event-item">
+                            <div className="event-image-container">
+                                <img src={event.image}  alt={event.name} className="event-image" />
+                                <span className= "favorite-icon">❤️</span>
+                            </div>
+                            <div className="event-details">
+                                <h4>{event.name} </h4>
+                                <p>{event.date} at {event.time}</p>
+                                <p>{event.location}</p>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            );
+        }
+
+    function CommentSection({ comments, onAddComment, username }) {
+            const [comment, setComment] = React.useState(""); 
+            const [showAllComments, setShowAllComments] = React.useState(false); 
+            const handleAddComment = () => {
+                if (comment.trim() && username) { 
+                    onAddComment({ username, text: comment });
+                    setComment(""); 
+                }
+            };
+
+            const displayedComments = showAllComments ? comments : comments.slice(0, 2);
+
+            return (
+                <div>
+                    <div className="comment-box">
+                        <input
+                            type="text"
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Add a comment..."
+                            className="comment-input"
+                        />
+                        <button onClick={handleAddComment} className="send-icon">
+                            <img src="../static/images/send.svg" alt="Send" />
+                        </button>
+                    </div>
+
+                    <div className="comments-list">
+                        {displayedComments.map((c, index) => (
+                            <p key={index}>
+                                <strong>{c.username}:</strong> {c.text}
+                            </p>
+                        ))}
+                    </div>
+
+                    {/* if there are more than 2 comments, show "hide comments" option */}
+                    {comments.length > 2 && (
+                        <p className="view-comments" onClick={() => setShowAllComments(!showAllComments)}>
+                            {showAllComments ? `Hide comments` : `View all ${comments.length} comments`}
+                        </p>
+                    )}
+                </div>
+            );
+        }
+
+
+    function Post({ title, image, content, likes, comments, username }) {
+            const [commentList, setComments] = React.useState(comments || []);
+
+            const addComment = (comment) => {
+                setComments([...commentList, comment]);
+            };
+
+            return (
+                <div className="post">
+                    <div className="post-header">
+                        <img src="../static/images/raven.png" alt="Profile Picture" className="profile-pic" />
+
+                        <div className="profile-info">
+                            <div className="profile-name-time">
+                                <span className="profile-name">John Doe</span>
+                                <span className="post-time">• 2 hours ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <img src={image} alt="Post Image" />
+
+                    <div className="post-info">
+                        <div className="text-and-icons">
+                            <div className="likes-and-icons">
+                                <div className="likes">{likes} likes</div>
+                                <div className="post-icons">
+                                    <button className="icon-button">🐤</button>
+                                    <button className="icon-button">📍</button>
+                                    <button className="icon-button">❤️</button>
+                                </div>
+                            </div>
+                            <p>{content}</p>
+                        </div>
+                    </div>
+
+                    <CommentSection comments={commentList} onAddComment={addComment} username={username} />
+                </div>
+            );
+        }
+
+
+    // Main Content Component
+    function Content() {
+        const posts = [
+            {
+                content: "Saw a blue bird",
+                image: "../static/images/bird3.jpg",
+                likes: 120,
+                comments: [
+                    { username: "Mike", text: "Beautiful!" },
+                    { username: "Anna", text: "Where was this?" },
+                    { username: "John", text: "Amazing shot!" }
+                ],
+            },
+            {
+                content: "Saw a kingfisher",
+                image: "../static/images/bird2.jpg",
+                likes: 85,
+                comments: [
+                    { username: "Sarah", text: "Wow!" },
+                    { username: "David", text: "Great capture!" }
+                ],
+            },
+            {
+                content: "Saw a red bird",
+                image: "../static/images/bird1.jpg",
+                likes: 42,
+                comments: [
+                    { username: "Emily", text: "Love the colors!" },
+                    { username: "Alex", text: "Such a rare sight!" }
+                ],
+            },
+        ];
+
+        return (
+            <div className="content">
+                {posts.map((post, index) => (
+                    <Post
+                        key={index}
+                        title={post.title}
+                        image={post.image}
+                        content={post.content}
+                        likes={post.likes}
+                        comments={post.comments}
+                    />
+                ))}
+            </div>
+        );
+    }
+
+        // HomePage Component
+        function HomePage() {
+            return (
+                <div>
+                    <Header />
+                    <div className="container">
+                        <Sidebar />
+                        <Content />
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(domNode);
+        root.render(<HomePage />);
+    </script>
+</body>
+
+</html>

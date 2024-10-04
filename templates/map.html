@@ -8,12 +8,15 @@
 </head>
 <body>
     <div class="header">   
-        Featherly
+    </div>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
+        <h1>Featherly</h1>
     </div>
     <nav class="nav-icons">
         <a href="/" title="Home"><i class="fas fa-home"></i></a>
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
-        <a href="" title="Social Media"><i class="fa-solid fa-users"></i></a>
+        <a href="/social" title="Social Media"><i class="fa-solid fa-users"></i></a>
         <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
     </nav>
     <div class="container">

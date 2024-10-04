@@ -23,6 +23,10 @@ def signup():
 def profile():
     return render_template("profile.html")
 
+@app.route('/social')
+def social():
+    return render_template("social.html")
+
 @app.route('/bird')
 def bird():
     return render_template("bird.html")

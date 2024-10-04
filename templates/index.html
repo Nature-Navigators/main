@@ -52,7 +52,9 @@
                     <h3>Social Media</h2>
                     <p>Talk about and post pictures of all the birds you see!</p>
                 </div>
-                <button>Go!</button>
+                <form action="{{ url_for('social') }}" method="get">
+                    <button type="submit">Go!</button>
+                </form>
             </div>
             
         </div>
