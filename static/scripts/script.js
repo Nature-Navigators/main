@@ -86,6 +86,7 @@ window.onload = onLoad;
 function onLoad() {
     createRectangles();
     adjustWidth();
+    getLocation();
 }
 
 
@@ -99,3 +100,25 @@ function adjustWidth() {
 }
 
 window.onresize = adjustWidth;
+
+let userLatitude = null;
+let userLongitude = null;
+
+function getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(storePosition);
+    } else {
+      console.log("Geolocation is not supported by this browser.");
+    }
+}
+  
+// Right now we just store it to use to route map and make API call with lat and long
+function storePosition(position) {
+    userLatitude = position.coords.latitude;
+    userLongitude = position.coords.longitude;
+    localStorage.setItem('userLatitude', userLatitude);
+    localStorage.setItem('userLongitude', userLongitude);
+    // POPUP JUST TO PROVE IT'S WORKING
+    // REMOVE WHEN IMPLEMENTED
+    alert(`Latitude: ${userLatitude}, Longitude: ${userLongitude}`);
+}
