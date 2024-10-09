@@ -73,6 +73,16 @@ function hidePostPopup() {
     grayOut(false);
 }
 
+function showSocialPost() {
+    document.getElementById("post_popup").style.visibility = 'visible';
+    grayOut(true);
+}
+
+function hideSocialPost() {
+    document.getElementById("post_popup").style.visibility = 'hidden';
+    grayOut(false);
+
+}
 
 function grayOut(shouldGray)
 {

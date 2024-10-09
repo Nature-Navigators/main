@@ -321,7 +321,7 @@ body {
     font-family: sans-serif;
     font-size: 0.9rem;
   }
-  .popup button {
+  .popup .profile_button {
     background: #0091ff;
     color: #fff;
     border: none;
@@ -331,7 +331,7 @@ body {
     margin-top: 20px;
   }
   .popup button:hover {
-    opacity: 0.8;
+    opacity: 0.7;
   }
 
   /* ============================== Responsiveness ================================================== */

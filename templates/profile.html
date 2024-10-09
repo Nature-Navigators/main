@@ -36,7 +36,7 @@
             </div>
             <h2 id="name">Jane Doe</h2>
             <p id="title">Professional Photographer</p>
-            <button>Follow</button>
+            <button class="profile_button">Follow</button>
             <ul class="about">
               <span>120 Followers</span>
               <span>322 Following</span>
@@ -58,7 +58,7 @@
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
             </nav>
             <div class="photos" id="gallery">
-              <img src="/static/images/bird1.jpg" alt="Photo" />
+              <button onclick="showSocialPost()"><img src="/static/images/bird1.jpg" alt="Photo" /></button>
               <img src="/static/images/bird2.jpg" alt="Photo" />
               <img src="/static/images/bird3.jpg" alt="Photo" />
               <img src="/static/images/bird4.jpg" alt="Photo" />
@@ -120,7 +120,7 @@
             </div>
             <div class="text_div">
               <textarea placeholder="Write a caption here!"></textarea>
-              <button>Post</button>
+              <button class="profile_button">Post</button>
             </div>
           </div>
         </div>
@@ -142,11 +142,15 @@
               <input placeholder="Enter your title">
               <h3>Bio</h3>
               <textarea placeholder="Edit your bio"></textarea>
-              <button onclick="saveProfileEdits()">Save</button>
+              <button class="profile_button" onclick="saveProfileEdits()">Save</button>
             </div>
           </div>
         </div>
+
+        {% include "post_popup.html" with context %}
+
       </div>
+
       <script src="{{url_for('static', filename='scripts/profile.js')}}"></script>
 
 </body>
