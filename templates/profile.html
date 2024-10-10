@@ -58,7 +58,10 @@
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
             </nav>
             <div class="photos" id="gallery">
-              <button onclick="showSocialPost()"><img src="/static/images/bird1.jpg" alt="Photo" /></button>
+              <!-- the tojson and e filter automatically sanitizes any dangerous code -->
+              {% for post in socialPosts %}
+                <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
+              {% endfor %}
               <img src="/static/images/bird2.jpg" alt="Photo" />
               <img src="/static/images/bird3.jpg" alt="Photo" />
               <img src="/static/images/bird4.jpg" alt="Photo" />

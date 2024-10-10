@@ -73,9 +73,21 @@ function hidePostPopup() {
     grayOut(false);
 }
 
-function showSocialPost() {
-    document.getElementById("post_popup").style.visibility = 'visible';
-    grayOut(true);
+function showSocialPost(postString) {
+
+    if(postString != null && postString != "")
+    {
+        let postJson = JSON.parse(postString);
+        //adjust the post popup's DOM 
+        document.getElementById("post_image").src = postJson["image"];
+        document.getElementById("post_likes").innerText = postJson["likes"] + " likes";
+        document.getElementById("post_content").innerText = postJson["content"];
+
+        //make it visible
+        document.getElementById("post_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
 }
 
 function hideSocialPost() {
