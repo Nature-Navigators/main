@@ -1,7 +1,9 @@
 from flask import Flask, render_template
+from temp_data import *
 # from markupsafe import Markup
 
 app = Flask(__name__)
+
 
 @app.route('/')
 def index():
@@ -21,7 +23,12 @@ def signup():
 
 @app.route('/profile')
 def profile():
-    return render_template("profile.html")
+    context = {
+        "socialPosts": socialPosts,
+        "events": events,
+        "badges": badges
+    }
+    return render_template("profile.html", **context)
 
 @app.route('/social')
 def social():
