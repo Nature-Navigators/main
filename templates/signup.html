@@ -24,17 +24,23 @@
             <div class="form-box">
                 <h2>Come find your nest.</h2>
                 <img class="nest" src="{{ url_for('static', filename='images/nest.png') }}" alt="Image">
-                <form>
-                    <input type="text" placeholder="Email" required>
-                    <input type="text" placeholder="Username" required>
-                    <input type="password" placeholder="Password" required>
-                    <button class="sign-up-button">Sign Up</button>
+            
+                <form id="signin-form" method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    {{ form.email }}
+                    {{ form.username }}
+                    {{ form.password }}
+                    <button id="button">Sign Up</button>
+                    <script>
+                        document.getElementById("button").addEventListener("click", function () {
+                            document.getElementById("signin-form").submit();
+                        });
+                    </script>
+                    
                     <p class="link"><a href="/signin">Already have an account?</a></p>
-
                 </form>
             </div>
         </div>
     </div>
 </body>
-
 </html>
