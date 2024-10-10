@@ -118,7 +118,24 @@ function storePosition(position) {
     userLongitude = position.coords.longitude;
     localStorage.setItem('userLatitude', userLatitude);
     localStorage.setItem('userLongitude', userLongitude);
+    processLocation(userLatitude,userLongitude);
     // POPUP JUST TO PROVE IT'S WORKING
     // REMOVE WHEN IMPLEMENTED
     alert(`Latitude: ${userLatitude}, Longitude: ${userLongitude}`);
+}
+
+function processLocation(latitude, longitude){
+    fetch('/update_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ latitude, longitude })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('map').innerHTML = data.mapHtml;
+    })
+    .catch(error => console.error('Error:', error));
+
 }

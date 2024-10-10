@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
+import folium
 from temp_data import *
 # from markupsafe import Markup
 
@@ -12,6 +13,22 @@ def index():
 @app.route('/map')
 def map():
     return render_template("map.html")
+
+@app.route('/update_location', methods=['POST'])
+def update_location():
+    data = request.get_json()
+    latitude = data['latitude']
+    longitude = data['longitude']
+
+    #Create Folium map at user's location
+    m = folium.Map(location=[latitude, longitude], zoom_start=13)
+    folium.Marker([latitude, longitude], tooltip='Your Location').add_to(m)
+
+    #Get HTML of map
+    map_html = m._repr_html_()
+
+    #return HTML in JSON format
+    return jsonify(mapHtml=map_html)
 
 @app.route('/signin')
 def signin():
