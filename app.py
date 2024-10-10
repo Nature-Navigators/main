@@ -37,19 +37,24 @@ class SignUpForm(FlaskForm):
             raise ValidationError("Email already exists. Use another email address.")
 
 class SignInForm(FlaskForm):
+    email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(
         min=4, max=20)], render_kw={"placeholder":"Username"})
     password = PasswordField(validators=[InputRequired(), Length(
         min=4, max=20)], render_kw={"placeholder": "Password"}) 
     submit = SubmitField("Login")     
 
-def val_user(self, username):
-    exists_user = User.query.filter_by(
-        username=username.data).first()
-    
-    if exists_user(self, username):
-        raise ValidationError(
-            "Username already exists. Select new username")
+    def val_user(self, username):
+        exists_user = User.query.filter_by(
+            username=username.data).first()
+        
+        if exists_user(self, username):
+            raise ValidationError(
+                "Username already exists. Select new username")
+    def validate_email(self, email):
+        exists_email = User.query.filter_by(email=email.data).first()
+        if exists_email:
+            raise ValidationError("Email already exists. Use another email address.")
     
 @app.route('/')
 def index():
@@ -62,6 +67,13 @@ def map():
 @app.route('/signin', methods=['GET','POST'])
 def signin():
     form = SignInForm()
+    if form.validate_on_submit():
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        new_user = User(email=form.email.data, username=form.username.data, password=hashed_passwd)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('profile'))
     return render_template("signin.html", form=form)
 
 @app.route('/signup', methods=['GET', 'POST'])
