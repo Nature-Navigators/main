@@ -24,13 +24,22 @@
             <div class="form-box">
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
-                <form>
-                    <input type="text" placeholder="Username" required>
-                    <input type="password" placeholder="Password" required>
-                    <button class="sign-in-button">Sign In</button>
+                
+                    <form id="signin-form" method="POST" action="">
+                        {{ form.hidden_tag() }} 
+                        {{ form.email }}
+                        {{ form.username }}
+                        {{ form.password }}
+                   
+                    <button id="sign-in-button">Sign In</button>
+                    <script>
+                        document.getElementById("sign-in-button").addEventListener("click", function () {
+                            document.getElementById("signin-form").submit();
+                        });
+                    </script>
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="">Forgot password?</a></p>
-                </form>
+                    </form>
             </div>
         </div>
     </div>
