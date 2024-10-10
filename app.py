@@ -24,7 +24,8 @@ def signup():
 @app.route('/profile')
 def profile():
     context = {
-        "socialPosts": socialPosts
+        "socialPosts": socialPosts,
+        "events": events
     }
     return render_template("profile.html", **context)
 

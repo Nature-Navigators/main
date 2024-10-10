@@ -53,7 +53,7 @@
               <ul id = "mini_nav">
                 <li><a href="#" onclick="showGallery()">Gallery</a></li>
                 <li><a href="#" onclick="showBadges()">Badges</a></li>
-                <li><a href="">Saved Events</a></li>
+                <li><a href="#" onclick="showEvents()">Saved Events</a></li>
               </ul>
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
             </nav>
@@ -105,6 +105,25 @@
                   <li>Photography Badge</li>
                   <li>Conservation Advocate Badge</li>
                 </ul>
+            </div>
+            <div class="saved_events" id="events"> 
+              <h3>My Saved Events</h3>
+              <div id="event_holder">
+                {% for event in events %}
+                <div class="event_img_details">
+                  <div class="event-image-container">
+                      <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
+                      <span class= "favorite-icon">❤️</span>
+                  </div>
+                  <div class="event-details">
+                      <h4>{{event.name|e}}</h4>
+                      <p>{{event.date|e}} at {{event.time|e}}</p>
+                      <p>{{event.location|e}}</p>
+                  </div>
+                </div>
+                {%endfor%}
+              </div>
+
             </div>
           </div>
           <div id="gray_out"></div>

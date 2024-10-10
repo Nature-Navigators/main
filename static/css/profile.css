@@ -161,6 +161,9 @@ body {
   .header .container .left_column nav button:hover {
     opacity: 0.8;
   }
+
+  /* gallery */
+
   .header .container .right_column .photos {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -183,6 +186,29 @@ body {
 
       opacity: 0.7;
       
+  }
+
+  /* events container */
+
+  .header .container .right_column #events {
+    display:none;
+  }
+
+  .header .container .right_column #event_holder {
+    display:flex;
+    flex-direction: column;
+    align-items: first baseline;
+    width: 100%;
+  }
+
+  .header .container .right_column .event_img_details {
+    display: flex;
+    width: 100%;
+    gap: 1em;
+    flex-direction: row;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+    border-bottom: 2px solid #bababa;
   }
   
   /* ============================ pop up ===================================== */
@@ -344,6 +370,57 @@ body {
   }
   .popup button:hover {
     opacity: 0.7;
+  }
+
+  /* ========================= Events  =================================== */
+    
+  .events-list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .event-item {
+    background-color: #f6f7f8;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .event-image-container {
+    position: relative;
+    width: 15em;
+  }
+
+  .event-image {
+    width: 100%;
+    border-radius: 5px;
+    object-fit: cover;
+  }
+
+  .favorite-icon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 20px;
+    color: red;
+    cursor: pointer;
+  }
+
+  .event-details {
+    padding-top: 10px;
+  }
+
+  .event-details h4 {
+    margin: 0 0 5px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .event-details p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
   }
 
   /* ============================== Responsiveness ================================================== */

@@ -51,6 +51,7 @@ function hideProfilePopup() {
 function showGallery() {
     document.getElementById('gallery').style.display = 'grid';
     document.getElementById('badges').style.display = 'none';
+    document.getElementById('events').style.display = 'none';
 
     changeBoldedNav(0);
   }
@@ -59,8 +60,17 @@ function showGallery() {
 function showBadges() {
     document.getElementById('badges').style.display = 'block';
     document.getElementById('gallery').style.display = 'none';
+    document.getElementById('events').style.display = 'none';
 
     changeBoldedNav(1);
+}
+
+function showEvents() {
+    document.getElementById('events').style.display = 'block';
+    document.getElementById('gallery').style.display = 'none';
+    document.getElementById('badges').style.display = 'none';
+
+    changeBoldedNav(2);
 }
 
 function showPostPopup() {
