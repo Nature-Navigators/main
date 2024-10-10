@@ -106,6 +106,26 @@ function hideSocialPost() {
 
 }
 
+function showEventPopup(eventString)
+{
+    if(eventString != null && eventString != "")
+    {
+        let eventJson = JSON.parse(eventString);
+        //adjust the post popup's DOM 
+     
+        //make it visible
+        document.getElementById("event_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
+}
+function hideEventPopup()
+{
+    document.getElementById("event_popup").style.visibility = 'hidden';
+    grayOut(false);
+
+}
+
 function grayOut(shouldGray)
 {
     if(shouldGray)
