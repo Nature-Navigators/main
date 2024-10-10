@@ -6,11 +6,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Profile Page</title>
-    <style>
-        .badges {
-            display: none; /* hide badges initially */
-        }
-    </style>
 </head>
 <body>
     <div class="header">
@@ -100,11 +95,20 @@
             </div>
             <div class="badges" id="badges">
               <h3>My Badges</h3>
-                <ul>
-                  <li>Birdwatcher Badge</li>
-                  <li>Photography Badge</li>
-                  <li>Conservation Advocate Badge</li>
-                </ul>
+              <div id="badge_holder">
+                {% for badge in badges %}
+                <div class="badge_img_details">
+                  <div class="badge_img_container">
+                    <img src="{{badge.image|e}}" alt="badge image" class="badge_image"/>
+                  </div>
+                    <span>
+                      <h4>{{badge.name|e}}</h4>
+                      <p>{{badge.description|e}}</p>
+                    </span>
+                </div>
+                {% endfor %}
+              </div>
+                
             </div>
             <div class="saved_events" id="events"> 
               <h3>My Saved Events</h3>

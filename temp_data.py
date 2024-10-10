@@ -31,6 +31,19 @@ socialPosts = [
     },
 ]
 
+badges = [
+    {
+        "name": "Bird Photographer",
+        "image": "../static/images/raven.png",
+        "description": "Posted 5 pictures of birds."
+    },
+    {
+        "name": "Bird Song",
+        "image": "../static/images/raven.png",
+        "description": "Posted 5 comments."
+    }
+]
+
 events = [
     {
         "name": "Spring Bird Migration Walk",

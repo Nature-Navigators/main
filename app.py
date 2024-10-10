@@ -25,7 +25,8 @@ def signup():
 def profile():
     context = {
         "socialPosts": socialPosts,
-        "events": events
+        "events": events,
+        "badges": badges
     }
     return render_template("profile.html", **context)
 
