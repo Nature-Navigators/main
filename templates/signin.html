@@ -31,12 +31,13 @@
                         {{ form.username }}
                         {{ form.password }}
                    
-                    <button id="sign-in-button">Sign In</button>
+                    <button id="button">Sign In</button>
                     <script>
-                        document.getElementById("sign-in-button").addEventListener("click", function () {
+                        document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
+                    
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="">Forgot password?</a></p>
                     </form>

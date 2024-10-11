@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect
 # from markupsafe import Markup
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import Email, InputRequired, Length, ValidationError
@@ -12,6 +12,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/nike/Downloads/organiz
 app.config['SECRET_KEY'] = 'summakey'
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -44,17 +52,17 @@ class SignInForm(FlaskForm):
         min=4, max=20)], render_kw={"placeholder": "Password"}) 
     submit = SubmitField("Login")     
 
-    def val_user(self, username):
+    def validate_username(self, username):
         exists_user = User.query.filter_by(
             username=username.data).first()
-        
-        if exists_user(self, username):
-            raise ValidationError(
-                "Username already exists. Select new username")
+        if not exists_user:
+            raise ValidationError("Username does not exist.")
+    
     def validate_email(self, email):
         exists_email = User.query.filter_by(email=email.data).first()
-        if exists_email:
-            raise ValidationError("Email already exists. Use another email address.")
+        if not exists_email:
+            raise ValidationError("Username does not exist.")
+        
     
 @app.route('/')
 def index():
@@ -68,13 +76,19 @@ def map():
 def signin():
     form = SignInForm()
     if form.validate_on_submit():
-        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        new_user = User(email=form.email.data, username=form.username.data, password=hashed_passwd)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('profile'))
+        user = User.query.filter_by(username=form.username.data, email=form.email.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user)
+                return redirect(url_for('profile'))
+            else:
+                form.username.errors.append('Invalid username or password')
+                return render_template("signin.html", form=form)
     return render_template("signin.html", form=form)
+   
+def signout():
+    logout_user()
+    return redirect(url_for('signin'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -92,7 +106,7 @@ def signup():
 @app.route('/profile')
 def profile():
     return render_template("profile.html")
-
+@login_required
 @app.route('/social')
 def social():
     return render_template("social.html")
