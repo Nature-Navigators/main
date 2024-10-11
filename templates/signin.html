@@ -37,7 +37,11 @@
                             document.getElementById("signin-form").submit();
                         });
                     </script>
-                    
+                    {% if form.errors %}
+                    <script>
+                        alert("User does not exist!");
+                    </script>
+                    {% endif %}
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="">Forgot password?</a></p>
                     </form>

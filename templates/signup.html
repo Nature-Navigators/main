@@ -36,7 +36,11 @@
                             document.getElementById("signin-form").submit();
                         });
                     </script>
-                    
+                    {% if form.errors %}
+                    <script>
+                        alert("{{ form.errors.username[0] if 'username' in form.errors else '' }} {{ form.errors.email[0] if 'email' in form.errors else '' }}");
+                    </script>
+                    {% endif %}
                     <p class="link"><a href="/signin">Already have an account?</a></p>
                 </form>
             </div>

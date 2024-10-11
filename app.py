@@ -61,7 +61,7 @@ class SignInForm(FlaskForm):
     def validate_email(self, email):
         exists_email = User.query.filter_by(email=email.data).first()
         if not exists_email:
-            raise ValidationError("Username does not exist.")
+            raise ValidationError("Email does not exist.")
         
     
 @app.route('/')
@@ -73,19 +73,40 @@ def map():
     return render_template("map.html")
 
 @app.route('/signin', methods=['GET','POST'])
+# def signin():
+#     form = SignInForm()
+#     if form.validate_on_submit():
+#         user = User.query.filter_by(username=form.username.data, email=form.email.data).first()
+#         if user:
+#             if bcrypt.check_password_hash(user.password, form.password.data):
+#                 login_user(user)
+#                 return redirect(url_for('profile'))
+#             else:
+#                 raise ValidationError("Incorrect password.")
+                
+#         else:
+#             raise ValidationError("Invalid username or email.")
+
+#     return render_template("signin.html", form=form)
 def signin():
     form = SignInForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data, email=form.email.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
-                login_user(user)
-                return redirect(url_for('profile'))
+        try:
+            user = User.query.filter_by(username=form.username.data, email=form.email.data).first()
+            if user:
+                if not bcrypt.check_password_hash(user.password, form.password.data):
+                    raise ValidationError("Incorrect password.")
+                else:
+                    login_user(user)
+                    return redirect(url_for('profile'))
             else:
-                form.username.errors.append('Invalid username or password')
-                return render_template("signin.html", form=form)
+                raise ValidationError("Invalid username or email.")
+        except ValidationError as e:
+            form.username.errors.append(e.args[0])  
+            return render_template("signin.html", form=form)
     return render_template("signin.html", form=form)
-   
+
+
 def signout():
     logout_user()
     return redirect(url_for('signin'))
