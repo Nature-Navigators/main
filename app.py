@@ -6,9 +6,11 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import Email, InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
+from itsdangerous import URLSafeTimedSerializer as Serializer
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/nike/Downloads/organized/UF/UF_coursework/SENIOR_PROJ/main/database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../database.db'
 app.config['SECRET_KEY'] = 'summakey'
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -16,6 +18,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -43,7 +46,7 @@ class SignUpForm(FlaskForm):
         exists_email = User.query.filter_by(email=email.data).first()
         if exists_email:
             raise ValidationError("Email already exists. Use another email address.")
-
+        
 class SignInForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(
