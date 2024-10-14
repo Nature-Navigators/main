@@ -7,11 +7,13 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #eaeaea;
+    overflow: hidden;
 }
 
 .container {
     display: flex;
-    height: 100vh;
+    /* height: 100vh; */
+    height: calc(100vh - 70px);
     flex-wrap: wrap; 
 }
 
@@ -22,19 +24,21 @@ body {
 }
 
 #map {
-    height: 50%; 
+    padding-top: 5%;
+    height: 100%; 
     width: 100%; 
     object-fit: cover;
 }
 
 .list-section {
+    height: calc(100vh - 70px);
     flex: 2; 
     overflow-y: auto; 
     background-color: #f0f0f0; 
     padding: 10px; 
     margin-top: 60px;
     height: 100%;
-    overflow: scroll;
+    /* overflow: scroll; */
 }
 
 .scrollable-list {
@@ -204,4 +208,25 @@ body {
 
 .nav-icons a:hover {
     color: #ddd;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.pagination-container button {
+    background-color: #007bff; 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    margin: 0 5px; 
+    border-radius: 5px; 
+    cursor: pointer;
+}
+
+.pagination-container button:disabled {
+    background-color: #ccc; 
+    cursor: not-allowed; 
 }
