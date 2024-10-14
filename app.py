@@ -1,4 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
+from sqlalchemy import select
+from db import db
+from db_models import Profile
 import requests
 import folium
 import os
@@ -8,6 +11,8 @@ from urllib.parse import quote
 # from markupsafe import Markup
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+db.init_app(app) # to add app to SQLAlchemy()
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
@@ -132,6 +137,54 @@ def signin():
 def signup():
     return render_template("signup.html")
 
+@app.route('/profile/<profile_id>', methods=['POST', 'GET'])
+def profile_id(profile_id):
+  
+    profile_path = "/profile/" + profile_id
+
+    # post happens on "edit profile" submit
+    if request.method == 'POST':
+        new_name = request.form["name"]
+        new_profile = Profile(id=profile_id, name=new_name)
+
+        #add the profile to the database
+        try:
+            # TODO: adjust when we have users & logged-in users in the DB
+
+            # try to get the current profile from the DB based on 
+            try:
+                current_profile = db.session.get(Profile, profile_id)
+                current_profile.name = new_name
+                db.session.commit()
+                return redirect(profile_path)
+            
+            # it didn't exist, so add it to the DB
+            except:
+                db.session.add(new_profile)
+                db.session.commit()
+                return redirect(profile_path)
+        
+        #any additional errors
+        except Exception as error:
+            print(error)
+            return "There was an issue editing your profile"
+        
+    # page is loaded normally
+    else:
+        # get the profile by its id (primary key)
+        profile_details = db.session.get(Profile, profile_id)
+
+        context = {
+            "socialPosts": socialPosts,
+            "events": events,
+            "badges": badges,
+            "id" : profile_id,
+            "profile": profile_details
+        }
+        return render_template("profile.html", **context)
+
+
+# TODO: delete me
 @app.route('/profile')
 def profile():
     context = {
@@ -140,6 +193,8 @@ def profile():
         "badges": badges
     }
     return render_template("profile.html", **context)
+
+  
 
 @app.route('/social')
 def social():

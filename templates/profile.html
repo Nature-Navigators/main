@@ -29,7 +29,7 @@
               <p>Edit Profile</p>
               <span></span>
             </div>
-            <h2 id="name">Jane Doe</h2>
+            <h2 id="name">{{profile.name}}</h2>
             <p id="title">Professional Photographer</p>
             <button class="profile_button">Follow</button>
             <ul class="about">
@@ -158,20 +158,22 @@
           <h1>Edit Your Profile</h1>
 
           <div class="popup_body">
+          <form action="/profile/{{id}}" method="POST">
             <div class="popup_upload_img_div">
               <h3>Profile Image</h3>
               <button id="upload_profile_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>
-              <input placeholder="Enter your name">
+              <input name="name" placeholder="Enter your name">
               <h3>Title</h3>
-              <input placeholder="Enter your title">
+              <input name="title" placeholder="Enter your title">
               <h3>Bio</h3>
-              <textarea placeholder="Edit your bio"></textarea>
+              <textarea name="bio" placeholder="Edit your bio"></textarea>
               <button class="profile_button" onclick="saveProfileEdits()">Save</button>
             </div>
           </div>
+          </form>
         </div>
 
         {% include "post_popup.html" with context %}
