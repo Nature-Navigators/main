@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page is loaded and ready.');
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            getCoordinates(this.value);
+        }
+    });
 });
 
 let bird_data = [];
@@ -33,6 +38,22 @@ function getLocation() {
     }
 }
 
+function getCoordinates(address) {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'OK') {
+                userLatitude = data.results[0].geometry.location.lat;
+                userLongitude = data.results[0].geometry.location.lng;
+                processLocation(userLatitude, userLongitude);
+            } else {
+                console.error('Geocoding failed: ' + data.status);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
 function storePosition(position) {
     userLatitude = position.coords.latitude;
     userLongitude = position.coords.longitude;
@@ -40,6 +61,7 @@ function storePosition(position) {
     localStorage.setItem('userLongitude', userLongitude);
     processLocation(userLatitude, userLongitude);
 }
+
 
 let currentPage = 1;
 const pageSize = 10;
@@ -55,7 +77,6 @@ function processLocation(latitude, longitude) {
     .then(response => response.json())
     .then(data => {
         document.getElementById('map').innerHTML = data.mapHtml;
-
         bird_data = data.birdData;
         createRectangles();
         updatePagination();
