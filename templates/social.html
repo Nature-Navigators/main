@@ -12,6 +12,29 @@
 <body>
     <div id="app"></div>
 
+    <div class="sidebar">
+        <div class="events" id="events"> 
+            <h3>Top Events</h3>
+            <div id="event_holder">
+              {% for event in events %}
+              <div class="event_img_details">
+                <div class="event-image-container">
+                    <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
+                    <span class= "favorite-icon">❤️</span>
+                </div>
+                <div class="event-details">
+                    <h4>{{event.name|e}}</h4>
+                    <p>{{event.date|e}} at {{event.time|e}}</p>
+                    <p>{{event.location|e}}</p>
+                    <button onclick="showEventPopup('{{event|tojson|forceescape}}')">Details</button>
+                </div>
+              </div>
+              {%endfor%}
+            </div>
+
+          </div>
+    </div>
+
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -49,57 +72,7 @@
             );
         }
 
-        // Sidebar Component
-        function Sidebar() {
-            const events = [
-            {
-                name: "Spring Bird Migration Walk",
-                date: "October 3,2024",
-                time: "8:00 AM",
-                location: "City Park, Denver",
-                image: "../static/images/birdevent1.jpg",
-            },{
-                name: "Bird Photography Workshop",
-                date:"October 10, 2024",
-                time:"10:00 AM",
-                location: "Central Botanical Gardens" ,
-                image: "../static/images/birdevent2.jpg",
-            },
-            {
-                name: "Birdwatching 101",
-                date:"October 14, 2024",
-                time: "9:30 AM",
-                location: "Riverwood Nature Reserve",
-                image: "../static/images/birdevent3.jpg",
-            },
-            {
-                name: "Falconry Experience",
-                date:"October 20, 2024",
-                time: "2:00 PM",
-                location: "Eagles Nest Sanctuary" ,
-                image: "../static/images/birdevent4.jpg",
-            }];
-            return (
-                <div className="sidebar">
-                <h2>Top Birding Events Near You</h2>
-                <ul className="events-list" >
-                    {events.map((event, index) => (
-                        <li key={index} className="event-item">
-                            <div className="event-image-container">
-                                <img src={event.image}  alt={event.name} className="event-image" />
-                                <span className= "favorite-icon">❤️</span>
-                            </div>
-                            <div className="event-details">
-                                <h4>{event.name} </h4>
-                                <p>{event.date} at {event.time}</p>
-                                <p>{event.location}</p>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            );
-        }
+        
 
     function CommentSection({ comments, onAddComment, username }) {
             const [comment, setComment] = React.useState(""); 
@@ -244,7 +217,6 @@
                 <div>
                     <Header />
                     <div className="container">
-                        <Sidebar />
                         <Content />
                     </div>
                 </div>
