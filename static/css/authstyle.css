@@ -109,6 +109,7 @@ body.signup {
     margin-top: 10px;
     box-shadow: 1px 1px 5px rgba(63, 63, 63, 0.7);
 }
+
 .form-box button:hover {
     background-color: #9cc3ec;
 }
@@ -118,7 +119,6 @@ body.signup {
     margin: 0;
     padding: 0;
 }
-
 img.nest {
     width: 170px;
     height: 150px;
