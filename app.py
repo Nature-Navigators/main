@@ -16,6 +16,7 @@ db.init_app(app) # to add app to SQLAlchemy()
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
+GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 @app.route('/')
 def index():
@@ -23,7 +24,7 @@ def index():
 
 @app.route('/map')
 def map():
-    return render_template("map.html")
+    return render_template("map.html", google_maps_api_key=GOOGLE_MAPS_API_KEY)
 
 @app.route('/update_location', methods=['POST'])
 def update_location():

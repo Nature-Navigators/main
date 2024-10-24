@@ -22,7 +22,7 @@
     <div class="container">
         <div id="sidebar-search">
             <div id="search-box">
-                <input type="text" placeholder="  Search Species" id="search-input"></input>
+                <input type="text" placeholder=" Enter a location" id="search-input"></input>
                 <img src="{{url_for('static', filename='images/search.png')}}" id="search">
             </div>
             <img id="filter" src="{{url_for('static', filename='images/filter.png')}}">
@@ -34,6 +34,9 @@
         </div>
         <div id="map" class="image-section"></div>
     </div>
+    <script>
+        const googleMapsApiKey = "{{ google_maps_api_key }}";
+    </script>
     <script src="{{url_for('static', filename='scripts/script.js')}}"></script>
 </body>
 </html>
