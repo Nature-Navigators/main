@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from sqlalchemy import select
 from db import db
-from db_models import Profile
+from db_models import User
+import uuid
 import requests
 import folium
 import os
@@ -146,21 +147,21 @@ def profile_id(profile_id):
     # post happens on "edit profile" submit
     if request.method == 'POST':
         new_name = request.form["name"]
-        new_profile = Profile(id=profile_id, name=new_name)
-
+        new_profile = User(userID=uuid.uuid4(), username=profile_id, email=new_name, password=new_name, firstName=new_name)
         #add the profile to the database
         try:
             # TODO: adjust when we have users & logged-in users in the DB
 
             # try to get the current profile from the DB based on 
-            try:
-                current_profile = db.session.get(Profile, profile_id)
-                current_profile.name = new_name
+            selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+            if selected_id != None:
+                current_profile = db.session.get(User, selected_id)
+                current_profile.firstName = new_name
                 db.session.commit()
                 return redirect(profile_path)
-            
+
             # it didn't exist, so add it to the DB
-            except:
+            else:
                 db.session.add(new_profile)
                 db.session.commit()
                 return redirect(profile_path)
@@ -172,18 +173,25 @@ def profile_id(profile_id):
         
     # page is loaded normally
     else:
+
         # get the profile by its id (primary key)
-        profile_details = db.session.get(Profile, profile_id)
+        selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+        if selected_id != None:
+            user = db.session.get(User, selected_id)
 
-        context = {
-            "socialPosts": socialPosts,
-            "events": events,
-            "badges": badges,
-            "id" : profile_id,
-            "profile": profile_details
-        }
-        return render_template("profile.html", **context)
-
+            context = {
+                "socialPosts": socialPosts,
+                "events": events,
+                "badges": badges,
+                "id" : profile_id,
+                "user": user
+            }
+            return render_template("profile.html", **context)
+        
+        # nonexistent user
+        else:
+            
+            return "User does not exist"
 
 # TODO: delete me
 @app.route('/profile')

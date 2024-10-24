@@ -1,4 +1,5 @@
 from db import db
+import uuid
 
 # many-to-many association table connecting event & user
 savedBy = db.Table(
@@ -10,15 +11,15 @@ savedBy = db.Table(
 
 class User(db.Model):
     __tablename__ = "user_table"
-    userID = db.Column(db.Uuid, primary_key=True)
+    userID = db.Column(db.Uuid, primary_key=True, default=uuid.uuid4)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(320), nullable=False)
     #TODO: security?
     password = db.Column(db.String(100), nullable=False)
     firstName = db.Column(db.String(100), nullable=False)
-    lastName = db.Column(db.String(100))
-    bio = db.Column(db.String(250))
-    pronouns = db.Column(db.String(50))
+    lastName = db.Column(db.String(100), nullable=True)
+    bio = db.Column(db.String(250), nullable=True)
+    pronouns = db.Column(db.String(50), nullable=True)
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one

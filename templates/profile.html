@@ -29,7 +29,7 @@
               <p>Edit Profile</p>
               <span></span>
             </div>
-            <h2 id="name">{{profile.name}}</h2>
+            <h2 id="name">{{user.firstName|e}}</h2>
             <p id="title">Professional Photographer</p>
             <button class="profile_button">Follow</button>
             <ul class="about">
@@ -165,11 +165,11 @@
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>
-              <input name="name" placeholder="Enter your name">
+              <input name="name" placeholder="Enter your name" value="{{user.firstName|e}}">
               <h3>Title</h3>
               <input name="title" placeholder="Enter your title">
               <h3>Bio</h3>
-              <textarea name="bio" placeholder="Edit your bio"></textarea>
+              <textarea name="bio" placeholder="Edit your bio">{{user.bio|e}}</textarea>
               <button class="profile_button" onclick="saveProfileEdits()">Save</button>
             </div>
           </div>
