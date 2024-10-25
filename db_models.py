@@ -1,5 +1,10 @@
 from db import db
 import uuid
+import datetime
+from typing import List, Optional
+from sqlalchemy.orm import DeclarativeBase, Mapped
+from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy_serializer import SerializerMixin
 
 # many-to-many association table connecting event & user
 savedBy = db.Table(
@@ -9,38 +14,44 @@ savedBy = db.Table(
     db.Column("eventID", db.ForeignKey("event_table.eventID"), primary_key=True)
 )
 
-class User(db.Model):
+class Base(SerializerMixin, DeclarativeBase):
+    pass
+
+class User(Base):
+
     __tablename__ = "user_table"
-    userID = db.Column(db.Uuid, primary_key=True, default=uuid.uuid4)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String(320), nullable=False)
+    userID: Mapped[uuid.UUID] = mapped_column(primary_key=True, nullable=False)
+    username: Mapped[str] = mapped_column(unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(nullable=False)
     #TODO: security?
-    password = db.Column(db.String(100), nullable=False)
-    firstName = db.Column(db.String(100), nullable=False)
-    lastName = db.Column(db.String(100), nullable=True)
-    bio = db.Column(db.String(250), nullable=True)
-    pronouns = db.Column(db.String(50), nullable=True)
+    password: Mapped[str] = mapped_column(nullable=False)
+    firstName: Mapped[str] = mapped_column( nullable=False)
+    lastName: Mapped[str]
+    bio: Mapped[str]
+    pronouns: Mapped[str]
+
+    serialize_rules = ('-posts.user',)
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
     #   lazy = selectin means that it uses the primary keys and multiple select statements
     #   lazy = joined means it joins the tables on select
     #   online i've read that selectin is good for many-to-many & one-to-many and joined is good for many-to-one
-    posts = db.relationship('Post', back_populates='user', lazy='selectin') # m
-    comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
-    createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
-    savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
+    posts:Mapped[List["Post"]] = relationship('Post', back_populates='user', lazy='selectin') # m
+    #comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
+    #createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
+    #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
 
-class Post(db.Model):
+class Post(Base):
     __tablename__ = "post_table"
-    postID = db.Column(db.Uuid, primary_key=True)
-    caption = db.Column(db.String(512))
-    datePosted = db.Column(db.DateTime(timezone=True))
+    postID:Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    caption:Mapped[str]
+    datePosted:Mapped[datetime.datetime]
 
     # relationships + foreign keys
-    userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
-    user = db.relationship('User', back_populates='posts', lazy='joined') # o
-    comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
+    userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
+    user:Mapped["User"] = relationship('User', back_populates='posts', lazy='joined') # o
+    #comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
 
 
 class Comment(db.Model):

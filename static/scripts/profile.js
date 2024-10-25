@@ -83,11 +83,44 @@ function hidePostPopup() {
     grayOut(false);
 }
 
+function showDatabasePost(databasePost) {
+
+    var cleanStr = cleanJsonString(databasePost);
+
+    if(databasePost != null && databasePost != "")
+    {
+        let postJson = JSON.parse(cleanStr);
+        //adjust the post popup's DOM 
+        document.getElementById("post_content").innerText = postJson["caption"];
+
+        //make it visible
+        document.getElementById("post_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
+}
+
+//removes escape characters and turns them into their escaped forms (e.g., a new line becomes \n)
+    //so JSON.parse doesn't get mad
+function cleanJsonString(stringToClean)
+{
+    let returnStr = stringToClean.replace(/\\+/g, "\\\\");
+    returnStr = returnStr.replace(/\n+/g, "\\n");
+    returnStr = returnStr.replace(/\t+/g, "\\t");
+    returnStr = returnStr.replace(/\/+/g, "\\/");
+    
+    returnStr = returnStr.replace(/(\b|\f|\r|)*/g, "");
+    console.log(returnStr)
+    return returnStr;
+}
+
+//TODO: DELETE ME (replaced by showDatabasePost)
 function showSocialPost(postString) {
 
     if(postString != null && postString != "")
     {
         let postJson = JSON.parse(postString);
+
         //adjust the post popup's DOM 
         document.getElementById("post_image").src = postJson["image"];
         document.getElementById("post_likes").innerText = postJson["likes"] + " likes";

@@ -54,6 +54,10 @@
             </nav>
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->
+              {% for post in userPosts %}
+              
+                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="/static/images/bird2.jpg" alt="Photo"></button>
+              {% endfor %}
               {% for post in socialPosts %}
                 <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
               {% endfor %}
@@ -141,15 +145,17 @@
           <h1>Create a Post</h1>
 
           <div class="popup_body">
-            <div class="popup_upload_img_div">
-              <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
-              <h3>Upload an image</h3>
+          <form action="/profile/{{id}}" method="POST">
+              <div class="popup_upload_img_div">
+                <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
+                <h3>Upload an image</h3>
+              </div>
+              <div class="text_div">
+                <textarea name="add_photo_caption" placeholder="Write a caption here!"></textarea>
+                <button class="profile_button">Post</button>
+              </div>
             </div>
-            <div class="text_div">
-              <textarea placeholder="Write a caption here!"></textarea>
-              <button class="profile_button">Post</button>
-            </div>
-          </div>
+          </form>
         </div>
 
         <!-- Popup for Profile Editing -->
@@ -165,7 +171,7 @@
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>
-              <input name="name" placeholder="Enter your name" value="{{user.firstName|e}}">
+              <input name="edit_profile_name" placeholder="Enter your name" value="{{user.firstName|e}}">
               <h3>Title</h3>
               <input name="title" placeholder="Enter your title">
               <h3>Bio</h3>

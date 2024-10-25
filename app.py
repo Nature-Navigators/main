@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from sqlalchemy import select
 from db import db
-from db_models import User
+from db_models import User, Post
 import uuid
 import requests
 import folium
 import os
+import json
 import xyzservices.providers as xyz #Can use this to change map type
 from temp_data import *
 from urllib.parse import quote
@@ -139,19 +140,20 @@ def signin():
 def signup():
     return render_template("signup.html")
 
+# TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 def profile_id(profile_id):
   
     profile_path = "/profile/" + profile_id
 
-    # post happens on "edit profile" submit
-    if request.method == 'POST':
-        new_name = request.form["name"]
+    # POST happens on "edit profile" submit
+    if request.method == 'POST' and "edit_profile_name" in request.form:
+        
+        new_name = request.form["edit_profile_name"]
         new_profile = User(userID=uuid.uuid4(), username=profile_id, email=new_name, password=new_name, firstName=new_name)
+        
         #add the profile to the database
         try:
-            # TODO: adjust when we have users & logged-in users in the DB
-
             # try to get the current profile from the DB based on 
             selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
             if selected_id != None:
@@ -170,7 +172,34 @@ def profile_id(profile_id):
         except Exception as error:
             print(error)
             return "There was an issue editing your profile"
+
+    # POST happens on Add Photo submit button
+    elif request.method == 'POST' and "add_photo_caption" in request.form:
         
+        new_caption = request.form["add_photo_caption"]
+
+        #add the new post to the database
+        try:
+            # try to get the current user from the DB based on username
+            selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+
+            if selected_id != None:
+
+                new_post = Post(postID=uuid.uuid4(), caption=new_caption, userID=selected_id)
+                db.session.add(new_post)
+                db.session.commit()
+
+                return redirect(profile_path)
+
+            # the user didn't exist
+            else:
+                #TODO: post failed is a pop up
+                return "User does not exist; Posting image failed"
+        
+        #any additional errors
+        except Exception as error:
+            print(error)
+            return "There was an issue adding a photo"
     # page is loaded normally
     else:
 
@@ -178,13 +207,14 @@ def profile_id(profile_id):
         selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
         if selected_id != None:
             user = db.session.get(User, selected_id)
-
+            posts = user.to_dict()['posts']
             context = {
                 "socialPosts": socialPosts,
                 "events": events,
                 "badges": badges,
                 "id" : profile_id,
-                "user": user
+                "user": user,
+                "userPosts": posts
             }
             return render_template("profile.html", **context)
         
