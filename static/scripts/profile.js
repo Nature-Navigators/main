@@ -51,6 +51,7 @@ function hideProfilePopup() {
 function showGallery() {
     document.getElementById('gallery').style.display = 'grid';
     document.getElementById('badges').style.display = 'none';
+    document.getElementById('events').style.display = 'none';
 
     changeBoldedNav(0);
   }
@@ -59,8 +60,17 @@ function showGallery() {
 function showBadges() {
     document.getElementById('badges').style.display = 'block';
     document.getElementById('gallery').style.display = 'none';
+    document.getElementById('events').style.display = 'none';
 
     changeBoldedNav(1);
+}
+
+function showEvents() {
+    document.getElementById('events').style.display = 'block';
+    document.getElementById('gallery').style.display = 'none';
+    document.getElementById('badges').style.display = 'none';
+
+    changeBoldedNav(2);
 }
 
 function showPostPopup() {
@@ -73,6 +83,81 @@ function hidePostPopup() {
     grayOut(false);
 }
 
+function showDatabasePost(databasePost) {
+
+    var cleanStr = cleanJsonString(databasePost);
+
+    if(databasePost != null && databasePost != "")
+    {
+        let postJson = JSON.parse(cleanStr);
+        //adjust the post popup's DOM 
+        document.getElementById("post_content").innerText = postJson["caption"];
+
+        //make it visible
+        document.getElementById("post_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
+}
+
+//removes escape characters and turns them into their escaped forms (e.g., a new line becomes \n)
+    //so JSON.parse doesn't get mad
+function cleanJsonString(stringToClean)
+{
+    let returnStr = stringToClean.replace(/\\+/g, "\\\\");
+    returnStr = returnStr.replace(/\n+/g, "\\n");
+    returnStr = returnStr.replace(/\t+/g, "\\t");
+    returnStr = returnStr.replace(/\/+/g, "\\/");
+    
+    returnStr = returnStr.replace(/(\b|\f|\r|)*/g, "");
+    console.log(returnStr)
+    return returnStr;
+}
+
+//TODO: DELETE ME (replaced by showDatabasePost)
+function showSocialPost(postString) {
+
+    if(postString != null && postString != "")
+    {
+        let postJson = JSON.parse(postString);
+
+        //adjust the post popup's DOM 
+        document.getElementById("post_image").src = postJson["image"];
+        document.getElementById("post_likes").innerText = postJson["likes"] + " likes";
+        document.getElementById("post_content").innerText = postJson["content"];
+
+        //make it visible
+        document.getElementById("post_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
+}
+
+function hideSocialPost() {
+    document.getElementById("post_popup").style.visibility = 'hidden';
+    grayOut(false);
+
+}
+
+function showEventPopup(eventString)
+{
+    if(eventString != null && eventString != "")
+    {
+        let eventJson = JSON.parse(eventString);
+        //adjust the post popup's DOM 
+     
+        //make it visible
+        document.getElementById("event_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
+}
+function hideEventPopup()
+{
+    document.getElementById("event_popup").style.visibility = 'hidden';
+    grayOut(false);
+
+}
 
 function grayOut(shouldGray)
 {

@@ -22,19 +22,18 @@
             </nav>
         </div>
     </header>
-
     <div class="bird-page">
         <div class="bird-image">
-            <img src="{{url_for('static', filename='images/example_bird.jpeg')}}">
+            <img src="{{ bird.imageUrl }}" alt="{{ bird.title }}">
         </div>
         <div class="bird-info">
-            <h1 id="bird-name">Bird Name</h1>
-            <p id="bird-description">I am a bird.</p>
-            <h2>I like</h2>
-            <p><strong>Diet:</strong> Bird seed.</p>
-            <p><strong>Habitat:</strong> A comfy tree.</p>
-            <p><strong>Conservation Status:</strong> I'm good.</p>
-            <p><strong>Geographical Range:</strong> Anywhere I want.</p>
+            <h1 id="bird-name">{{ bird.title }}</h1>
+            <p id="bird-description">I am a {{ bird.title }}.</p>
+                <h2>I like</h2>
+                <p><strong>Diet:</strong> Bird seed.</p>
+                <p><strong>Habitat:</strong> A comfy tree.</p>
+                <p><strong>Conservation Status:</strong> I'm good.</p>
+                <p><strong>Geographical Range:</strong> Anywhere I want.</p>
         </div>
     </div>
 </body>

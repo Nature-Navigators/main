@@ -6,11 +6,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Profile Page</title>
-    <style>
-        .badges {
-            display: none; /* hide badges initially */
-        }
-    </style>
 </head>
 <body>
     <div class="header">
@@ -34,9 +29,9 @@
               <p>Edit Profile</p>
               <span></span>
             </div>
-            <h2 id="name">Jane Doe</h2>
+            <h2 id="name">{{user.firstName|e}}</h2>
             <p id="title">Professional Photographer</p>
-            <button>Follow</button>
+            <button class="profile_button">Follow</button>
             <ul class="about">
               <span>120 Followers</span>
               <span>322 Following</span>
@@ -53,12 +48,19 @@
               <ul id = "mini_nav">
                 <li><a href="#" onclick="showGallery()">Gallery</a></li>
                 <li><a href="#" onclick="showBadges()">Badges</a></li>
-                <li><a href="">Saved Events</a></li>
+                <li><a href="#" onclick="showEvents()">Saved Events</a></li>
               </ul>
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
             </nav>
             <div class="photos" id="gallery">
-              <img src="/static/images/bird1.jpg" alt="Photo" />
+              <!-- the tojson and e filter automatically sanitizes any dangerous code -->
+              {% for post in userPosts %}
+              
+                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="/static/images/bird2.jpg" alt="Photo"></button>
+              {% endfor %}
+              {% for post in socialPosts %}
+                <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
+              {% endfor %}
               <img src="/static/images/bird2.jpg" alt="Photo" />
               <img src="/static/images/bird3.jpg" alt="Photo" />
               <img src="/static/images/bird4.jpg" alt="Photo" />
@@ -97,11 +99,40 @@
             </div>
             <div class="badges" id="badges">
               <h3>My Badges</h3>
-                <ul>
-                  <li>Birdwatcher Badge</li>
-                  <li>Photography Badge</li>
-                  <li>Conservation Advocate Badge</li>
-                </ul>
+              <div id="badge_holder">
+                {% for badge in badges %}
+                <div class="badge_img_details">
+                  <div class="badge_img_container">
+                    <img src="{{badge.image|e}}" alt="badge image" class="badge_image"/>
+                  </div>
+                    <span>
+                      <h4>{{badge.name|e}}</h4>
+                      <p>{{badge.description|e}}</p>
+                    </span>
+                </div>
+                {% endfor %}
+              </div>
+                
+            </div>
+            <div class="saved_events" id="events"> 
+              <h3>My Saved Events</h3>
+              <div id="event_holder">
+                {% for event in events %}
+                <div class="event_img_details">
+                  <div class="event-image-container">
+                      <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
+                      <span class= "favorite-icon">❤️</span>
+                  </div>
+                  <div class="event-details">
+                      <h4>{{event.name|e}}</h4>
+                      <p>{{event.date|e}} at {{event.time|e}}</p>
+                      <p>{{event.location|e}}</p>
+                      <button onclick="showEventPopup('{{event|tojson|forceescape}}')">Details</button>
+                  </div>
+                </div>
+                {%endfor%}
+              </div>
+
             </div>
           </div>
           <div id="gray_out"></div>
@@ -114,15 +145,17 @@
           <h1>Create a Post</h1>
 
           <div class="popup_body">
-            <div class="popup_upload_img_div">
-              <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
-              <h3>Upload an image</h3>
+          <form action="/profile/{{id}}" method="POST">
+              <div class="popup_upload_img_div">
+                <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
+                <h3>Upload an image</h3>
+              </div>
+              <div class="text_div">
+                <textarea name="add_photo_caption" placeholder="Write a caption here!"></textarea>
+                <button class="profile_button">Post</button>
+              </div>
             </div>
-            <div class="text_div">
-              <textarea placeholder="Write a caption here!"></textarea>
-              <button>Post</button>
-            </div>
-          </div>
+          </form>
         </div>
 
         <!-- Popup for Profile Editing -->
@@ -131,22 +164,30 @@
           <h1>Edit Your Profile</h1>
 
           <div class="popup_body">
+          <form action="/profile/{{id}}" method="POST">
             <div class="popup_upload_img_div">
               <h3>Profile Image</h3>
               <button id="upload_profile_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>
-              <input placeholder="Enter your name">
+              <input name="edit_profile_name" placeholder="Enter your name" value="{{user.firstName|e}}">
               <h3>Title</h3>
-              <input placeholder="Enter your title">
+              <input name="title" placeholder="Enter your title">
               <h3>Bio</h3>
-              <textarea placeholder="Edit your bio"></textarea>
-              <button onclick="saveProfileEdits()">Save</button>
+              <textarea name="bio" placeholder="Edit your bio">{{user.bio|e}}</textarea>
+              <button class="profile_button" onclick="saveProfileEdits()">Save</button>
             </div>
           </div>
+          </form>
         </div>
+
+        {% include "post_popup.html" with context %}
+
+        {% include "event_popup.html" with context %}
+
       </div>
+
       <script src="{{url_for('static', filename='scripts/profile.js')}}"></script>
 
 </body>
