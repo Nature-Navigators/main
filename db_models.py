@@ -1,4 +1,6 @@
 from db import db
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 import uuid
 import datetime
 from typing import List, Optional
@@ -18,7 +20,9 @@ from sqlalchemy_serializer import SerializerMixin
 class Base(SerializerMixin, DeclarativeBase):
     pass
 
-class User(Base):
+db = SQLAlchemy(model_class=Base)
+
+class User(Base, UserMixin):
 
     __tablename__ = "user_table"
     userID: Mapped[uuid.UUID] = mapped_column(primary_key=True, nullable=False)
@@ -27,9 +31,9 @@ class User(Base):
     #TODO: security?
     password: Mapped[str] = mapped_column(nullable=False)
     firstName: Mapped[str] = mapped_column( nullable=True)
-    lastName: Mapped[str]
-    bio: Mapped[str]
-    pronouns: Mapped[str]
+    lastName: Mapped[str] = mapped_column( nullable=True)
+    bio: Mapped[str] = mapped_column( nullable=True)
+    pronouns: Mapped[str] = mapped_column( nullable=True)
 
     serialize_rules = ('-posts.user',)
 
@@ -42,6 +46,9 @@ class User(Base):
     #comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
     #createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
     #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
+
+    def get_id(self):
+        return self.userID
 
 class Post(Base):
     __tablename__ = "post_table"

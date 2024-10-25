@@ -1,7 +1,5 @@
 from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect
 from sqlalchemy import select
-from db import db
-from db_models import User, Post
 import uuid
 import requests
 import folium
@@ -37,9 +35,14 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
+with app.app_context():
+    db.drop_all()
+    db.create_all()
+
+
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, user_id)
 
 
 
@@ -51,13 +54,13 @@ class SignUpForm(FlaskForm):
     submit = SubmitField("Sign Up")
 
 def validate_username(self, username):
-    exists_user = User.query.filter_by(username=username.data).first()
-    if exists_user:
+    exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
+    if exists_user != None:
         raise ValidationError("Username already exists. Select a new username.")
 
 def validate_email(self, email):
-    exists_email = User.query.filter_by(email=email.data).first()
-    if exists_email:
+    exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
+    if exists_email != None:
         raise ValidationError("Email already exists. Use another email address.")
         
 class SignInForm(FlaskForm):
@@ -70,14 +73,13 @@ class SignInForm(FlaskForm):
     submit = SubmitField("Login")     
 
     def validate_username(self, username):
-        exists_user = User.query.filter_by(
-            username=username.data).first()
-        if not exists_user:
+        exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
+        if exists_user == None:
             raise ValidationError("Username does not exist.")
     
     def validate_email(self, email):
-        exists_email = User.query.filter_by(email=email.data).first()
-        if not exists_email:
+        exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
+        if exists_email == None:
             raise ValidationError("Email does not exist.")
 
 
@@ -199,13 +201,15 @@ def signin():
     form = SignInForm()
     if form.validate_on_submit():
         try:
-            user = User.query.filter_by(username=form.username.data, email=form.email.data).first()
-            if user:
+            found_id = db.session.scalars(select(User.userID).where(User.username == form.username.data, User.email == form.email.data)).first()
+            if found_id != None:
+                user = db.session.get(User, found_id)
                 if not bcrypt.check_password_hash(user.password, form.password.data):
                     raise ValidationError("Incorrect password.")
                 else:
                     login_user(user)
-                    return redirect(url_for('profile'))
+                    profile_route = 'profile/' + user.username
+                    return redirect(profile_route)
             else:
                 raise ValidationError("Invalid username or email.")
         except ValidationError as e:
@@ -224,7 +228,7 @@ def signup():
 
     if form.validate_on_submit():
         hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        new_user = User(email=form.email.data, username=form.username.data, password=hashed_passwd)
+        new_user = User(userID=uuid.uuid4(),email=form.email.data, username=form.username.data, password=hashed_passwd)
         
         db.session.add(new_user)
         db.session.commit()
