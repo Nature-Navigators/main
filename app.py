@@ -39,6 +39,7 @@ def update_location():
     
     birds_near_user = getRecentBirds(latitude, longitude)
 
+
     m = folium.Map(location=[latitude, longitude], zoom_start=13)
     folium.Marker([latitude, longitude], tooltip='Your Location').add_to(m)
 
@@ -46,10 +47,11 @@ def update_location():
         bird_name = bird.get('comName')
         bird_lat = bird.get('lat')
         bird_long = bird.get('lng')
+        # formatted_bird_name = formatBirdName(bird_name)
         folium.Marker(
             location=[bird_lat, bird_long],
             tooltip=bird_name,
-            icon=folium.Icon(color='red')
+            icon=folium.Icon(color='red'),
         ).add_to(m)
 
     start_index = (page - 1) * page_size
@@ -63,7 +65,7 @@ def update_location():
 
         formatted_bird_name = formatBirdName(bird_name)
         image_url = getWikipediaImage(formatted_bird_name)
-        description = f"{bird_name} is spotted near your location."
+        description = f"{bird_name} spotted near your location."
 
         bird_data.append({
             'imageUrl': image_url,
@@ -106,7 +108,7 @@ def formatBirdName(bird_name):
 
 def getWikipediaImage(bird_name):
     formatted_bird_name = formatBirdName(bird_name)
-    search_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=100'
+    search_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=500'
     response = requests.get(search_url)
 
     if response.status_code == 200:

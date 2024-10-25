@@ -67,6 +67,7 @@ let currentPage = 1;
 const pageSize = 10;
 
 function processLocation(latitude, longitude) {
+    currentPage = 1;
     fetch('/update_location', {
         method: 'POST',
         headers: {
@@ -84,6 +85,23 @@ function processLocation(latitude, longitude) {
     .catch(error => console.error('Error:', error));
 }
 
+function fetchBirdData(latitude, longitude, page) {
+    fetch('/update_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ latitude, longitude, page, page_size: pageSize })
+    })
+    .then(response => response.json())
+    .then(data => {
+        bird_data = data.birdData;
+        createRectangles();
+        updatePagination();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
 function createRectangles() {
     const scrollableList = document.getElementById('scrollableList');
     
@@ -94,7 +112,8 @@ function createRectangles() {
         rectangle.className = 'rectangle'; 
 
         const img = document.createElement('img');
-        img.src = rect.imageUrl;
+        // img.src = rect.imageUrl;
+        img.src = rect.imageUrl ? rect.imageUrl : '../static/images/oop.png';
         img.alt = rect.title;
 
         const textContainer = document.createElement('div'); 
@@ -131,15 +150,15 @@ function updatePagination() {
     prevButton.onclick = () => {
         if (currentPage > 1) {
             currentPage--;
-            processLocation(userLatitude, userLongitude);
+            fetchBirdData(userLatitude, userLongitude, currentPage);
         }
     };
-    
+
     const nextButton = document.createElement('button');
     nextButton.innerText = 'Next';
     nextButton.onclick = () => {
         currentPage++;
-        processLocation(userLatitude, userLongitude);
+        fetchBirdData(userLatitude, userLongitude, currentPage);
     };
 
     paginationContainer.appendChild(prevButton);
