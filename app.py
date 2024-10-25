@@ -7,12 +7,12 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer as Serializer
-
+from db_models import db, User, Post
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../database.db'
-app.config['SECRET_KEY'] = 'summakey'
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
+db.init_app(app)
 bcrypt = Bcrypt(app)
 
 login_manager = LoginManager()
@@ -24,11 +24,6 @@ login_manager.login_view = "login"
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(20), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)  
-    password = db.Column(db.String(80), nullable=False)
 
 
 class SignUpForm(FlaskForm):
@@ -38,15 +33,15 @@ class SignUpForm(FlaskForm):
     confirm_password = PasswordField(validators=[InputRequired(), Length(min=4, max=20), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
     submit = SubmitField("Sign Up")
 
-    def validate_username(self, username):
-        exists_user = User.query.filter_by(username=username.data).first()
-        if exists_user:
-            raise ValidationError("Username already exists. Select a new username.")
-    
-    def validate_email(self, email):
-        exists_email = User.query.filter_by(email=email.data).first()
-        if exists_email:
-            raise ValidationError("Email already exists. Use another email address.")
+def validate_username(self, username):
+    exists_user = User.query.filter_by(username=username.data).first()
+    if exists_user:
+        raise ValidationError("Username already exists. Select a new username.")
+
+def validate_email(self, email):
+    exists_email = User.query.filter_by(email=email.data).first()
+    if exists_email:
+        raise ValidationError("Email already exists. Use another email address.")
         
 class SignInForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
@@ -78,21 +73,6 @@ def map():
     return render_template("map.html")
 
 @app.route('/signin', methods=['GET','POST'])
-# def signin():
-#     form = SignInForm()
-#     if form.validate_on_submit():
-#         user = User.query.filter_by(username=form.username.data, email=form.email.data).first()
-#         if user:
-#             if bcrypt.check_password_hash(user.password, form.password.data):
-#                 login_user(user)
-#                 return redirect(url_for('profile'))
-#             else:
-#                 raise ValidationError("Incorrect password.")
-                
-#         else:
-#             raise ValidationError("Invalid username or email.")
-
-#     return render_template("signin.html", form=form)
 def signin():
     form = SignInForm()
     if form.validate_on_submit():
