@@ -1,7 +1,5 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect
 from sqlalchemy import select
-from db import db
-from db_models import User, Post
 import uuid
 import requests
 import folium
@@ -11,14 +9,79 @@ import xyzservices.providers as xyz #Can use this to change map type
 from temp_data import *
 from urllib.parse import quote
 # from markupsafe import Markup
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
+from flask_bcrypt import Bcrypt
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from db_models import db, User, Post
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-db.init_app(app) # to add app to SQLAlchemy()
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
 GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
+
+
+db.init_app(app)
+bcrypt = Bcrypt(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+with app.app_context():
+    db.create_all()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, user_id)
+
+
+
+class SignUpForm(FlaskForm):
+    email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
+    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
+    password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Password"})
+    confirm_password = PasswordField(validators=[InputRequired(), Length(min=4, max=20), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
+    submit = SubmitField("Sign Up")
+
+def validate_username(self, username):
+    exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
+    if exists_user != None:
+        raise ValidationError("Username already exists. Select a new username.")
+
+def validate_email(self, email):
+    exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
+    if exists_email != None:
+        raise ValidationError("Email already exists. Use another email address.")
+        
+class SignInForm(FlaskForm):
+    email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
+    username = StringField(validators=[InputRequired(), Length(
+        min=4, max=20)], render_kw={"placeholder":"Username"})
+    password = PasswordField(validators=[InputRequired(), Length(
+        min=4, max=20)], render_kw={"placeholder": "Password"}) 
+    remember = BooleanField('Remember Me')
+    submit = SubmitField("Login")     
+
+    def validate_username(self, username):
+        exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
+        if exists_user == None:
+            raise ValidationError("Username does not exist.")
+    
+    def validate_email(self, email):
+        exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
+        if exists_email == None:
+            raise ValidationError("Email does not exist.")
+
+
 
 @app.route('/')
 def index():
@@ -134,13 +197,44 @@ def bird_page(bird_name):
     bird_info = get_bird_info(bird_name)
     return render_template('bird.html', bird=bird_info)
 
-@app.route('/signin')
+@app.route('/signin', methods=['GET','POST'])
 def signin():
-    return render_template("signin.html")
+    form = SignInForm()
+    if form.validate_on_submit():
+        try:
+            found_id = db.session.scalars(select(User.userID).where(User.username == form.username.data, User.email == form.email.data)).first()
+            if found_id != None:
+                user = db.session.get(User, found_id)
+                if not bcrypt.check_password_hash(user.password, form.password.data):
+                    raise ValidationError("Incorrect password.")
+                else:
+                    login_user(user)
+                    profile_route = 'profile/' + user.username
+                    return redirect(profile_route)
+            else:
+                raise ValidationError("Invalid username or email.")
+        except ValidationError as e:
+            form.username.errors.append(e.args[0])  
+            return render_template("signin.html", form=form)
+    return render_template("signin.html", form=form)
 
-@app.route('/signup')
+
+def signout():
+    logout_user()
+    return redirect(url_for('signin'))
+
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    return render_template("signup.html")
+    form = SignUpForm()
+
+    if form.validate_on_submit():
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        new_user = User(userID=uuid.uuid4(),email=form.email.data, username=form.username.data, password=hashed_passwd)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('signin'))
+    return render_template("signup.html", form=form)
 
 # TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
@@ -236,7 +330,7 @@ def profile():
     return render_template("profile.html", **context)
 
   
-
+@login_required
 @app.route('/social')
 def social():
     context = {
