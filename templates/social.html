@@ -11,6 +11,60 @@
 
 <body>
     <div id="app"></div>
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Create Event</h2>
+            <form id="eventForm">
+                <label for="eventName">Event Name:</label>
+                <input type="text" id="eventName" name="eventName" required><br><br>
+    
+                <label for="eventDate">Event Date:</label>
+                <input type="date" id="eventDate" name="eventDate" required><br><br>
+    
+                <label for="eventTime">Event Time:</label>
+                <input type="time" id="eventTime" name="eventTime" required><br><br>
+    
+                <label for="eventLocation">Location:</label>
+                <input type="text" id="eventLocation" name="eventLocation" required><br><br>
+    
+                <label for="eventDescription">Description:</label>
+                <textarea id="eventDescription" name="eventDescription" required></textarea><br><br>
+    
+                <label for="eventHost">Host:</label>
+                <input type="text" id="eventHost" name="eventHost" required><br><br>
+    
+                <button type="submit">Create Event</button>
+            </form>
+        </div>
+    </div>
+    <div class="sidebar">
+        <div class="events" id="events"> 
+            <div class="events-headline">
+                <h3 id="events-text">Top Events</h3>
+                <button class="create-event-button" id="createEventBtn">
+                    <img id="createEventImg" src="../static/images/createicon.png" alt="Create Event">
+                </button>
+            </div>
+            <div id="event_holder">
+              {% for event in events %}
+              <div class="event_img_details">
+                <div class="event-image-container">
+                    <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
+                    <span class= "favorite-icon">❤️</span>
+                </div>
+                <div class="event-details">
+                    <h4>{{event.name|e}}</h4>
+                    <p>{{event.date|e}} at {{event.time|e}}</p>
+                    <p>{{event.location|e}}</p>
+                    <button onclick="showEventPopup('{{event|tojson|forceescape}}')">Details</button>
+                </div>
+              </div>
+              {%endfor%}
+            </div>
+
+          </div>
+    </div>
 
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -18,6 +72,65 @@
 
     <script type="text/babel">
         const domNode = document.getElementById('app');
+
+//Modal
+        const createEventBtn = document.getElementById('createEventBtn');
+        const modal = document.getElementById('eventModal');
+        const closeModal = document.getElementById('closeModal');
+
+        createEventBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        // Close modal when clicking close
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close modal if clicking outside of modal
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Handle form submission
+        const eventForm = document.getElementById('eventForm');
+        eventForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(eventForm);
+
+            const eventData = {
+                name: formData.get('eventName'),
+                date: formData.get('eventDate'),
+                time: formData.get('eventTime'),
+                location: formData.get('eventLocation'),
+                description: formData.get('eventDescription'),
+                host: formData.get('eventHost')
+            };
+
+            console.log(eventData); // Send  data to server for saving
+            eventForm.reset();
+
+            modal.style.display = 'none';
+        });
+
+
+        //handle heart clicks for the events
+        document.querySelectorAll('.favorite-icon').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const eventId = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
+                const userId = "123"; // Replace with the actual logged-in user ID
+                console.log(`User ${userId} is interested in event ${eventId}`);
+
+                // Here send this data to your server
+                // fetch('/register-interest', {
+                //     method: 'POST',
+                //     body: JSON.stringify({ userId: userId, eventId: eventId }),
+                //     headers: { 'Content-Type': 'application/json' }
+                // });
+            });
+        });
 
 // Header Component
         function Header() {
@@ -49,57 +162,7 @@
             );
         }
 
-        // Sidebar Component
-        function Sidebar() {
-            const events = [
-            {
-                name: "Spring Bird Migration Walk",
-                date: "October 3,2024",
-                time: "8:00 AM",
-                location: "City Park, Denver",
-                image: "../static/images/birdevent1.jpg",
-            },{
-                name: "Bird Photography Workshop",
-                date:"October 10, 2024",
-                time:"10:00 AM",
-                location: "Central Botanical Gardens" ,
-                image: "../static/images/birdevent2.jpg",
-            },
-            {
-                name: "Birdwatching 101",
-                date:"October 14, 2024",
-                time: "9:30 AM",
-                location: "Riverwood Nature Reserve",
-                image: "../static/images/birdevent3.jpg",
-            },
-            {
-                name: "Falconry Experience",
-                date:"October 20, 2024",
-                time: "2:00 PM",
-                location: "Eagles Nest Sanctuary" ,
-                image: "../static/images/birdevent4.jpg",
-            }];
-            return (
-                <div className="sidebar">
-                <h2>Top Birding Events Near You</h2>
-                <ul className="events-list" >
-                    {events.map((event, index) => (
-                        <li key={index} className="event-item">
-                            <div className="event-image-container">
-                                <img src={event.image}  alt={event.name} className="event-image" />
-                                <span className= "favorite-icon">❤️</span>
-                            </div>
-                            <div className="event-details">
-                                <h4>{event.name} </h4>
-                                <p>{event.date} at {event.time}</p>
-                                <p>{event.location}</p>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            );
-        }
+        
 
     function CommentSection({ comments, onAddComment, username }) {
             const [comment, setComment] = React.useState(""); 
@@ -244,7 +307,6 @@
                 <div>
                     <Header />
                     <div className="container">
-                        <Sidebar />
                         <Content />
                     </div>
                 </div>

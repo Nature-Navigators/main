@@ -1,51 +1,95 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page is loaded and ready.');
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            getCoordinates(this.value);
+        }
+    });
 });
 
-const rectangles = [
-    { 
-        imageUrl: 'https://www.birds.cornell.edu/home/wp-content/uploads/2023/09/334289821-Baltimore_Oriole-Matthew_Plante.jpg', 
-        title: 'Baltimore Oriole',
-        description: 'The Baltimore Oriole is a vibrant songbird known for its striking orange and black plumage. These birds are often found in open woodlands, orchards, and suburban areas during the warmer months.',
-        url: '/bird' 
-    },
-    { 
-        imageUrl: 'https://example.com/bird2.jpg', 
-        title: 'Bird 2', 
-        description: 'Bird 2 description.',
-        url: '/bird' 
-    },
-    { 
-        imageUrl: 'https://example.com/bird3.jpg', 
-        title: 'Bird 3', 
-        description: 'Bird 3 description.',
-        url: '/bird' 
-    },
-    { 
-        imageUrl: 'https://example.com/bird4.jpg', 
-        title: 'Bird 4', 
-        description: 'Bird 4 description.',
-        url: '/bird' 
-    },
-    { 
-        imageUrl: 'https://example.com/bird5.jpg', 
-        title: 'Bird 5', 
-        description: 'Bird 5 description.',
-        url: '/bird' 
-    },
-    { 
-        imageUrl: 'https://example.com/bird6.jpg', 
-        title: 'Bird 6', 
-        description: 'Bird 6 description.',
-        url: '/bird' 
-    },
-];
+let bird_data = [];
 
+window.onload = onLoad;
+
+function onLoad() {
+    adjustWidth();
+    getLocation();
+}
+
+function adjustWidth() {
+    var sidebarSearch = document.getElementById("sidebar-search");
+    var searchBox = document.getElementById("search-box");
+    var windowWidth = window.innerWidth;
+    var newWidth = (windowWidth * 0.30); 
+    sidebarSearch.style.width = newWidth + "px"; 
+    searchBox.style.width = ((newWidth * 0.9)) + "px"; 
+}
+
+window.onresize = adjustWidth;
+
+let userLatitude = null;
+let userLongitude = null;
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(storePosition);
+    } else {
+        console.log("Geolocation is not supported by this browser.");
+    }
+}
+
+function getCoordinates(address) {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'OK') {
+                userLatitude = data.results[0].geometry.location.lat;
+                userLongitude = data.results[0].geometry.location.lng;
+                processLocation(userLatitude, userLongitude);
+            } else {
+                console.error('Geocoding failed: ' + data.status);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function storePosition(position) {
+    userLatitude = position.coords.latitude;
+    userLongitude = position.coords.longitude;
+    localStorage.setItem('userLatitude', userLatitude);
+    localStorage.setItem('userLongitude', userLongitude);
+    processLocation(userLatitude, userLongitude);
+}
+
+
+let currentPage = 1;
+const pageSize = 10;
+
+function processLocation(latitude, longitude) {
+    fetch('/update_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ latitude, longitude, page: currentPage, page_size: pageSize })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('map').innerHTML = data.mapHtml;
+        bird_data = data.birdData;
+        createRectangles();
+        updatePagination();
+    })
+    .catch(error => console.error('Error:', error));
+}
 
 function createRectangles() {
     const scrollableList = document.getElementById('scrollableList');
+    
+    scrollableList.innerHTML = '';
 
-    rectangles.forEach(rect => {
+    bird_data.forEach(rect => {
         const rectangle = document.createElement('div');
         rectangle.className = 'rectangle'; 
 
@@ -67,12 +111,8 @@ function createRectangles() {
         rectangle.appendChild(img);
         rectangle.appendChild(textContainer); 
 
-        // rectangle.onclick = () => {
-        //     window.open(rect.url, '_blank'); 
-        // };
-
         rectangle.onclick = () => {
-            window.location.href = (rect.url)
+            window.location.href = rect.url;
         };
 
         rectangle.style.cursor = 'pointer';
@@ -81,44 +121,27 @@ function createRectangles() {
     });
 }
 
-window.onload = onLoad;
+function updatePagination() {
+    const paginationContainer = document.getElementById('pagination');
+    paginationContainer.innerHTML = '';
 
-function onLoad() {
-    createRectangles();
-    adjustWidth();
-    getLocation();
-}
+    const prevButton = document.createElement('button');
+    prevButton.innerText = 'Previous';
+    prevButton.disabled = currentPage === 1;
+    prevButton.onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            processLocation(userLatitude, userLongitude);
+        }
+    };
+    
+    const nextButton = document.createElement('button');
+    nextButton.innerText = 'Next';
+    nextButton.onclick = () => {
+        currentPage++;
+        processLocation(userLatitude, userLongitude);
+    };
 
-
-function adjustWidth() {
-    var sidebarSearch = document.getElementById("sidebar-search");
-    var searchBox = document.getElementById("search-box");
-    var windowWidth = window.innerWidth;
-    var newWidth = (windowWidth*0.30); 
-    sidebarSearch.style.width = newWidth+"px"; 
-    searchBox.style.width = ((newWidth*0.9))+"px"; 
-}
-
-window.onresize = adjustWidth;
-
-let userLatitude = null;
-let userLongitude = null;
-
-function getLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(storePosition);
-    } else {
-      console.log("Geolocation is not supported by this browser.");
-    }
-}
-  
-// Right now we just store it to use to route map and make API call with lat and long
-function storePosition(position) {
-    userLatitude = position.coords.latitude;
-    userLongitude = position.coords.longitude;
-    localStorage.setItem('userLatitude', userLatitude);
-    localStorage.setItem('userLongitude', userLongitude);
-    // POPUP JUST TO PROVE IT'S WORKING
-    // REMOVE WHEN IMPLEMENTED
-    alert(`Latitude: ${userLatitude}, Longitude: ${userLongitude}`);
+    paginationContainer.appendChild(prevButton);
+    paginationContainer.appendChild(nextButton);
 }

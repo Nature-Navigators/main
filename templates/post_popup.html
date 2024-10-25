@@ -1,0 +1,38 @@
+
+<div id="post_popup" class="post_popup popup">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/post_popup.css')}}">
+    
+    <button id="cancel_button" onclick="hideSocialPost()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
+    <div class="post_popup_body">
+        <div class="post">
+            <div class="post-header">
+                <img src="../static/images/raven.png" alt="Profile Picture" class="profile-pic" />
+                <div class="profile-info">
+                    <div class="profile-name-time">
+                        <span class="profile-name">John Doe</span>
+                        <span class="post-time">• 2 hours ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <img id="post_image" src="../static/images/raven.png" alt="Post Image" />
+
+            <div class="post-info">
+                <div class="text-and-icons">
+                    <div class="likes-and-icons">
+                        <div class="likes" id="post_likes">0 likes</div>
+                        <div class="post-icons">
+                            <button class="icon-button">🐤</button>
+                            <button class="icon-button">📍</button>
+                            <button class="icon-button">❤️</button>
+                        </div>
+                    </div>
+                    <p id="post_content"></p>
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+   
+  </div>
