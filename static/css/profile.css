@@ -161,9 +161,6 @@ body {
   .header .container .left_column nav button:hover {
     opacity: 0.8;
   }
-
-  /* gallery */
-
   .header .container .right_column .photos {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -177,101 +174,6 @@ body {
     object-fit: cover; /* Keep aspect ratio */
   }
   
-  .header .container .right_column .photos button {
-      background: none;
-      border: none;
-      cursor: pointer;
-  }
-  .header .container .right_column .photos button:hover {
-
-      opacity: 0.7;
-      
-  }
-
-  /* badges */
-  .header .container .right_column .badges {
-    display: none;
-    margin-left: 0.5em;
-
-  }
-  .header .container .right_column #badge_holder {
-    display:flex;
-    flex-direction: column;
-    align-items: first baseline;
-    width: 100%;
-    
-  }
-
-  .badge_img_container {
-    position: relative;
-    width: 10em;
-  }
-
-  .badge_img_container img {
-    width: 100%;
-    border-radius: 5px;
-    object-fit: cover;
-  }
-
-  .header .container .right_column .badge_img_details {
-    display: flex;
-    width: 100%;
-    gap: 1em;
-    flex-direction: row;
-    padding-bottom: 1em;
-    margin-bottom: 1em;
-    border-bottom: 2px solid #bababa;
-  }
-  .badge_img_details h4 {
-    margin: 0 0 5px;
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  .badge_img_details p {
-    margin: 0;
-    font-size: 14px;
-    color: #555;
-  }
-
-  /* events container */
-
-  .header .container .right_column #events {
-    display:none;
-    margin-left: 0.5em;
-
-  }
-
-  .header .container .right_column #event_holder {
-    display:flex;
-    flex-direction: column;
-    align-items: first baseline;
-    width: 100%;
-  }
-
-  .header .container .right_column .event_img_details {
-    display: flex;
-    width: 100%;
-    gap: 1em;
-    flex-direction: row;
-    padding-bottom: 1em;
-    margin-bottom: 1em;
-    border-bottom: 2px solid #bababa;
-  }
-  .header .container .right_column .event_img_details button {
-    background: #0091ff;
-    color: #fff;
-    border: none;
-    padding: 10px 25px;
-    width: 8em;
-    height: 3em;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: auto;
-  }
-  .header .container .right_column .event_img_details button:hover {
-    opacity: 0.8;
-  }
   /* ============================ pop up ===================================== */
   #gray_out {
     visibility: hidden;
@@ -346,14 +248,13 @@ body {
   .popup #cancel_button {
     width:2.5em;
     height:2.5em;
-    cursor: pointer;
+    
   }
 
   .popup #upload_button {
     width: 100%;
     height: 50%;
     flex-grow:1;
-    cursor: pointer;
 
   }
 
@@ -361,7 +262,7 @@ body {
     width: 100%;
     height: 50%;
     flex-grow:1;
-    cursor: pointer;
+
   }
   
   .popup img {
@@ -420,7 +321,7 @@ body {
     font-family: sans-serif;
     font-size: 0.9rem;
   }
-  .popup .profile_button {
+  .popup button {
     background: #0091ff;
     color: #fff;
     border: none;
@@ -430,60 +331,7 @@ body {
     margin-top: 20px;
   }
   .popup button:hover {
-    opacity: 0.7;
-  }
-
-  /* ========================= Events  =================================== */
-    
-  .events-list {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  .event-item {
-    background-color: #f6f7f8;
-    margin-bottom: 20px;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .event-image-container {
-    position: relative;
-    width: 15em;
-  }
-
-  .event-image {
-    width: 100%;
-    border-radius: 5px;
-    object-fit: cover;
-  }
-
-  .favorite-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 20px;
-    color: red;
-    cursor: pointer;
-  }
-
-  .event-details {
-    padding-top: 10px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .event-details h4 {
-    margin: 0 0 5px;
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  .event-details p {
-    margin: 0;
-    font-size: 14px;
-    color: #555;
+    opacity: 0.8;
   }
 
   /* ============================== Responsiveness ================================================== */
