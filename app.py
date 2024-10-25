@@ -237,7 +237,10 @@ def profile():
 
 @app.route('/social')
 def social():
-    return render_template("social.html")
+    context = {
+        "events": events,
+    }
+    return render_template("social.html", **context)
 
 @app.route('/bird')
 def bird():
