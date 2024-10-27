@@ -16,7 +16,8 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from db_models import db, User, Post
+from db_models import db, User, Post, Event
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -329,14 +330,50 @@ def profile():
     }
     return render_template("profile.html", **context)
 
+
+@app.route('/create_event', methods=['POST', 'GET'])
+def create_event():
+    data = request.json
+
+    title = data.get('title')
+    description = data.get('description')
+    creator = data.get('creator')
+    location = data.get('location')
+    eventDate = datetime.strptime(data.get('eventDate'), '%Y-%m-%d').date()
+
+    temp_user_id = uuid.uuid4()  # This generates a random UUID.
+    temp_event_id = uuid.uuid4()  # Temporary event ID
+    
+    new_event = Event(
+            eventID = temp_event_id,
+            title=title,
+            description=description,
+            eventDate=eventDate,
+            creator=creator,
+            userID=temp_user_id,
+            location=location,
+        )
+    db.session.add(new_event)
+    db.session.commit()
+        
+    return redirect(url_for('social'))
+   
+
   
-@login_required
 @app.route('/social')
-def social():
-    context = {
-        "events": events,
-    }
-    return render_template("social.html", **context)
+def social():     
+    # Query to get all events
+    tempEvents = db.session.execute(select(Event)).scalars().all()  
+    serialized_events = [event.to_dict() for event in tempEvents]
+
+    #context ={
+    #    "events": events
+    #}
+    
+    return render_template('social.html', events=serialized_events)
+
+
+
 
 @app.route('/bird')
 def bird():

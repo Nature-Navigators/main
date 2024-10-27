@@ -192,12 +192,15 @@ p {
 
 .event-image-container {
     position: relative;
+    width: 260px;
+    height:160px;
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 .event-image {
-    width: 100%;
-    border-radius: 5px;
-    object-fit: cover;
+    max-width: 100%;  
+    height: auto;
 }
 
 .favorite-icon {
@@ -366,8 +369,8 @@ p {
 }
 
 .create-event-button img {
-    width: 24px;
-    height: 24px;
+    width: 19px;
+    height: 20px;
 }
 
 /* Modal styling */
@@ -402,14 +405,16 @@ p {
     display: flex;
 }
 
-.events-headline h3{
-    flex-basis: 80%;
-    padding:0px;
+.events-headline p{
+    flex-basis: 92%;
+    padding:2px;
+    padding-left:0px;
+    margin-bottom: 20px;
+    font-size: 18px;
 }
 
 #createEventBtn{
     width:max-content;
     height:max-content;
-    flex-basis: 20%;
-    padding-top: 14px;
+    flex-basis: 8%;
 }

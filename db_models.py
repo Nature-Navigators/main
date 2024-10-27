@@ -44,7 +44,7 @@ class User(Base, UserMixin):
     #   online i've read that selectin is good for many-to-many & one-to-many and joined is good for many-to-one
     posts:Mapped[List["Post"]] = relationship('Post', back_populates='user', lazy='selectin') # m
     #comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
-    #createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
+    createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
     #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
 
     def get_id(self):
@@ -75,19 +75,32 @@ class Post(Base):
 #     post = db.relationship('Post', back_populates='comments', lazy='joined') # o
 
 
-# class Event(db.Model):
-#     __tablename__ = "event_table"
-#     eventID = db.Column(db.Uuid, primary_key=True)
-#     datePosted = db.Column(db.DateTime(timezone=True))
-#     eventDate = db.Column(db.DateTime(timezone=True), nullable=False)
-#     title = db.Column(db.String(150), nullable=False)
-#     description = db.Column(db.String(256))
+class Event(db.Model):
+     __tablename__ = "event_table"
+     eventID = db.Column(db.Uuid, primary_key=True)
+     #datePosted = db.Column(db.DateTime(timezone=True))
+     eventDate = db.Column(db.DateTime(timezone=True), nullable=False)
+     title = db.Column(db.String(150), nullable=False)
+     description = db.Column(db.String(256))
+     location = db.Column(db.String(150)) #may need to change
 
-#     #relationships + foreign keys
-#     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
+     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
 
-#     creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
+     creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
 #     #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
+
+     def to_dict(self):
+            return {
+                'eventID': self.eventID,
+                'title': self.title,
+                'eventDate': self.eventDate.strftime('%Y-%m-%d'), 
+                'location': self.location,
+                'description': self.description,
+                'userID': self.userID
+            }
+
+     def __repr__(self):
+         return f'<Event {self.title}>'
 
 
 #TODO: images
