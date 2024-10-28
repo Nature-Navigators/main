@@ -307,7 +307,7 @@ def profile_id(profile_id):
             posts = user.to_dict()['posts']
             context = {
                 "socialPosts": socialPosts,
-                "events": events,
+                #"events": events,
                 "badges": badges,
                 "id" : profile_id,
                 "user": user,
@@ -325,38 +325,60 @@ def profile_id(profile_id):
 def profile():
     context = {
         "socialPosts": socialPosts,
-        "events": events,
+        #"events": events,
         "badges": badges
     }
     return render_template("profile.html", **context)
 
 
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    #print(value)
+    parsed_date = datetime.strptime(value, '%Y-%m-%d %H:%M')
+    return parsed_date.strftime("%B %d, %Y at %I:%M %p")
+
+
 @app.route('/create_event', methods=['POST', 'GET'])
 def create_event():
+
+    #print(f"user id: ")
+    #print(current_user.userID)
+
+    if not current_user.is_authenticated: #identify loggedin/loggedout users 
+        print(f"Not logged in")
+        return jsonify({'success': False, 'message': 'Event not created, not logged in.'})
+    
+    #print(f"logged in!")
+    print(f"user id: ")
+    print(current_user.userID)
+
     data = request.json
 
     title = data.get('title')
     description = data.get('description')
-    creator = data.get('creator')
+    creator =  current_user.userID 
     location = data.get('location')
-    eventDate = datetime.strptime(data.get('eventDate'), '%Y-%m-%d').date()
+    event_date_str = data.get('eventDate')  # Assume this is in 'YYYY-MM-DD' format
+    event_time_str = data.get('time')  # Assume this is in 'HH:MM' format
 
-    temp_user_id = uuid.uuid4()  # This generates a random UUID.
-    temp_event_id = uuid.uuid4()  # Temporary event ID
+    # Combine date and time
+    combined_datetime_str = f"{event_date_str} {event_time_str}"
+    dateAndTime = datetime.strptime(combined_datetime_str, '%Y-%m-%d %H:%M')
+
+    temp_event_id = uuid.uuid4()  # random event ID
     
     new_event = Event(
             eventID = temp_event_id,
             title=title,
             description=description,
-            eventDate=eventDate,
-            creator=creator,
-            userID=temp_user_id,
+            eventDate=dateAndTime,
+            userID=creator,
             location=location,
         )
     db.session.add(new_event)
     db.session.commit()
         
-    return redirect(url_for('social'))
+    return jsonify({'success': True, 'message': 'Event created successfully!'})
    
 
   
@@ -366,10 +388,9 @@ def social():
     tempEvents = db.session.execute(select(Event)).scalars().all()  
     serialized_events = [event.to_dict() for event in tempEvents]
 
-    #context ={
-    #    "events": events
-    #}
-    
+    #signout to test functionality
+    #signout()
+
     return render_template('social.html', events=serialized_events)
 
 
