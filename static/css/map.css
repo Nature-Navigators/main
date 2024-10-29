@@ -12,15 +12,12 @@ body {
 
 .container {
     display: flex;
-    /* height: 100vh; */
     height: calc(100vh - 70px);
-    flex-wrap: wrap; 
 }
 
 .image-section {
     flex: 4; 
     height: 100%;
-    /* overflow: hidden; */
 }
 
 #map {
@@ -38,7 +35,6 @@ body {
     padding: 10px; 
     margin-top: 60px;
     height: 100%;
-    /* overflow: scroll; */
 }
 
 .scrollable-list {
@@ -126,38 +122,94 @@ body {
     color: #eaeaea;
 }
 
-#sidebar-search{
-    height: 40px;
-    width:388px;
-    margin:20px;
-    margin-left: 15px;
+#sidebar-search {
+    display: flex;  
+     align-items: center;  
+    height: 40px; 
+    margin: 20px; 
+    flex: 0 0 auto;
     position: absolute;
-    
 }
 
-#search-box{
-    height: 100%;
+#search-box {
+    display: flex;
+    align-items: center;
+    height: 100%; 
     border-color: #2c3e50;
     border-width: 1px;
     border-style: solid; 
     border-radius: 6px;
     background-color: #ffffff;
-    float:left;
+    margin-right: 15px; 
+    flex-grow: 1; 
 }
 
-#search-input{
+#search-input {
+    margin-left: 10px;
     border-radius: 6px;
-    width:100%;
-    height: 100%;
+    width: 100%; 
+    height: 100%; 
     border: none;
-    font-family:Verdana, Geneva, Tahoma, sans-serif;
-    float: left;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
-#filter{
-    width:24px;
-    float:right;
-    margin-top: 7px;
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px; 
+    height: 34px;
+    margin-left: 5px; 
+    vertical-align: middle; 
+}
+
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }
 
 #search{
