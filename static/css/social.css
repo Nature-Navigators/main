@@ -207,10 +207,18 @@ p {
     position: absolute;
     top: 10px;
     left: 10px;
-    font-size: 20px;
-    color: red;
+    background-size: cover; /* Ensures the image covers the span */    
     cursor: pointer;
+    background-image: url('../images/empty-heart.png');
+    width: 22px;
+    height: 20px;
 }
+
+/* Red heart  */
+.favorite-icon.favorited {
+    background-image: url('../images/filled-heart.png');
+}
+
 
 .event-details {
     padding-top: 10px;

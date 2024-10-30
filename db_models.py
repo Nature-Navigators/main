@@ -7,6 +7,7 @@ from typing import List, Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy_serializer import SerializerMixin
+from sqlalchemy import ForeignKey
 
 
 # many-to-many association table connecting event & user
@@ -46,6 +47,7 @@ class User(Base, UserMixin):
     #comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
     createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
     #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
+    savedEvents = db.relationship('Favorite', back_populates='user', lazy='selectin') 
 
     def get_id(self):
         return self.userID
@@ -87,7 +89,8 @@ class Event(db.Model):
      userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
 
      creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
-#     #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
+     #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
+     favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
 
      def to_dict(self):
             return {
@@ -101,6 +104,22 @@ class Event(db.Model):
 
      def __repr__(self):
          return f'<Event {self.title}>'
+
+
+class Favorite(db.Model):
+    __tablename__ = 'favorite_table'
+    id = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Uuid, db.ForeignKey('user_table.userID'), nullable=False)
+    eventID = db.Column(db.Uuid, db.ForeignKey('event_table.eventID'), nullable=False)
+    
+    # relationships to User and Event for back references
+    user = db.relationship('User', back_populates='savedEvents', lazy='joined')
+    event = db.relationship('Event', back_populates='favorited_by', lazy='joined')
+
+    __table_args__ = (
+        db.UniqueConstraint('userID', 'eventID', name='unique_user_event_pair'),
+    ) #ensure no duplicates
+
 
 
 #TODO: images

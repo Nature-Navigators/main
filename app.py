@@ -16,8 +16,9 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from db_models import db, User, Post, Event
+from db_models import db, User, Post, Event, Favorite
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -380,6 +381,45 @@ def create_event():
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
    
+@app.route('/favorite_event', methods=['POST'])
+def favorite_event():
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    data = request.json
+    eventID = uuid.UUID(data.get('eventID'))
+    userID = current_user.userID  # Get the logged-in user's ID
+
+    new_favorite = Favorite(userID=userID, eventID=eventID)
+
+    # Add the favorite to the database
+    try:
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Event favorited successfully!'})
+    except IntegrityError:
+        db.session.rollback()  #rollback if an error occurs
+        return jsonify({'success': False, 'message': 'Event already favorited'})
+
+
+@app.route('/unfavorite_event', methods=['POST'])
+def unfavorite_event():
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    user_id = current_user.userID
+    event_id = uuid.UUID(data.get('eventID'))
+
+    # Find the favorite entry to delete
+    favorite = Favorite.query.filter_by(userID=user_id, eventID=event_id).first()
+    
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Event removed from favorites successfully!'})
+    else:
+        return jsonify({'success': False, 'message': 'Event not found in favorites'})
 
   
 @app.route('/social')

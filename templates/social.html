@@ -51,7 +51,7 @@
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
                         <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
-                        <span class= "favorite-icon" EventID="{{event.eventID}}">❤️</span>
+                        <span class= "favorite-icon" EventID="{{event.eventID}}"></span>
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
@@ -119,8 +119,8 @@
             })
             .then(response => {
                 if (response.status === 401) {
-                    console.log("User not logged in, can't create event");
-                    alert("User not logged in, can't create event");
+                    console.log("You need to log in to create an event");
+                    alert("You need to log in to create an event");
                     return; // Exit if the user is not logged in
                 }
                 return response.json(); 
@@ -146,14 +146,73 @@
         document.querySelectorAll('.favorite-icon').forEach(button => {
             button.addEventListener('click', (event) => {
                 const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
-                const userId = "123"; // Replace with the actual logged-in user ID
-                console.log(`User ${userId} is interested in event ${eventID}`);
+                const isFavorited = button.classList.contains('favorited');
 
-                // fetch('/register-interest', {
-                //     method: 'POST',
-                //     body: JSON.stringify({ userId: userId, eventId: eventId }),
-                //     headers: { 'Content-Type': 'application/json' }
-                // });
+                if (!isFavorited){
+                    button.classList.add('favorited'); //prematurely show favorited
+                    fetch('/favorite_event', {
+                        method: 'POST',
+                        body: JSON.stringify({ eventID: eventID }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => {
+                        if (response.status === 401) {
+                            alert("You need to log in to favorite events.");
+                            button.classList.remove('favorited');
+                            return null;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if(data){
+                            if (data.success) {
+                                console.log("Event favorited successfully!");
+                            }
+                            else{
+                                console.log("There was an issue with favoriting the event.");
+                                button.classList.remove('favorited');
+                                console.log(data.message);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        button.classList.remove('favorited');
+                        console.error('Error favoriting event:', error);
+                    });
+                }
+                else {
+                    button.classList.remove('favorited');
+                    fetch('/unfavorite_event', {
+                        method: 'POST',
+                        body: JSON.stringify({ eventID: eventID }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => {
+                        if (response.status === 401) {
+                            alert("You need to log in to unfavorite events.");
+                            button.classList.remove('favorited');
+                            return null;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if(data){
+                            if (data.success) {
+                                console.log("Event removed from favorites successfully");
+                            }
+                            else{
+                                console.log("There was an issue with unfavoriting the event.");
+                                button.classList.add('favorited');
+                                console.log(data.message);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        button.classList.add('favorited');
+                        console.error('Error unfavoriting event:', error);
+                    });
+                }
+                    
             });
         });
 
