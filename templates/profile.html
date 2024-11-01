@@ -21,14 +21,22 @@
     </nav>
         <div class="container">
           <div class="left_column">
-            <div class="profile_pic">
-              <button>
+            {% if loggedIn %}
+              <div class="profile_pic" id="clickable_profile">
+                <button>
+                  <img src="/static/images/birder.jpeg"/>
+                </button>
+                <p>Edit Profile</p>
+                <span></span>
+              </div>
+            {% else %}
+              <div class="profile_pic">
+                <p>Edit Profile</p>
                 <img src="/static/images/birder.jpeg"/>
-                
-              </button>
-              <p>Edit Profile</p>
-              <span></span>
-            </div>
+                <span></span>
+              </div>
+            {% endif %}
+
             <h2 id="name">{{user.firstName|e}}</h2>
             <p id="title">Professional Photographer</p>
             <button class="profile_button">Follow</button>
@@ -50,7 +58,9 @@
                 <li><a href="#" onclick="showBadges()">Badges</a></li>
                 <li><a href="#" onclick="showEvents()">Saved Events</a></li>
               </ul>
+            {% if loggedIn %}
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
+            {% endif %}
             </nav>
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->

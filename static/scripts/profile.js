@@ -1,7 +1,7 @@
 // ============================================ EVENTS ===================================================
 
 //set up profile button events
-var profileButton = document.querySelector(".profile_pic");
+var profileButton = document.querySelector("#clickable_profile");
 var editProfileText = profileButton.getElementsByTagName("p")[0];
 
 //mouse events

@@ -242,8 +242,6 @@ def signup():
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 def profile_id(profile_id):
   
-    profile_path = "profile/" + profile_id
-
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
@@ -300,13 +298,15 @@ def profile_id(profile_id):
         if selected_id != None:
             user = db.session.get(User, selected_id)
             posts = user.to_dict()['posts']
+
+            logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
             context = {
                 "socialPosts": socialPosts,
                 #"events": events,
                 "badges": badges,
                 "id" : profile_id,
                 "user": user,
-                "logged_in": current_user.is_authenticated,
+                "loggedIn": logged_in,
                 "userPosts": posts
             }
             return render_template("profile.html", **context)
