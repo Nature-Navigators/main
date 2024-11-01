@@ -90,9 +90,13 @@ function showDatabasePost(databasePost) {
     if(databasePost != null && databasePost != "")
     {
         let postJson = JSON.parse(cleanStr);
+        console.log(postJson)
+        let postImages = postJson["images"];
         //adjust the post popup's DOM 
         document.getElementById("post_content").innerText = postJson["caption"];
-        document.getElementById("html_postID").value = postJson["postID"];
+        document.getElementById("post_image").src = "/uploads/" + postImages[0]['name'];   
+
+        document.getElementById("html_postID").value = postJson["postID"];  //invisible value used for deleting
         //make it visible
         document.getElementById("post_popup").style.visibility = 'visible';
         grayOut(true);
@@ -118,7 +122,6 @@ function cleanJsonString(stringToClean)
     returnStr = returnStr.replace(/\/+/g, "\\/");
     
     returnStr = returnStr.replace(/(\b|\f|\r|)*/g, "");
-    console.log(returnStr)
     return returnStr;
 }
 

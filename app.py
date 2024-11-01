@@ -361,6 +361,7 @@ def profile_id(profile_id):
         if selected_id != None:
             user = db.session.get(User, selected_id)
             posts = user.to_dict()['posts']
+            print(posts[0]["images"][0]["imagePath"])
 
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
             context = {
@@ -492,12 +493,13 @@ def social():
 
     return render_template('social.html', events=serialized_events)
 
-
-
-
 @app.route('/bird')
 def bird():
     return render_template("bird.html")
+
+@app.route('/uploads/<path:filename>')
+def download_file(filename):
+    return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)

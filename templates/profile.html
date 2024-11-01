@@ -65,8 +65,7 @@
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->
               {% for post in userPosts %}
-              
-                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="/static/images/bird2.jpg" alt="Photo"></button>
+                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="{{url_for('download_file', filename=post['images'][0]['name'])}}" alt="Photo"></button>
               {% endfor %}
               {% for post in socialPosts %}
                 <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
