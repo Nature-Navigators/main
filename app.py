@@ -321,15 +321,17 @@ def profile_id(profile_id):
             
             return "User does not exist"
 
-# TODO: delete me
 @app.route('/profile')
 def profile():
-    context = {
-        "socialPosts": socialPosts,
-        #"events": events,
-        "badges": badges
-    }
-    return render_template("profile.html", **context)
+
+    #redirect to the signin page if not logged in
+    if not current_user.is_authenticated:
+        print(f"Not logged in")
+        return redirect("signin")
+    
+    #if logged in
+    profile_path = "profile/" + current_user.username
+    return redirect(profile_path)
 
 
 @app.template_filter('datetimeformat')
