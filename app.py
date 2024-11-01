@@ -9,8 +9,9 @@ import xyzservices.providers as xyz #Can use this to change map type
 from temp_data import *
 from urllib.parse import quote
 # from markupsafe import Markup
+from sqlalchemy.exc import IntegrityError
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
@@ -29,10 +30,11 @@ GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
-
 login_manager = LoginManager()
+
+#login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "signin"
 
 
 with app.app_context():
@@ -43,6 +45,15 @@ with app.app_context():
 def load_user(user_id):
     return db.session.get(User, user_id)
 
+
+
+@app.context_processor
+def inject_user():
+    return {'user': current_user}
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, user_id)
 
 
 class SignUpForm(FlaskForm):
@@ -199,6 +210,8 @@ def bird_page(bird_name):
 
 @app.route('/signin', methods=['GET','POST'])
 def signin():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
     form = SignInForm()
     if form.validate_on_submit():
         try:
@@ -208,7 +221,7 @@ def signin():
                 if not bcrypt.check_password_hash(user.password, form.password.data):
                     raise ValidationError("Incorrect password.")
                 else:
-                    login_user(user)
+                    login_user(user, remember=True)
                     profile_route = 'profile/' + user.username
                     return redirect(profile_route)
             else:
@@ -225,16 +238,25 @@ def signout():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
     form = SignUpForm()
+    alert_message = ""
 
     if form.validate_on_submit():
         hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         new_user = User(userID=uuid.uuid4(),email=form.email.data, username=form.username.data, password=hashed_passwd)
         
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('signin'))
-    return render_template("signup.html", form=form)
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('signin'))
+        except IntegrityError:
+            db.session.rollback()  
+            alert_message = "Username already exists. Select a new username."
+
+    return render_template("signup.html", form=form, alert_message=alert_message)
+
 
 # TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
