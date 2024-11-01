@@ -1,10 +1,9 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory
 from sqlalchemy import select
 import uuid
 import requests
 import folium
 import os
-import json
 import xyzservices.providers as xyz #Can use this to change map type
 from temp_data import *
 from urllib.parse import quote
@@ -16,13 +15,18 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from db_models import db, User, Post, Event, Favorite
+from db_models import db, User, Post, Event, Favorite, Image, PostImage
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
+from helpers import validate_image
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
+
+app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
+app.config['UPLOAD_PATH'] = 'uploads'
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
@@ -278,8 +282,38 @@ def profile_id(profile_id):
             # try to get the current user from the DB based on username
             if selected_id != None and selected_id == current_user.userID:
 
-                new_post = Post(postID=uuid.uuid4(), caption=new_caption, datePosted=datetime.now(), userID=selected_id)
+                # setting up & adding the post
+                new_postID = uuid.uuid4()
+                new_post = Post(postID=new_postID, caption=new_caption, datePosted=datetime.now(), userID=selected_id)
                 db.session.add(new_post)
+
+                #handle the image upload
+                image = request.files["image_file_bytes"]
+                filename = secure_filename(image.filename)
+
+                # check to see if the filename exists in the database
+                matching_name = db.session.scalars(select(Image).where(Image.name == filename))
+                if matching_name != None:
+                    #add a unique ID to the start in case it already exists
+                    unique_str = str(uuid.uuid4())[:8]
+                    image.filename = f"{unique_str}_{image.filename}"
+                
+                # upload image
+                filename = secure_filename(image.filename)
+                if filename:
+                    file_ext = os.path.splitext(filename)[1]
+
+                    #check that the extension is valid
+                    if file_ext not in app.config["UPLOAD_EXTENSIONS"] or file_ext != validate_image(image.stream):
+                        return {"error": "File type not supported"}, 400
+                    
+                    # save it & create the DB object
+                    image.save(os.path.join(app.config["UPLOAD_PATH"], filename))
+                    imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                    dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
+                    db.session.add(dbImg)
+                
+                
                 db.session.commit()
 
                 return redirect(profile_id)
@@ -294,6 +328,7 @@ def profile_id(profile_id):
             print(error)
             return "There was an issue adding a photo"
     
+    # POST happens on deleting a post 
     elif request.method == 'POST' and "postID" in request.form:
 
         try:
@@ -305,6 +340,12 @@ def profile_id(profile_id):
                 # if the post ID passed to the function belongs to the logged in user
                     # meant to avoid spoofing to delete someone else's post
                 if selected_post.user.userID == current_user.userID:
+
+                    # remove images
+                    images = selected_post.images
+                    for image in images:
+                        os.remove(os.path.join(app.config["UPLOAD_PATH"], image.name))
+
                     db.session.delete(selected_post)
                     db.session.commit()
                     return redirect(profile_id)

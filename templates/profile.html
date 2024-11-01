@@ -150,14 +150,24 @@
         </div>
 
         <!-- Popup for Adding a Post -->
+        {% if loggedIn %}
         <div class="popup" id="add_post_popup">
           <button id="cancel_button" onclick="hidePostPopup()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
           <h1>Create a Post</h1>
 
           <div class="popup_body">
-          <form action="/profile/{{id}}" method="POST">
+          <form action="/profile/{{id}}" method="POST" enctype="multipart/form-data">
               <div class="popup_upload_img_div">
-                <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
+                <div id="image_upload">
+                  <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
+                  <div id="clickable_upload">
+                    <img class="upload_img" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                    <input type="file" id="file_upload_input" name="image_file_bytes" >  
+                  </div>
+
+                </div>
+                
+                <!--<button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>-->
                 <h3>Upload an image</h3>
               </div>
               <div class="text_div">
@@ -191,6 +201,7 @@
           </div>
           </form>
         </div>
+        {% endif %}
 
         {% include "post_popup.html" with context %}
 

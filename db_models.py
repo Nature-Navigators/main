@@ -58,11 +58,14 @@ class Post(Base):
     caption:Mapped[str] = mapped_column(nullable=True)
     datePosted:Mapped[datetime.datetime] = mapped_column(nullable=True)
 
+    serialize_rules = ('-images.post',)
+
+
     # relationships + foreign keys
     userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
     user:Mapped["User"] = relationship('User', back_populates='posts', lazy='joined') # o
     #comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
-
+    images: Mapped[List["PostImage"]] = relationship(back_populates='post', cascade="all, delete", passive_deletes=True)
 
 # class Comment(db.Model):
 #     __tablename__ = "comment_table"
@@ -121,15 +124,26 @@ class Favorite(db.Model):
     ) #ensure no duplicates
 
 
+# base image class
+class Image(Base):
+    __tablename__ = "image_table"
+    imageID: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    name:Mapped[str] = mapped_column(nullable=False)
+    imagePath: Mapped[str] = mapped_column(nullable=False)
+    altText: Mapped[str] = mapped_column(nullable=True)
+    type: Mapped[str]
 
-#TODO: images
+    __mapper_args__ = {
+        "polymorphic_identity": "image",
+        "polymorphic_on": "type"
+    }
 
-#TODO: delete me
-# class Profile(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(200), nullable=False)
+class PostImage(Image):
+    __tablename__ = "postimage_table"
+    imageID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("image_table.imageID"), primary_key=True)
+    postID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("post_table.postID", ondelete="CASCADE"), nullable=False)
 
-#     def __repr__(self):
-#         return "Hello world, my name is %r" % self.name
-    
-    
+    post: Mapped["Post"] = relationship(back_populates="images")
+    __mapper_args__ = {
+        "polymorphic_identity": "post_image"
+    }
