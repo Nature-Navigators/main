@@ -8,7 +8,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy_serializer import SerializerMixin
 
-
 # many-to-many association table connecting event & user
 # savedBy = db.Table(
 #     "savedBy",
