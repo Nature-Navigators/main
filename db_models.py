@@ -55,8 +55,8 @@ class User(Base, UserMixin):
 class Post(Base):
     __tablename__ = "post_table"
     postID:Mapped[uuid.UUID] = mapped_column(primary_key=True)
-    caption:Mapped[str]
-    datePosted:Mapped[datetime.datetime]
+    caption:Mapped[str] = mapped_column(nullable=True)
+    datePosted:Mapped[datetime.datetime] = mapped_column(nullable=True)
 
     # relationships + foreign keys
     userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)

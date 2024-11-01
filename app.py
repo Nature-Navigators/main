@@ -242,30 +242,24 @@ def signup():
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 def profile_id(profile_id):
   
-    profile_path = "/profile/" + profile_id
+    profile_path = "profile/" + profile_id
 
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
         new_name = request.form["edit_profile_name"]
-        new_profile = User(userID=uuid.uuid4(), username=profile_id, email=new_name, password=new_name, firstName=new_name)
         
-        #add the profile to the database
         try:
-            # try to get the current profile from the DB based on 
+            # try to get the current profile from the DB based on username
             selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
-            if selected_id != None:
+            if selected_id != None and selected_id == current_user.userID:
                 current_profile = db.session.get(User, selected_id)
                 current_profile.firstName = new_name
-                db.session.commit()
-                return redirect(profile_path)
 
-            # it didn't exist, so add it to the DB
-            else:
-                db.session.add(new_profile)
                 db.session.commit()
-                return redirect(profile_path)
-        
+                return redirect(profile_id)
+            else:
+                return redirect(profile_id)
         #any additional errors
         except Exception as error:
             print(error)
@@ -281,18 +275,18 @@ def profile_id(profile_id):
             # try to get the current user from the DB based on username
             selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
 
-            if selected_id != None:
+            if selected_id != None and selected_id == current_user.userID:
 
-                new_post = Post(postID=uuid.uuid4(), caption=new_caption, userID=selected_id)
+                new_post = Post(postID=uuid.uuid4(), caption=new_caption, datePosted=datetime.now(), userID=selected_id)
                 db.session.add(new_post)
                 db.session.commit()
 
-                return redirect(profile_path)
+                return redirect(profile_id)
 
             # the user didn't exist
             else:
                 #TODO: post failed is a pop up
-                return "User does not exist; Posting image failed"
+                return "User does not exist or user is not the one logged in; Posting image failed"
         
         #any additional errors
         except Exception as error:
@@ -312,13 +306,13 @@ def profile_id(profile_id):
                 "badges": badges,
                 "id" : profile_id,
                 "user": user,
+                "logged_in": current_user.is_authenticated,
                 "userPosts": posts
             }
             return render_template("profile.html", **context)
         
         # nonexistent user
         else:
-            
             return "User does not exist"
 
 @app.route('/profile')
