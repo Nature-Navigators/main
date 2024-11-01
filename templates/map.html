@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body>
+<body>  
     <div class="header">   
     </div>
     <div class="logo">
@@ -23,9 +23,12 @@
         <div id="sidebar-search">
             <div id="search-box">
                 <input type="text" placeholder=" Enter a location" id="search-input"></input>
-                <img src="{{url_for('static', filename='images/search.png')}}" id="search">
+                <!-- <img src="{{url_for('static', filename='images/search.png')}}" id="search"> -->
             </div>
-            <img id="filter" src="{{url_for('static', filename='images/filter.png')}}">
+            <label class="switch">
+                <input type="checkbox" id="toggle-location">
+                <span class="slider round"></span>
+            </label>
         </div>
         <div class="list-section">
             <div class="scrollable-list" id="scrollableList">

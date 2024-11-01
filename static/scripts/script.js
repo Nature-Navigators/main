@@ -1,8 +1,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page is loaded and ready.');
+    const toggleLocation = document.getElementById('toggle-location');
+    
     document.getElementById('search-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
+            toggleLocation.checked = false;
             getCoordinates(this.value);
+        }
+    });
+
+    document.getElementById('toggle-location').addEventListener('change', function() {
+        if (this.checked) {
+            getLocation(); 
+            document.getElementById('search-input').value = ''; 
+        } else {
+            if (!userLatitude || !userLongitude) {
+                alert("Unable to display map without a valid location.");
+            }
         }
     });
 });
@@ -33,9 +47,17 @@ let userLongitude = null;
 function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(storePosition);
+        const toggleLocation = document.getElementById('toggle-location');
+        toggleLocation.checked = true;
+    
     } else {
         console.log("Geolocation is not supported by this browser.");
     }
+}
+
+function handleError(error) {
+    console.error('Geolocation error:', error);
+    alert('Unable to retrieve your location. Please enter it manually.');
 }
 
 function getCoordinates(address) {
