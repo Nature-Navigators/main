@@ -242,6 +242,13 @@ def signup():
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 def profile_id(profile_id):
   
+    current_profile = None
+
+    selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+    if selected_id != None:
+        current_profile = db.session.get(User, selected_id)
+
+
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
@@ -249,9 +256,7 @@ def profile_id(profile_id):
         
         try:
             # try to get the current profile from the DB based on username
-            selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
             if selected_id != None and selected_id == current_user.userID:
-                current_profile = db.session.get(User, selected_id)
                 current_profile.firstName = new_name
 
                 db.session.commit()
@@ -271,8 +276,6 @@ def profile_id(profile_id):
         #add the new post to the database
         try:
             # try to get the current user from the DB based on username
-            selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
-
             if selected_id != None and selected_id == current_user.userID:
 
                 new_post = Post(postID=uuid.uuid4(), caption=new_caption, datePosted=datetime.now(), userID=selected_id)
@@ -290,11 +293,30 @@ def profile_id(profile_id):
         except Exception as error:
             print(error)
             return "There was an issue adding a photo"
+    
+    elif request.method == 'POST' and "postID" in request.form:
+
+        try:
+            # if the profile page we're on belongs to the logged in user
+            if current_profile != None and current_profile.userID == current_user.userID:
+
+                selected_post = db.session.get(Post, uuid.UUID(request.form["postID"]))
+
+                # if the post ID passed to the function belongs to the logged in user
+                    # meant to avoid spoofing to delete someone else's post
+                if selected_post.user.userID == current_user.userID:
+                    db.session.delete(selected_post)
+                    db.session.commit()
+                    return redirect(profile_id)
+
+        except Exception as error:
+            print(error)
+            return "There was an error deleting your post"
+        return redirect(profile_id)
+
     # page is loaded normally
     else:
 
-        # get the profile by its id (primary key)
-        selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
         if selected_id != None:
             user = db.session.get(User, selected_id)
             posts = user.to_dict()['posts']

@@ -36,6 +36,34 @@ body {
     
   }
 
+  .blue_button {
+    background: #0091ff;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: auto;
+  }
+
+  .blue_button:hover {
+    opacity: 0.8;
+  }
+
+  .gray_button {
+    background: #444445;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    
+  }
+  .gray_button:hover {
+    opacity:0.8;
+  }
+
   .header .container .left_column .profile_pic {
     position: absolute;
     top: -60px;

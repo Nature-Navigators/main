@@ -92,12 +92,20 @@ function showDatabasePost(databasePost) {
         let postJson = JSON.parse(cleanStr);
         //adjust the post popup's DOM 
         document.getElementById("post_content").innerText = postJson["caption"];
-
+        document.getElementById("html_postID").value = postJson["postID"];
         //make it visible
         document.getElementById("post_popup").style.visibility = 'visible';
         grayOut(true);
     
     }
+}
+
+function deletePost() {
+    document.getElementById("confirmation_popup").style.visibility = 'visible';
+}
+function hideConfirmation() {
+    document.getElementById("confirmation_popup").style.visibility = 'hidden';
+
 }
 
 //removes escape characters and turns them into their escaped forms (e.g., a new line becomes \n)
