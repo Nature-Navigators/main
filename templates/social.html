@@ -156,7 +156,12 @@
                         <a href="/" title="Home"><i className="fas fa-home"></i></a>
                         <a href="/map" title="Map"><i className="fas fa-map"></i></a>
                         <a href="/profile" title="Profile"><i className="fa-solid fa-user"></i></a>
-                        <a href="/signin" title="Sign In"><i className="fas fa-sign-in-alt"></i></a>
+                        {% if user.is_authenticated %}
+                            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+                        {% else %}
+                            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+                        {% endif %}
+
                     </nav>
                 </div>
             );

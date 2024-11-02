@@ -5,7 +5,11 @@
 </head>
 <body>
     <nav class="nav-icons">
-        <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+        {% if user.is_authenticated %}
+            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+        {% else %}
+            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+        {% endif %}
     </nav>
     <div class="image-fader">
         <img src="{{url_for('static', filename='images/bird1.jpg')}}"/>

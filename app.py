@@ -51,9 +51,6 @@ def load_user(user_id):
 def inject_user():
     return {'user': current_user}
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db.session.get(User, user_id)
 
 
 class SignUpForm(FlaskForm):
@@ -231,10 +228,10 @@ def signin():
             return render_template("signin.html", form=form)
     return render_template("signin.html", form=form)
 
-
-def signout():
+@app.route('/logout')
+def logout():
     logout_user()
-    return redirect(url_for('signin'))
+    return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -260,6 +257,7 @@ def signup():
 
 # TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
+@login_required
 def profile_id(profile_id):
   
     profile_path = "/profile/" + profile_id
@@ -343,6 +341,7 @@ def profile_id(profile_id):
 
 # TODO: delete me
 @app.route('/profile')
+@login_required
 def profile():
     context = {
         "socialPosts": socialPosts,
@@ -352,7 +351,6 @@ def profile():
     return render_template("profile.html", **context)
 
   
-@login_required
 @app.route('/social')
 def social():
     context = {
