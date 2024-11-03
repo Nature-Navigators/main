@@ -16,23 +16,21 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from itsdangerous import URLSafeTimedSerializer as Serializer
 from db_models import db, User, Post
-
+from flask_mail import Mail, Message
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
 
-EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
-GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
+# EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
+# EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
+# GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 
-#login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "signin"
 
@@ -51,8 +49,12 @@ def load_user(user_id):
 def inject_user():
     return {'user': current_user}
 
-
-
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS']= True
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PW')
+mail = Mail(app)
 class SignUpForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -60,15 +62,15 @@ class SignUpForm(FlaskForm):
     confirm_password = PasswordField(validators=[InputRequired(), Length(min=4, max=20), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
     submit = SubmitField("Sign Up")
 
-def validate_username(self, username):
-    exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
-    if exists_user != None:
-        raise ValidationError("Username already exists. Select a new username.")
+    def validate_username(self, username):
+        exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
+        if exists_user != None:
+            raise ValidationError("Username already exists. Select a new username.")
 
-def validate_email(self, email):
-    exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
-    if exists_email != None:
-        raise ValidationError("Email already exists. Use another email address.")
+    def validate_email(self, email):
+        exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
+        if exists_email != None:
+            raise ValidationError("Email already exists. Use another email address.")
         
 class SignInForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
@@ -89,7 +91,23 @@ class SignInForm(FlaskForm):
         if exists_email == None:
             raise ValidationError("Email does not exist.")
 
+class RequestResetForm(FlaskForm):
+    email = StringField('Email', 
+                        validators=[InputRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
 
+    def validate_email(self, email):
+        stmt = select(User).where(User.email == email.data)
+        exists_email = db.session.execute(stmt).scalars().first()
+        if exists_email is None:
+            raise ValidationError("Email not associated with any account, try signing up.")
+        
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', 
+                             validators=[InputRequired()])
+    confirm_password = PasswordField('Confirm Password', 
+                                     validators=[InputRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 
 @app.route('/')
 def index():
@@ -362,5 +380,50 @@ def social():
 def bird():
     return render_template("bird.html")
 
+def send_email(user):
+    try:
+        token = user.get_reset_token()
+        print(f"Generated token: {token}")  # Debugging statement
+        msg = Message('Password Reset Request', sender='noreply@featherly.com', recipients=[user.email])
+        msg.body = f'''To reset your password, click the following link:
+{url_for('reset_token', token=token, _external=True)}
+
+If you did not make this request, ignore this email
+'''
+        mail.send(msg)
+        print("Email sent successfully")  # Debugging statement
+    except Exception as e:
+        print(f"Error sending email: {e}")  # Debugging statement
+
+@app.route('/reset_request', methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = db.session.scalars(select(User).where(User.email == form.email.data)).first()
+        if user:
+            send_email(user)
+            print("send_email function called")  # Debugging statement
+        else:
+            print("User not found")  # Debugging statement
+        return redirect(url_for('signin'))
+    return render_template('reset_req.html', title='Reset password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    user = User.verify_reset_token(token)
+    if user is None:
+        raise ValidationError('That is an invalid or expired token')
+        return redirect(url_for('reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_passwd        
+        db.session.commit()
+        return redirect(url_for('signin'))
+    return render_template('reset.html', title='Reset Password', form=form)
 if __name__ == "__main__":
     app.run(debug=True)
