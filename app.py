@@ -22,9 +22,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
 
-# EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-# EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
-# GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
+EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
+EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
+GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 
 db.init_app(app)
