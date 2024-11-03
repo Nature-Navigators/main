@@ -224,26 +224,24 @@ def bird_page(bird_name):
     return render_template('bird.html', bird=bird_info)
 
 @app.route('/signin', methods=['GET','POST'])
+
 def signin():
     if current_user.is_authenticated:
         return redirect(url_for('profile'))
     form = SignInForm()
     if form.validate_on_submit():
-        try:
             found_id = db.session.scalars(select(User.userID).where(User.username == form.username.data, User.email == form.email.data)).first()
             if found_id != None:
                 user = db.session.get(User, found_id)
                 if not bcrypt.check_password_hash(user.password, form.password.data):
-                    raise ValidationError("Incorrect password.")
+                    #raise ValidationError("Incorrect password.")
+                    form.password.errors.append("Incorrect password.")
                 else:
                     login_user(user, remember=True)
                     profile_route = 'profile/' + user.username
                     return redirect(profile_route)
             else:
-                raise ValidationError("Invalid username or email.")
-        except ValidationError as e:
-            form.username.errors.append(e.args[0])  
-            return render_template("signin.html", form=form)
+                raise ValidationError("Invalid username or email.")        
     return render_template("signin.html", form=form)
 
 @app.route('/logout')
