@@ -1,12 +1,14 @@
 from db import db
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from flask import current_app 
 import uuid
 import datetime
 from typing import List, Optional
 from sqlalchemy.orm import DeclarativeBase, Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy_serializer import SerializerMixin
+from itsdangerous import URLSafeTimedSerializer as Serializer
 
 # many-to-many association table connecting event & user
 # savedBy = db.Table(
@@ -48,6 +50,19 @@ class User(Base, UserMixin):
 
     def get_id(self):
         return self.userID
+    
+    def get_reset_token(self):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'userID': str(self.userID)})
+
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            userID = uuid.UUID(s.loads(token)['userID'])
+        except:
+            return None
+        return db.session.query(User).get(userID)
 
 class Post(Base):
     __tablename__ = "post_table"
