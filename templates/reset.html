@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
-<body class="signin">
+<body class="signup">
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
         <h1>Featherly</h1>
@@ -27,8 +27,8 @@
 
                 <form id="signin-form" method="POST" action="">
                     {{ form.hidden_tag() }}
-                    {{ form.password }}
-                    {{ form.password }}
+                    {{ form.password(placeholder="Enter New Password") }}
+                    {{ form.confirm_password(placeholder="Confirm New Password") }}
 
                     <button id="button">Reset Password</button>
                     <script>
@@ -38,7 +38,7 @@
                     </script>
                     {% if form.errors %}
                     <script>
-                        alert("User does not exist!");
+                        alert("{{' Invalid or expired token.' if 'invalid' in form.errors else '' }}{{ 'Passwords do not match.' if 'password' in form.errors else '' }}{{ 'Invalid password.' if 'password' in form.errors else form.errors }}");
                     </script>
                     {% endif %}
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
