@@ -39,9 +39,17 @@
                     </script>
                     {% if form.errors %}
                     <script>
-                        alert("{{ form.errors.username[0] if 'username' in form.errors else '' }} {{ form.errors.email[0] if 'email' in form.errors else '' }}");
+                        alert("{{  'Invalid Username!' if 'username' in form.errors else '' }} \n{{ 'Invalid email!' if 'email' in form.errors else '' }} \n{{ 'Invalid password!' if 'password' in form.errors else '' }} \n{{ 'Confirm your password!' if 'confirm_password' in form.errors else '' }}");
                     </script>
                     {% endif %}
+                    {% if alert_message %}
+                    <script>
+                        alert("{{ alert_message }}");
+                    </script>
+                    {% endif %}
+                    
+
+
                     <p class="link"><a href="/signin">Already have an account?</a></p>
                 </form>
             </div>

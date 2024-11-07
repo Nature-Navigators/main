@@ -39,11 +39,13 @@
                     </script>
                     {% if form.errors %}
                     <script>
-                        alert("User does not exist!");
+                        //alert("{{ form.errors }}")
+                        alert("{{  ' Invalid Username.' if 'username' in form.errors else '' }} \n {{ 'Invalid email.' if 'email' in form.errors else '' }} \n {{ 'Invalid password.' if 'password' in form.errors else '' }}");
                     </script>
                     {% endif %}
+                    
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
-                    <p class="forgot"><a href="/reqreset">Forgot password?</a></p>
+                    <p class="forgot"><a href="/reset_request">Forgot password?</a></p>
                     </form>
             </div>
         </div>
