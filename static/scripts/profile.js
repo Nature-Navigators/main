@@ -90,11 +90,16 @@ function showDatabasePost(databasePost) {
     if(databasePost != null && databasePost != "")
     {
         let postJson = JSON.parse(cleanStr);
-        console.log(postJson)
+        console.log(postJson["user"])
         let postImages = postJson["images"];
         //adjust the post popup's DOM 
         document.getElementById("post_content").innerText = postJson["caption"];
-        document.getElementById("post_image").src = "/uploads/" + postImages[0]['name'];   
+
+        if(postImages.length > 0)
+            document.getElementById("post_image").src = "/uploads/" + postImages[0]['name'];   
+        else
+            document.getElementById("post_image").src = "../static/images/raven.png";
+    
 
         document.getElementById("html_postID").value = postJson["postID"];  //invisible value used for deleting
         //make it visible

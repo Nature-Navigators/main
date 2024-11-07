@@ -21,23 +21,40 @@
     </nav>
         <div class="container">
           <div class="left_column">
+
+            <!-- VIEWING OWN PROFILE -->
             {% if loggedIn %}
               <div class="profile_pic" id="clickable_profile">
                 <button>
-                  <img src="/static/images/birder.jpeg"/>
+                  {% if user.profileImage != None %}
+                    <img src="{{url_for('download_file', filename=user.profileImage['name'])}}"/>
+                  {% else %}
+                    <img src="/static/images/birder.jpeg"/>
+                  {% endif %}
                 </button>
                 <p>Edit Profile</p>
                 <span></span>
               </div>
+            
+            <!-- VIEWING SOMEONE ELSE'S PROFILE-->
             {% else %}
               <div class="profile_pic">
                 <p>Edit Profile</p>
-                <img src="/static/images/birder.jpeg"/>
+                {% if user.profileImage != None %}
+                  <img src="{{url_for('download_file', filename=user.profileImage['name'])}}"/>
+                {% else %}
+                  <img src="/static/images/birder.jpeg"/>
+                {% endif %}
                 <span></span>
               </div>
             {% endif %}
+            
+            {% if user.firstName != None %}
+              <h2 id="name">{{user.firstName|e}}</h2>
+            {% else %}
+              <h2 id="name">{{user.username|e}}</h2>
+            {% endif %}
 
-            <h2 id="name">{{user.firstName|e}}</h2>
             <p id="title">Professional Photographer</p>
             <button class="profile_button">Follow</button>
             <ul class="about">
@@ -47,7 +64,9 @@
   
             <div class="content">
               <p>
-                As I wander through the early morning light, my camera slung around my neck, I feel a sense of peace enveloping me. Each rustle in the bushes or distant call of a bird ignites my excitement; it's like the world is whispering secrets meant only for me. I’m Jane Doe, a passionate bird enthusiast and photographer, and nothing brings me more joy than capturing the beauty of avian life. Whether I’m nestled quietly in my backyard, waiting for the perfect moment, or exploring new habitats, I find inspiration in every feathered friend I encounter. The thrill of freezing those fleeting moments in time fuels my passion and deepens my love for nature.
+                {% if user.bio != None %}
+                  {{user.bio|e}}
+                {% endif %}
               </p>
             </div>
           </div>
@@ -65,7 +84,12 @@
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->
               {% for post in userPosts %}
+                {% if post['images']|length > 0 %}
                 <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="{{url_for('download_file', filename=post['images'][0]['name'])}}" alt="Photo"></button>
+                {% else %}
+                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="../static/images/raven.png" alt="Photo"></button>
+
+                {% endif %}
               {% endfor %}
               {% for post in socialPosts %}
                 <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
@@ -166,7 +190,6 @@
 
                 </div>
                 
-                <!--<button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>-->
                 <h3>Upload an image</h3>
               </div>
               <div class="text_div">
@@ -183,10 +206,18 @@
           <h1>Edit Your Profile</h1>
 
           <div class="popup_body">
-          <form action="/profile/{{id}}" method="POST">
+          <form action="/profile/{{id}}" method="POST" enctype="multipart/form-data">
             <div class="popup_upload_img_div">
               <h3>Profile Image</h3>
-              <button id="upload_profile_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
+
+              <div id="image_upload">
+                <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
+                <div id="clickable_upload">
+                  <img class="upload_img" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                  <input type="file" id="file_upload_input" name="image_file_bytes" >  
+                </div>
+
+              </div>
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>

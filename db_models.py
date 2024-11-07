@@ -38,7 +38,7 @@ class User(Base, UserMixin):
     bio: Mapped[str] = mapped_column( nullable=True)
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
-    serialize_rules = ('-posts.user',)
+    serialize_rules = ('-posts.user.posts','-profileImage.user')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -50,6 +50,7 @@ class User(Base, UserMixin):
     createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
     #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
     savedEvents = db.relationship('Favorite', back_populates='user', lazy='selectin') 
+    profileImage:Mapped["ProfileImage"] = relationship(back_populates='user', lazy='selectin')
 
     def get_id(self):
         return self.userID
@@ -161,4 +162,14 @@ class PostImage(Image):
     post: Mapped["Post"] = relationship(back_populates="images")
     __mapper_args__ = {
         "polymorphic_identity": "post_image"
+    }
+
+class ProfileImage(Image):
+    __tablename__ = "profileimage_table"
+    imageID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("image_table.imageID"), primary_key=True)
+    userID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="profileImage")
+    __mapper_args__ = {
+        "polymorphic_identity": "profile_image"
     }

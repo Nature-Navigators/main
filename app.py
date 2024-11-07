@@ -15,11 +15,11 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from db_models import db, User, Post, Event, Favorite, Image, PostImage
+from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
-from helpers import validate_image
+from helpers import *
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
@@ -294,13 +294,35 @@ def profile_id(profile_id):
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
         new_name = request.form["edit_profile_name"]
-        
+        image = request.files["image_file_bytes"]
+
         try:
             # try to get the current profile from the DB based on username
             if selected_id != None and selected_id == current_user.userID:
-                current_profile.firstName = new_name
+
+                if current_profile.firstName != new_name:
+                    current_profile.firstName = new_name
+
+                # if an image is being uploaded
+                if image.filename != '':
+
+                    filename = clean_image_filename(image)
+                    
+                    # filename checks out
+                    if filename:                   
+                        upload_image(filename, image, app.config)
+                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+
+                        # delete original profile image
+                        if current_profile.profileImage != None:
+                            os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
+                            db.session.delete(current_profile.profileImage)
+
+                        dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
+                        db.session.add(dbImg)
 
                 db.session.commit()
+                print(db.session.scalars(select(Image.name)).all())
                 return redirect(profile_id)
             else:
                 return redirect(profile_id)
@@ -326,26 +348,11 @@ def profile_id(profile_id):
 
                 #handle the image upload
                 image = request.files["image_file_bytes"]
-                filename = secure_filename(image.filename)
-
-                # check to see if the filename exists in the database
-                matching_name = db.session.scalars(select(Image).where(Image.name == filename))
-                if matching_name != None:
-                    #add a unique ID to the start in case it already exists
-                    unique_str = str(uuid.uuid4())[:8]
-                    image.filename = f"{unique_str}_{image.filename}"
+                filename = clean_image_filename(image)
                 
-                # upload image
-                filename = secure_filename(image.filename)
-                if filename:
-                    file_ext = os.path.splitext(filename)[1]
-
-                    #check that the extension is valid
-                    if file_ext not in app.config["UPLOAD_EXTENSIONS"] or file_ext != validate_image(image.stream):
-                        return {"error": "File type not supported"}, 400
+                if filename and filename != '':
                     
-                    # save it & create the DB object
-                    image.save(os.path.join(app.config["UPLOAD_PATH"], filename))
+                    upload_image(filename, image, app.config)
                     imgPath = app.config["UPLOAD_PATH"] + "/" + filename
                     dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
                     db.session.add(dbImg)

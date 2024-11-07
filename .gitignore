@@ -219,3 +219,5 @@ Temporary Items
 .history
 .ionide
 
+#project-specific
+uploads/*
