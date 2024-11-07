@@ -56,10 +56,20 @@
             {% endif %}
 
             <p id="title">Professional Photographer</p>
-            <button class="profile_button">Follow</button>
+            {% if not loggedIn %}
+              {% if isFollowing %}
+              <form action="/profile/{{id}}" method="POST">
+                <button class="gray_button" name="followBtn">Unfollow</button>
+              </form>
+              {% else %}
+              <form action="/profile/{{id}}" method="POST">
+                <button class="blue_button" name="followBtn">Follow</button>
+              </form>
+              {% endif %}
+            {% endif %}
             <ul class="about">
-              <span>120 Followers</span>
-              <span>322 Following</span>
+              <span>{{user.followedBy|length}} Followers</span>
+              <span>{{user.following|length}} Following</span>
             </ul>
   
             <div class="content">

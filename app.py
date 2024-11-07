@@ -284,11 +284,15 @@ def signup():
 def profile_id(profile_id):
   
     current_profile = None
-
-    selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
-    if selected_id != None:
-        current_profile = db.session.get(User, selected_id)
-
+    selected_id = None
+    
+    try:
+        selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+        if selected_id != None:
+            current_profile = db.session.get(User, selected_id)
+    except Exception as error:
+        print(error)
+        return "There was an error loading the profile"
 
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
@@ -399,14 +403,40 @@ def profile_id(profile_id):
             return "There was an error deleting your post"
         return redirect(profile_id)
 
+    # POST happens on follow button
+    elif request.method == 'POST' and "followBtn" in request.form:
+
+        # not on your own profile
+        if selected_id != None and selected_id != current_user.userID:
+            try:
+                #follow
+                if current_user not in current_profile.followedBy:
+                    current_profile.followedBy.append(current_user)
+                #unfollow
+                else:
+                    current_profile.followedBy.remove(current_user)
+
+                db.session.commit()
+
+            except Exception as error:
+                print(error)
+                return "There was an error following"
+
+        return redirect(profile_id)
+
     # page is loaded normally
     else:
 
         if selected_id != None:
             user = db.session.get(User, selected_id)
-            posts = user.to_dict()['posts']
+            try:
+                posts = user.to_dict()['posts']
+            except Exception as error:
+                print(error)
+                return "Recursion error encountered"
 
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
+            is_following = current_user.userID != selected_id and current_user in current_profile.followedBy
             context = {
                 "socialPosts": socialPosts,
                 #"events": events,
@@ -414,7 +444,8 @@ def profile_id(profile_id):
                 "id" : profile_id,
                 "user": user,
                 "loggedIn": logged_in,
-                "userPosts": posts
+                "userPosts": posts,
+                "isFollowing": is_following
             }
             return render_template("profile.html", **context)
         

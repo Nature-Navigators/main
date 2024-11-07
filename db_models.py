@@ -20,10 +20,19 @@ from sqlalchemy import ForeignKey
 #     db.Column("eventID", db.ForeignKey("event_table.eventID"), primary_key=True)
 # )
 
+
 class Base(SerializerMixin, DeclarativeBase):
     pass
 
 db = SQLAlchemy(model_class=Base)
+
+# many-to-many follower table
+secondary_following = db.Table(
+    'user_following', Base.metadata,
+    db.Column("followedBy_id", db.Uuid, db.ForeignKey("user_table.userID"), primary_key=True),
+    db.Column("following_id", db.Uuid, db.ForeignKey("user_table.userID"), primary_key=True),
+)
+
 
 class User(Base, UserMixin):
 
@@ -38,7 +47,8 @@ class User(Base, UserMixin):
     bio: Mapped[str] = mapped_column( nullable=True)
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
-    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-createdEvents.creator')
+    # prevent recursion
+    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-createdEvents.creator', '-following', '-followedBy.following')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -51,7 +61,24 @@ class User(Base, UserMixin):
     #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
     savedEvents = db.relationship('Favorite', back_populates='user', lazy='selectin') 
     profileImage:Mapped["ProfileImage"] = relationship(back_populates='user', lazy='selectin')
+    
+    following: Mapped[List["User"]] = relationship (
+        "User",
+        secondary = secondary_following,
+        primaryjoin= userID == secondary_following.c.followedBy_id,
+        secondaryjoin= userID == secondary_following.c.following_id,
+        back_populates= "followedBy"
+    )
 
+    followedBy: Mapped[List["User"]] = relationship (
+        "User",
+        secondary= secondary_following,
+        primaryjoin= userID == secondary_following.c.following_id,
+        secondaryjoin= userID == secondary_following.c.followedBy_id,
+        back_populates="following"
+    )
+
+    
     def get_id(self):
         return self.userID
     
