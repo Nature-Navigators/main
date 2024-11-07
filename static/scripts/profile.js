@@ -1,7 +1,7 @@
 // ============================================ EVENTS ===================================================
 
 //set up profile button events
-var profileButton = document.querySelector(".profile_pic");
+var profileButton = document.querySelector("#clickable_profile");
 var editProfileText = profileButton.getElementsByTagName("p")[0];
 
 //mouse events
@@ -90,14 +90,26 @@ function showDatabasePost(databasePost) {
     if(databasePost != null && databasePost != "")
     {
         let postJson = JSON.parse(cleanStr);
+        console.log(postJson)
+        let postImages = postJson["images"];
         //adjust the post popup's DOM 
         document.getElementById("post_content").innerText = postJson["caption"];
+        document.getElementById("post_image").src = "/uploads/" + postImages[0]['name'];   
 
+        document.getElementById("html_postID").value = postJson["postID"];  //invisible value used for deleting
         //make it visible
         document.getElementById("post_popup").style.visibility = 'visible';
         grayOut(true);
     
     }
+}
+
+function deletePost() {
+    document.getElementById("confirmation_popup").style.visibility = 'visible';
+}
+function hideConfirmation() {
+    document.getElementById("confirmation_popup").style.visibility = 'hidden';
+
 }
 
 //removes escape characters and turns them into their escaped forms (e.g., a new line becomes \n)
@@ -110,7 +122,6 @@ function cleanJsonString(stringToClean)
     returnStr = returnStr.replace(/\/+/g, "\\/");
     
     returnStr = returnStr.replace(/(\b|\f|\r|)*/g, "");
-    console.log(returnStr)
     return returnStr;
 }
 

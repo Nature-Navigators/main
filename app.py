@@ -1,10 +1,9 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory
 from sqlalchemy import select
 import uuid
 import requests
 import folium
 import os
-import json
 import xyzservices.providers as xyz #Can use this to change map type
 from temp_data import *
 from urllib.parse import quote
@@ -16,11 +15,18 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from db_models import db, User, Post
+from db_models import db, User, Post, Event, Favorite, Image, PostImage
+from datetime import datetime
+from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
+from helpers import validate_image
 from flask_mail import Mail, Message
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
+
+app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
+app.config['UPLOAD_PATH'] = 'uploads'
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
@@ -276,30 +282,27 @@ def signup():
 @login_required
 def profile_id(profile_id):
   
-    profile_path = "/profile/" + profile_id
+    current_profile = None
+
+    selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+    if selected_id != None:
+        current_profile = db.session.get(User, selected_id)
+
 
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
         new_name = request.form["edit_profile_name"]
-        new_profile = User(userID=uuid.uuid4(), username=profile_id, email=new_name, password=new_name, firstName=new_name)
         
-        #add the profile to the database
         try:
-            # try to get the current profile from the DB based on 
-            selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
-            if selected_id != None:
-                current_profile = db.session.get(User, selected_id)
+            # try to get the current profile from the DB based on username
+            if selected_id != None and selected_id == current_user.userID:
                 current_profile.firstName = new_name
-                db.session.commit()
-                return redirect(profile_path)
 
-            # it didn't exist, so add it to the DB
-            else:
-                db.session.add(new_profile)
                 db.session.commit()
-                return redirect(profile_path)
-        
+                return redirect(profile_id)
+            else:
+                return redirect(profile_id)
         #any additional errors
         except Exception as error:
             print(error)
@@ -313,70 +316,227 @@ def profile_id(profile_id):
         #add the new post to the database
         try:
             # try to get the current user from the DB based on username
-            selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+            if selected_id != None and selected_id == current_user.userID:
 
-            if selected_id != None:
-
-                new_post = Post(postID=uuid.uuid4(), caption=new_caption, userID=selected_id)
+                # setting up & adding the post
+                new_postID = uuid.uuid4()
+                new_post = Post(postID=new_postID, caption=new_caption, datePosted=datetime.now(), userID=selected_id)
                 db.session.add(new_post)
+
+                #handle the image upload
+                image = request.files["image_file_bytes"]
+                filename = secure_filename(image.filename)
+
+                # check to see if the filename exists in the database
+                matching_name = db.session.scalars(select(Image).where(Image.name == filename))
+                if matching_name != None:
+                    #add a unique ID to the start in case it already exists
+                    unique_str = str(uuid.uuid4())[:8]
+                    image.filename = f"{unique_str}_{image.filename}"
+                
+                # upload image
+                filename = secure_filename(image.filename)
+                if filename:
+                    file_ext = os.path.splitext(filename)[1]
+
+                    #check that the extension is valid
+                    if file_ext not in app.config["UPLOAD_EXTENSIONS"] or file_ext != validate_image(image.stream):
+                        return {"error": "File type not supported"}, 400
+                    
+                    # save it & create the DB object
+                    image.save(os.path.join(app.config["UPLOAD_PATH"], filename))
+                    imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                    dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
+                    db.session.add(dbImg)
+                
+                
                 db.session.commit()
 
-                return redirect(profile_path)
+                return redirect(profile_id)
 
             # the user didn't exist
             else:
                 #TODO: post failed is a pop up
-                return "User does not exist; Posting image failed"
+                return "User does not exist or user is not the one logged in; Posting image failed"
         
         #any additional errors
         except Exception as error:
             print(error)
             return "There was an issue adding a photo"
+    
+    # POST happens on deleting a post 
+    elif request.method == 'POST' and "postID" in request.form:
+
+        try:
+            # if the profile page we're on belongs to the logged in user
+            if current_profile != None and current_profile.userID == current_user.userID:
+
+                selected_post = db.session.get(Post, uuid.UUID(request.form["postID"]))
+
+                # if the post ID passed to the function belongs to the logged in user
+                    # meant to avoid spoofing to delete someone else's post
+                if selected_post.user.userID == current_user.userID:
+
+                    # remove images
+                    images = selected_post.images
+                    for image in images:
+                        os.remove(os.path.join(app.config["UPLOAD_PATH"], image.name))
+
+                    db.session.delete(selected_post)
+                    db.session.commit()
+                    return redirect(profile_id)
+
+        except Exception as error:
+            print(error)
+            return "There was an error deleting your post"
+        return redirect(profile_id)
+
     # page is loaded normally
     else:
 
-        # get the profile by its id (primary key)
-        selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
         if selected_id != None:
             user = db.session.get(User, selected_id)
             posts = user.to_dict()['posts']
+            print(posts[0]["images"][0]["imagePath"])
+
+            logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
             context = {
                 "socialPosts": socialPosts,
-                "events": events,
+                #"events": events,
                 "badges": badges,
                 "id" : profile_id,
                 "user": user,
+                "loggedIn": logged_in,
                 "userPosts": posts
             }
             return render_template("profile.html", **context)
         
         # nonexistent user
         else:
-            
             return "User does not exist"
 
-# TODO: delete me
 @app.route('/profile')
 @login_required
 def profile():
-    context = {
-        "socialPosts": socialPosts,
-        "events": events,
-        "badges": badges
-    }
-    return render_template("profile.html", **context)
+
+    #redirect to the signin page if not logged in
+    if not current_user.is_authenticated:
+        print(f"Not logged in")
+        return redirect("signin")
+    
+    #if logged in
+    profile_path = "profile/" + current_user.username
+    return redirect(profile_path)
+
+
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    #print(value)
+    parsed_date = datetime.strptime(value, '%Y-%m-%d %H:%M')
+    return parsed_date.strftime("%B %d, %Y at %I:%M %p")
+
+
+@app.route('/create_event', methods=['POST', 'GET'])
+def create_event():
+
+    #print(f"user id: ")
+    #print(current_user.userID)
+
+    if not current_user.is_authenticated: #identify loggedin/loggedout users 
+        print(f"Not logged in")
+        return jsonify({'success': False, 'message': 'Event not created, not logged in.'})
+    
+    #print(f"logged in!")
+    print(f"user id: ")
+    print(current_user.userID)
+
+    data = request.json
+
+    title = data.get('title')
+    description = data.get('description')
+    creator =  current_user.userID 
+    location = data.get('location')
+    event_date_str = data.get('eventDate')  # Assume this is in 'YYYY-MM-DD' format
+    event_time_str = data.get('time')  # Assume this is in 'HH:MM' format
+
+    # Combine date and time
+    combined_datetime_str = f"{event_date_str} {event_time_str}"
+    dateAndTime = datetime.strptime(combined_datetime_str, '%Y-%m-%d %H:%M')
+
+    temp_event_id = uuid.uuid4()  # random event ID
+    
+    new_event = Event(
+            eventID = temp_event_id,
+            title=title,
+            description=description,
+            eventDate=dateAndTime,
+            userID=creator,
+            location=location,
+        )
+    db.session.add(new_event)
+    db.session.commit()
+        
+    return jsonify({'success': True, 'message': 'Event created successfully!'})
+   
+@app.route('/favorite_event', methods=['POST'])
+def favorite_event():
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    data = request.json
+    eventID = uuid.UUID(data.get('eventID'))
+    userID = current_user.userID  # Get the logged-in user's ID
+
+    new_favorite = Favorite(userID=userID, eventID=eventID)
+
+    # Add the favorite to the database
+    try:
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Event favorited successfully!'})
+    except IntegrityError:
+        db.session.rollback()  #rollback if an error occurs
+        return jsonify({'success': False, 'message': 'Event already favorited'})
+
+
+@app.route('/unfavorite_event', methods=['POST'])
+def unfavorite_event():
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    user_id = current_user.userID
+    event_id = uuid.UUID(data.get('eventID'))
+
+    # Find the favorite entry to delete
+    favorite = Favorite.query.filter_by(userID=user_id, eventID=event_id).first()
+    
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Event removed from favorites successfully!'})
+    else:
+        return jsonify({'success': False, 'message': 'Event not found in favorites'})
 
   
 @app.route('/social')
-def social():
-    context = {
-        "events": events,
-    }
-    return render_template("social.html", **context)
+def social():     
+    # Query to get all events
+    tempEvents = db.session.execute(select(Event)).scalars().all()  
+    serialized_events = [event.to_dict() for event in tempEvents]
+
+    #signout to test functionality
+    #signout()
+
+    return render_template('social.html', events=serialized_events)
 
 @app.route('/bird')
 def bird():
     return render_template("bird.html")
+
+@app.route('/uploads/<path:filename>')
+def download_file(filename):
+    return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)
 
 def send_email(user):
     try:

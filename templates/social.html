@@ -16,24 +16,22 @@
             <span class="close" id="closeModal">&times;</span>
             <h2>Create Event</h2>
             <form id="eventForm">
-                <label for="eventName">Event Name:</label>
-                <input type="text" id="eventName" name="eventName" required><br><br>
+                <label for="title">Event Name:</label>
+                <input type="text" id="title" name="title" required><br><br>
     
                 <label for="eventDate">Event Date:</label>
                 <input type="date" id="eventDate" name="eventDate" required><br><br>
     
-                <label for="eventTime">Event Time:</label>
-                <input type="time" id="eventTime" name="eventTime" required><br><br>
+                <label for="time">Event Time:</label>
+                <input type="time" id="time" name="time" required><br><br>
     
-                <label for="eventLocation">Location:</label>
-                <input type="text" id="eventLocation" name="eventLocation" required><br><br>
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" required><br><br>
     
-                <label for="eventDescription">Description:</label>
-                <textarea id="eventDescription" name="eventDescription" required></textarea><br><br>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea><br><br>
     
-                <label for="eventHost">Host:</label>
-                <input type="text" id="eventHost" name="eventHost" required><br><br>
-    
+            
                 <button type="submit">Create Event</button>
             </form>
         </div>
@@ -41,25 +39,27 @@
     <div class="sidebar">
         <div class="events" id="events"> 
             <div class="events-headline">
-                <h3 id="events-text">Top Events</h3>
+                <p id="events-text">Birding Events Near You</p>
                 <button class="create-event-button" id="createEventBtn">
                     <img id="createEventImg" src="../static/images/createicon.png" alt="Create Event">
                 </button>
             </div>
             <div id="event_holder">
-              {% for event in events %}
-              <div class="event_img_details">
-                <div class="event-image-container">
-                    <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
-                    <span class= "favorite-icon">❤️</span>
+                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
+                {% for event in events %}
+                <div class="event_img_details">
+                    <div class="event-image-container">
+                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
+                        <span class= "favorite-icon" EventID="{{event.eventID}}"></span>
+                    </div>
+                    <div class="event-details">
+                        <h4>{{event.title|e}}</h4>
+                        <p>{{ event.eventDate| datetimeformat }}</p> 
+                        <p>{{event.location|e}}</p>
+                    </br>
+                    </div>
                 </div>
-                <div class="event-details">
-                    <h4>{{event.name|e}}</h4>
-                    <p>{{event.date|e}} at {{event.time|e}}</p>
-                    <p>{{event.location|e}}</p>
-                    <button onclick="showEventPopup('{{event|tojson|forceescape}}')">Details</button>
-                </div>
-              </div>
               {%endfor%}
             </div>
 
@@ -100,16 +100,42 @@
             event.preventDefault();
             const formData = new FormData(eventForm);
 
+
             const eventData = {
-                name: formData.get('eventName'),
-                date: formData.get('eventDate'),
-                time: formData.get('eventTime'),
-                location: formData.get('eventLocation'),
-                description: formData.get('eventDescription'),
-                host: formData.get('eventHost')
+                title: formData.get('title'),
+                eventDate: formData.get('eventDate'),
+                time: formData.get('time'),
+                location: formData.get('location'),
+                description: formData.get('description'),
             };
 
             console.log(eventData); // Send  data to server for saving
+
+            // Send event data to the /create_event endpoint
+            fetch('/create_event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    console.log("You need to log in to create an event");
+                    alert("You need to log in to create an event");
+                    return; // Exit if the user is not logged in
+                }
+                return response.json(); 
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log(data.message); //  created successfully
+                }
+                else
+                    console.log(data.message); //not created
+            })
+            .catch(error => {
+                console.error('Error creating event:', error);
+            });
+
             eventForm.reset();
 
             modal.style.display = 'none';
@@ -119,16 +145,74 @@
         //handle heart clicks for the events
         document.querySelectorAll('.favorite-icon').forEach(button => {
             button.addEventListener('click', (event) => {
-                const eventId = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
-                const userId = "123"; // Replace with the actual logged-in user ID
-                console.log(`User ${userId} is interested in event ${eventId}`);
+                const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
+                const isFavorited = button.classList.contains('favorited');
 
-                // Here send this data to your server
-                // fetch('/register-interest', {
-                //     method: 'POST',
-                //     body: JSON.stringify({ userId: userId, eventId: eventId }),
-                //     headers: { 'Content-Type': 'application/json' }
-                // });
+                if (!isFavorited){
+                    button.classList.add('favorited'); //prematurely show favorited
+                    fetch('/favorite_event', {
+                        method: 'POST',
+                        body: JSON.stringify({ eventID: eventID }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => {
+                        if (response.status === 401) {
+                            alert("You need to log in to favorite events.");
+                            button.classList.remove('favorited');
+                            return null;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if(data){
+                            if (data.success) {
+                                console.log("Event favorited successfully!");
+                            }
+                            else{
+                                console.log("There was an issue with favoriting the event.");
+                                button.classList.remove('favorited');
+                                console.log(data.message);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        button.classList.remove('favorited');
+                        console.error('Error favoriting event:', error);
+                    });
+                }
+                else {
+                    button.classList.remove('favorited');
+                    fetch('/unfavorite_event', {
+                        method: 'POST',
+                        body: JSON.stringify({ eventID: eventID }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => {
+                        if (response.status === 401) {
+                            alert("You need to log in to unfavorite events.");
+                            button.classList.remove('favorited');
+                            return null;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if(data){
+                            if (data.success) {
+                                console.log("Event removed from favorites successfully");
+                            }
+                            else{
+                                console.log("There was an issue with unfavoriting the event.");
+                                button.classList.add('favorited');
+                                console.log(data.message);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        button.classList.add('favorited');
+                        console.error('Error unfavoriting event:', error);
+                    });
+                }
+                    
             });
         });
 
