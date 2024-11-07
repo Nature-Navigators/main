@@ -48,7 +48,7 @@ class User(Base, UserMixin):
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
     # prevent recursion
-    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-createdEvents.creator', '-following', '-followedBy.following')
+    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-createdEvents.creator', '-following', '-followedBy')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
