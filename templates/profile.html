@@ -21,15 +21,23 @@
     </nav>
         <div class="container">
           <div class="left_column">
-            <div class="profile_pic">
-              <button>
+            {% if loggedIn %}
+              <div class="profile_pic" id="clickable_profile">
+                <button>
+                  <img src="/static/images/birder.jpeg"/>
+                </button>
+                <p>Edit Profile</p>
+                <span></span>
+              </div>
+            {% else %}
+              <div class="profile_pic">
+                <p>Edit Profile</p>
                 <img src="/static/images/birder.jpeg"/>
-                
-              </button>
-              <p>Edit Profile</p>
-              <span></span>
-            </div>
-            <h2 id="name">Jane Doe</h2>
+                <span></span>
+              </div>
+            {% endif %}
+
+            <h2 id="name">{{user.firstName|e}}</h2>
             <p id="title">Professional Photographer</p>
             <button class="profile_button">Follow</button>
             <ul class="about">
@@ -50,10 +58,15 @@
                 <li><a href="#" onclick="showBadges()">Badges</a></li>
                 <li><a href="#" onclick="showEvents()">Saved Events</a></li>
               </ul>
+            {% if loggedIn %}
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
+            {% endif %}
             </nav>
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->
+              {% for post in userPosts %}
+                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="{{url_for('download_file', filename=post['images'][0]['name'])}}" alt="Photo"></button>
+              {% endfor %}
               {% for post in socialPosts %}
                 <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
               {% endfor %}
@@ -136,20 +149,32 @@
         </div>
 
         <!-- Popup for Adding a Post -->
+        {% if loggedIn %}
         <div class="popup" id="add_post_popup">
           <button id="cancel_button" onclick="hidePostPopup()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
           <h1>Create a Post</h1>
 
           <div class="popup_body">
-            <div class="popup_upload_img_div">
-              <button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
-              <h3>Upload an image</h3>
+          <form action="/profile/{{id}}" method="POST" enctype="multipart/form-data">
+              <div class="popup_upload_img_div">
+                <div id="image_upload">
+                  <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
+                  <div id="clickable_upload">
+                    <img class="upload_img" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                    <input type="file" id="file_upload_input" name="image_file_bytes" >  
+                  </div>
+
+                </div>
+                
+                <!--<button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>-->
+                <h3>Upload an image</h3>
+              </div>
+              <div class="text_div">
+                <textarea name="add_photo_caption" placeholder="Write a caption here!"></textarea>
+                <button class="profile_button">Post</button>
+              </div>
             </div>
-            <div class="text_div">
-              <textarea placeholder="Write a caption here!"></textarea>
-              <button class="profile_button">Post</button>
-            </div>
-          </div>
+          </form>
         </div>
 
         <!-- Popup for Profile Editing -->
@@ -158,21 +183,24 @@
           <h1>Edit Your Profile</h1>
 
           <div class="popup_body">
+          <form action="/profile/{{id}}" method="POST">
             <div class="popup_upload_img_div">
               <h3>Profile Image</h3>
               <button id="upload_profile_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>
-              <input placeholder="Enter your name">
+              <input name="edit_profile_name" placeholder="Enter your name" value="{{user.firstName|e}}">
               <h3>Title</h3>
-              <input placeholder="Enter your title">
+              <input name="title" placeholder="Enter your title">
               <h3>Bio</h3>
-              <textarea placeholder="Edit your bio"></textarea>
+              <textarea name="bio" placeholder="Edit your bio">{{user.bio|e}}</textarea>
               <button class="profile_button" onclick="saveProfileEdits()">Save</button>
             </div>
           </div>
+          </form>
         </div>
+        {% endif %}
 
         {% include "post_popup.html" with context %}
 

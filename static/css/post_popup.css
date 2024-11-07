@@ -16,6 +16,28 @@
     
 }
 
+#popup_header {
+    width:100%;
+    display: flex;
+}
+
+#confirmation_popup {
+    left: 40%;
+    top: 40%;
+    width: 20%;
+    height: 20%;
+    text-align:center;
+}
+#confirmation_popup form {
+    display:inline;
+}
+#confirmation_popup div {
+    width:100%;
+    text-align: center;
+    margin:auto;
+    row-gap: 0.5em;
+}
+
 .post_popup_body {
     position: relative;
     width: 100%;
@@ -147,6 +169,13 @@
 .send-icon {
     background: none;
     border: none;
+    cursor: pointer;
+}
+
+.popup #delete_button {
+    width:2.5em;
+    height:2.5em;
+    margin-left: auto;
     cursor: pointer;
 }
 
