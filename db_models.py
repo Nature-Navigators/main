@@ -38,7 +38,7 @@ class User(Base, UserMixin):
     bio: Mapped[str] = mapped_column( nullable=True)
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
-    serialize_rules = ('-posts.user.posts','-profileImage.user')
+    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-createdEvents.creator')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -97,32 +97,33 @@ class Post(Base):
 
 
 class Event(db.Model):
-     __tablename__ = "event_table"
-     eventID = db.Column(db.Uuid, primary_key=True)
-     #datePosted = db.Column(db.DateTime(timezone=True))
-     eventDate = db.Column(db.DateTime(timezone=True), nullable=False)
-     title = db.Column(db.String(150), nullable=False)
-     description = db.Column(db.String(256))
-     location = db.Column(db.String(150)) #may need to change
+    __tablename__ = "event_table"
+    eventID = db.Column(db.Uuid, primary_key=True)
+    #datePosted = db.Column(db.DateTime(timezone=True))
+    eventDate = db.Column(db.DateTime(timezone=True), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.String(256))
+    location = db.Column(db.String(150)) #may need to change
 
-     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
+    userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
 
-     creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
-     #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
-     favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
+    creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
+    #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
+    favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
 
-     def to_dict(self):
-            return {
-                'eventID': self.eventID,
-                'title': self.title,
-                'eventDate': self.eventDate.strftime('%Y-%m-%d %H:%M'), 
-                'location': self.location,
-                'description': self.description,
-                'userID': self.userID
-            }
 
-     def __repr__(self):
-         return f'<Event {self.title}>'
+    def to_dict(self):
+        return {
+            'eventID': self.eventID,
+            'title': self.title,
+            'eventDate': self.eventDate.strftime('%Y-%m-%d %H:%M'), 
+            'location': self.location,
+            'description': self.description,
+            'userID': self.userID
+        }
+
+    def __repr__(self):
+        return f'<Event {self.title}>'
 
 
 class Favorite(db.Model):
