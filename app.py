@@ -21,6 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 from helpers import validate_image
 from flask_mail import Mail, Message
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
@@ -397,7 +398,6 @@ def profile_id(profile_id):
         if selected_id != None:
             user = db.session.get(User, selected_id)
             posts = user.to_dict()['posts']
-            print(posts[0]["images"][0]["imagePath"])
 
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
             context = {
