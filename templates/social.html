@@ -121,16 +121,18 @@
                 if (response.status === 401) {
                     console.log("You need to log in to create an event");
                     alert("You need to log in to create an event");
-                    return; // Exit if the user is not logged in
+                    return null; // Exit if the user is not logged in
                 }
                 return response.json(); 
             })
             .then(data => {
-                if (data.success) {
-                    console.log(data.message); //  created successfully
+                if(data){
+                    if (data.success) {
+                        console.log(data.message); //  created successfully
+                    }
+                    else
+                        console.log(data.message); //not created
                 }
-                else
-                    console.log(data.message); //not created
             })
             .catch(error => {
                 console.error('Error creating event:', error);

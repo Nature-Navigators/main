@@ -482,7 +482,7 @@ def create_event():
 
     if not current_user.is_authenticated: #identify loggedin/loggedout users 
         print(f"Not logged in")
-        return jsonify({'success': False, 'message': 'Event not created, not logged in.'})
+        return jsonify({'error': 'Event not created, user not logged in'}), 401
     
     #print(f"logged in!")
     print(f"user id: ")
@@ -564,7 +564,7 @@ def social():
     serialized_events = [event.to_dict() for event in tempEvents]
 
     #signout to test functionality
-    #signout()
+    #logout()
 
     return render_template('social.html', events=serialized_events)
 
