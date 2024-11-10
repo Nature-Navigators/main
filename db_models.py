@@ -10,6 +10,7 @@ from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy_serializer import SerializerMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from sqlalchemy import ForeignKey
+from sqlalchemy import Float
 
 
 # many-to-many association table connecting event & user
@@ -131,6 +132,8 @@ class Event(db.Model):
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(256))
     location = db.Column(db.String(150)) #may need to change
+    latitude = db.Column(Float, nullable=True)
+    longitude = db.Column(Float, nullable=True) 
 
     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
 
@@ -145,6 +148,8 @@ class Event(db.Model):
             'title': self.title,
             'eventDate': self.eventDate.strftime('%Y-%m-%d %H:%M'), 
             'location': self.location,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
             'description': self.description,
             'userID': self.userID
         }

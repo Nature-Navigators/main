@@ -21,6 +21,11 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 from helpers import *
 from flask_mail import Mail, Message
+from geopy.geocoders import Nominatim
+from geopy.geocoders import OpenCage
+import requests
+from math import radians, sin, cos, sqrt, atan2 #for haversine formula
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -30,8 +35,8 @@ app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
 app.config['UPLOAD_PATH'] = 'uploads'
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
-GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
+EBIRD_API_KEY = '1k2jeh44596g'
+GOOGLE_MAPS_API_KEY ='AIzaSyB1nZm5o9f0bud-2R4FLHwV3uEgg3I7_CM' 
 
 
 db.init_app(app)
@@ -41,6 +46,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "signin"
 
+geolocator = Nominatim(user_agent="event_locator")
 
 with app.app_context():
     db.create_all()
@@ -476,6 +482,16 @@ def datetimeformat(value):
     return parsed_date.strftime("%B %d, %Y at %I:%M %p")
 
 
+def get_coordinates(city_state):
+    geolocator = OpenCage(api_key="029ce9756caf4c8ab64c155f894d651e")
+    location = geolocator.geocode(city_state)
+    if location:
+        return location.latitude, location.longitude
+    else:
+        print("Location not found.")
+        return None
+
+
 @app.route('/create_event', methods=['POST', 'GET'])
 def create_event():
 
@@ -495,7 +511,10 @@ def create_event():
     title = data.get('title')
     description = data.get('description')
     creator =  current_user.userID 
+    
     location = data.get('location')
+    latitude, longitude = get_coordinates(location)
+
     event_date_str = data.get('eventDate')  # Assume this is in 'YYYY-MM-DD' format
     event_time_str = data.get('time')  # Assume this is in 'HH:MM' format
 
@@ -512,6 +531,8 @@ def create_event():
             eventDate=dateAndTime,
             userID=creator,
             location=location,
+            latitude=latitude,
+            longitude=longitude,
         )
     db.session.add(new_event)
     db.session.commit()
@@ -558,7 +579,49 @@ def unfavorite_event():
     else:
         return jsonify({'success': False, 'message': 'Event not found in favorites'})
 
-  
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    R = 3959.0
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat2 = radians(lat2)
+    lon2 = radians(lon2)
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    #Haversine
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+
+@app.route('/social_location', methods=['POST'])
+def social_location():
+    data = request.get_json()
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+
+    #max_distance_m = 1000
+
+    tempEvents = db.session.execute(select(Event)).scalars().all()
+    serialized_events = [event.to_dict() for event in tempEvents]
+
+    #sort events by distance
+    events_with_distance = [
+        (haversine(latitude, longitude, event.get('latitude'), event.get('longitude')), event)
+        for event in serialized_events
+    ]
+
+    events_with_distance.sort(key=lambda x: x[0])
+    sorted_events = [event for _, event in events_with_distance]
+
+    print(f"Filtered Events: {sorted_events}")
+    return jsonify(sorted_events)
+
 @app.route('/social')
 def social():     
     # Query to get all events

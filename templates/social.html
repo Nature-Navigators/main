@@ -75,6 +75,12 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <script>
+        const googleMapsApiKey = "{{ google_maps_api_key }}";
+    </script>
+    <script src="{{url_for('static', filename='scripts/social.js')}}"></script>
+
+
     <script type="text/babel">
         const domNode = document.getElementById('app');
 
@@ -189,80 +195,86 @@
             modal.style.display = 'none';
         });
 
+        //call func to bind favorite icons to handle function
+        rebindFavoriteIcons();
+
+        function handleFavoriteClick(event) {
+            const button = event.target;
+            const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
+            const isFavorited = button.classList.contains('favorited');
+
+            if (!isFavorited){
+                button.classList.add('favorited'); //prematurely show favorited
+                fetch('/favorite_event', {
+                    method: 'POST',
+                    body: JSON.stringify({ eventID: eventID }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("You need to log in to favorite events.");
+                        button.classList.remove('favorited');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data){
+                        if (data.success) {
+                            console.log("Event favorited successfully!");
+                        }
+                        else{
+                            console.log("There was an issue with favoriting the event.");
+                            button.classList.remove('favorited');
+                            console.log(data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    button.classList.remove('favorited');
+                    console.error('Error favoriting event:', error);
+                });
+            }
+            else {
+                button.classList.remove('favorited');
+                fetch('/unfavorite_event', {
+                    method: 'POST',
+                    body: JSON.stringify({ eventID: eventID }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("You need to log in to unfavorite events.");
+                        button.classList.remove('favorited');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data){
+                        if (data.success) {
+                            console.log("Event removed from favorites successfully");
+                        }
+                        else{
+                            console.log("There was an issue with unfavoriting the event.");
+                            button.classList.add('favorited');
+                            console.log(data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    button.classList.add('favorited');
+                    console.error('Error unfavoriting event:', error);
+                });
+            }
+        }
 
         //handle heart clicks for the events
-        document.querySelectorAll('.favorite-icon').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
-                const isFavorited = button.classList.contains('favorited');
-
-                if (!isFavorited){
-                    button.classList.add('favorited'); //prematurely show favorited
-                    fetch('/favorite_event', {
-                        method: 'POST',
-                        body: JSON.stringify({ eventID: eventID }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => {
-                        if (response.status === 401) {
-                            alert("You need to log in to favorite events.");
-                            button.classList.remove('favorited');
-                            return null;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if(data){
-                            if (data.success) {
-                                console.log("Event favorited successfully!");
-                            }
-                            else{
-                                console.log("There was an issue with favoriting the event.");
-                                button.classList.remove('favorited');
-                                console.log(data.message);
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        button.classList.remove('favorited');
-                        console.error('Error favoriting event:', error);
-                    });
-                }
-                else {
-                    button.classList.remove('favorited');
-                    fetch('/unfavorite_event', {
-                        method: 'POST',
-                        body: JSON.stringify({ eventID: eventID }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => {
-                        if (response.status === 401) {
-                            alert("You need to log in to unfavorite events.");
-                            button.classList.remove('favorited');
-                            return null;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if(data){
-                            if (data.success) {
-                                console.log("Event removed from favorites successfully");
-                            }
-                            else{
-                                console.log("There was an issue with unfavoriting the event.");
-                                button.classList.add('favorited');
-                                console.log(data.message);
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        button.classList.add('favorited');
-                        console.error('Error unfavoriting event:', error);
-                    });
-                }
-                    
+        function rebindFavoriteIcons() {
+            document.querySelectorAll('.favorite-icon').forEach(button => {
+                button.addEventListener('click', handleFavoriteClick);
             });
-        });
+        }
 
 // Header Component
         function Header() {
