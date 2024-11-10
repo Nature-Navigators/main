@@ -55,9 +55,11 @@ function updateEventList(events) {
     const eventHolder = document.getElementById('event_holder');
     
     let htmlContent = '';
+
     
     events.forEach((event, index) => {
         const imageFile = `bird${(index % 4) + 1}.jpg`;  // Replace with logic for images
+        const formattedDate = formatEventDate(event.eventDate); 
         
         htmlContent += `
             <div class="event_img_details">
@@ -67,7 +69,7 @@ function updateEventList(events) {
                 <div class="event-details">
                     <h4>${event.title}</h4>
                     <span class="favorite-icon" EventID="${event.eventID}"></span>
-                    <p>${event.eventDate}</p>
+                    <p>${formattedDate}</p>
                     <p>${event.location}</p>
                     <p style="margin-top:10px">${event.description}</p>
                     </br>
@@ -80,4 +82,8 @@ function updateEventList(events) {
     eventHolder.innerHTML = htmlContent;
 
     rebindFavoriteIcons();
+}
+
+function formatEventDate(eventDate) {
+    return moment(eventDate).format("MMMM DD, YYYY [at] hh:mm A");
 }
