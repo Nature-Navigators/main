@@ -6,12 +6,33 @@ function onLoad() {
 }
 
 function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendLocation);
-    
-    } else {
-        console.log("Geolocation is not supported by this browser.");
-    }
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            sendLocation(position);
+        },
+        (error) => {
+            console.warn("Geolocation failed or denied, using IP-based location as fallback.");
+            fetchLocationViaIP();
+        },
+        {
+            timeout: 800,     
+        }
+    );
+}
+
+function fetchLocationViaIP() {
+    fetch('http://ip-api.com/json')
+        .then(response => response.json())
+        .then(data => {
+            const position = {
+                coords: {
+                    latitude: data.lat,
+                    longitude: data.lon
+                }
+            };
+            sendLocation(position);
+        })
+        .catch(error => console.error('Error fetching IP location:', error));
 }
 
 function handleError(error) {
