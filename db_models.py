@@ -100,6 +100,10 @@ class Post(Base):
     __tablename__ = "post_table"
     postID:Mapped[uuid.UUID] = mapped_column(primary_key=True)
     caption:Mapped[str] = mapped_column(nullable=True)
+    likes:Mapped[int] = mapped_column(nullable=False, default=0)
+    birdID:Mapped[str] = mapped_column(nullable=False, default="unidentified birdie")
+    locationID:Mapped[str] = mapped_column(nullable=False, default="unknown location")
+
     datePosted:Mapped[datetime.datetime] = mapped_column(nullable=True)
 
     serialize_rules = ('-images.post',)
