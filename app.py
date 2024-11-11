@@ -265,10 +265,26 @@ def getWikipediaImage(bird_name):
 
     return None
 
+def getWikipediaPageContent(bird_name):
+    formatted_bird_name = formatBirdName(bird_name)
+    url = f'https://en.wikipedia.org/w/api.php?action=parse&page={formatted_bird_name}&format=json'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        page_content = data.get('parse', {}).get('text', {}).get('*', '')
+        return page_content
+    else:
+        print(f"Failed to fetch page content. Status code: {response.status_code}")
+        return None
+
 def get_bird_info(bird_name):
+    image_url = getWikipediaImage(bird_name)
+    content = getWikipediaPageContent(bird_name)
     return {
-        'imageUrl': getWikipediaImage(bird_name),
-        'title': bird_name
+        'imageUrl': image_url,
+        'title': bird_name,
+        'content': content
     }
 
 @app.route('/bird/<bird_name>')

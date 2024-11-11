@@ -54,32 +54,13 @@ header {
     color: #ddd;
 }
 
-.bird-page {
-    display: flex;
-    height: calc(100vh - 60px);
-}
-
-.bird-image {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f9f9f9;
-    overflow: hidden;
-}
-
-.bird-image img {
-    width: 100%;
-    height: auto;
-    max-height: 100%;
+main {
+    padding-top: 10px;
 }
 
 .bird-info {
-    flex: 1.5;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    width: 100%;
+    padding: 20px;
 }
 
 .bird-info h1 {
@@ -90,10 +71,4 @@ header {
 .bird-info p {
     font-size: 1.2em;
     margin-bottom: 15px;
-}
-
-.bird-info h2 {
-    margin-top: 30px;
-    font-size: 2em;
-    margin-bottom: 10px;
 }
