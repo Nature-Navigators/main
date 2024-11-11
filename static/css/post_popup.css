@@ -1,3 +1,28 @@
+
+
+.profile_pic_container {
+    width:3.5em;
+    height:3.5em;
+    min-width: 3.5em;
+    border-radius:50%;
+    overflow:hidden;
+    box-sizing:border-box;
+    padding:0;
+    display:block;
+    margin-right: 0.5em;
+
+
+}
+.post_popup .profile_pic_container img {
+    width: 100%;
+    
+    height:100%;
+    padding:0;
+    margin:0;
+    display:block;
+    object-fit: cover;
+
+}
 .post_popup {
     visibility:hidden;
     top: 5%;
@@ -14,6 +39,28 @@
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
     overflow-y: auto;
     
+}
+
+#popup_header {
+    width:100%;
+    display: flex;
+}
+
+#confirmation_popup {
+    left: 40%;
+    top: 40%;
+    width: 20%;
+    height: 20%;
+    text-align:center;
+}
+#confirmation_popup form {
+    display:inline;
+}
+#confirmation_popup div {
+    width:100%;
+    text-align: center;
+    margin:auto;
+    row-gap: 0.5em;
 }
 
 .post_popup_body {
@@ -41,36 +88,22 @@
 
 .post-header {
     display: flex;
-    justify-content: flex-start;
+    flex: 0 0 0;
     align-items: center;
+    object-fit: contain;
     background-color: white;
     font-size: 14px;
     color: #333;
     width: 100%;
+    position: relative;
+    margin-bottom: 1em;
 }
 
-.profile-pic {
-    justify-self: start;
-    margin-left: 15px;
-    margin-right: 15px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    width: 40px !important;
-    height: 40px !important;
-    object-fit: scale-down;
-}
+
 .profile-info {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    justify-content: flex-start;
+    width:100%;
 }
 
-.profile-name-time {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
 
 .profile-name {
     font-weight: bold;
@@ -150,6 +183,13 @@
     cursor: pointer;
 }
 
+.popup #delete_button {
+    width:2.5em;
+    height:2.5em;
+    margin-left: auto;
+    cursor: pointer;
+}
+
 .comments-list {
     margin-bottom: 10px;
 }
@@ -167,3 +207,4 @@
 .view-comments:hover {
     text-decoration: none;
 }
+

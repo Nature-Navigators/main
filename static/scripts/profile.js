@@ -1,7 +1,7 @@
 // ============================================ EVENTS ===================================================
 
 //set up profile button events
-var profileButton = document.querySelector(".profile_pic");
+var profileButton = document.querySelector("#clickable_profile");
 var editProfileText = profileButton.getElementsByTagName("p")[0];
 
 //mouse events
@@ -83,11 +83,73 @@ function hidePostPopup() {
     grayOut(false);
 }
 
+function showDatabasePost(databasePost) {
+
+    var cleanStr = cleanJsonString(databasePost);
+
+    if(databasePost != null && databasePost != "")
+    {
+        let postJson = JSON.parse(cleanStr);
+        let userJson = postJson["user"];
+        let postImages = postJson["images"];
+
+        //adjust the post popup's DOM 
+        document.getElementById("post_content").innerText = postJson["caption"];
+
+        //set image if there is one
+        if(postImages.length > 0)
+            document.getElementById("post_image").src = "/uploads/" + postImages[0]['name'];   
+        else
+            document.getElementById("post_image").src = "../static/images/raven.png";
+    
+        let date = new Date(Date.parse(postJson["datePosted"]));
+        document.getElementById("post-time").innerText = "• " + date.toLocaleDateString();
+
+        //set user who posted the post's details
+        document.getElementById("posted-by").innerText = userJson["username"]
+
+        //set profile image
+        if(userJson["profileImage"] != null)
+            document.getElementById("profile_pic").src = "/uploads/" + userJson["profileImage"]["name"]
+        else
+            document.getElementById("profile_pic").src = "../static/images/raven.png";
+
+        document.getElementById("html_postID").value = postJson["postID"];  //invisible value used for deleting
+        //make it visible
+        document.getElementById("post_popup").style.visibility = 'visible';
+        grayOut(true);
+    
+    }
+}
+
+function deletePost() {
+    document.getElementById("confirmation_popup").style.visibility = 'visible';
+}
+function hideConfirmation() {
+    document.getElementById("confirmation_popup").style.visibility = 'hidden';
+
+}
+
+//removes escape characters and turns them into their escaped forms (e.g., a new line becomes \n)
+    //so JSON.parse doesn't get mad
+function cleanJsonString(stringToClean)
+{
+    let returnStr = stringToClean.replace(/\\+/g, "\\\\");
+    returnStr = returnStr.replace(/\n+/g, "\\n");
+    returnStr = returnStr.replace(/\t+/g, "\\t");
+    returnStr = returnStr.replace(/\/+/g, "\\/");
+    
+    returnStr = returnStr.replace(/(\b|\f|\r|)*/g, "");
+    return returnStr;
+}
+
+//TODO: DELETE ME (replaced by showDatabasePost)
 function showSocialPost(postString) {
 
     if(postString != null && postString != "")
     {
         let postJson = JSON.parse(postString);
+
         //adjust the post popup's DOM 
         document.getElementById("post_image").src = postJson["image"];
         document.getElementById("post_likes").innerText = postJson["likes"] + " likes";

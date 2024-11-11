@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page is loaded and ready.');
+    const toggleLocation = document.getElementById('toggle-location');
+    
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            toggleLocation.checked = false;
+            getCoordinates(this.value);
+        }
+    });
+
+    document.getElementById('toggle-location').addEventListener('change', function() {
+        if (this.checked) {
+            getLocation(); 
+            document.getElementById('search-input').value = ''; 
+        } else {
+            if (!userLatitude || !userLongitude) {
+                alert("Unable to display map without a valid location.");
+            }
+        }
+    });
 });
 
 let bird_data = [];
@@ -28,9 +47,33 @@ let userLongitude = null;
 function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(storePosition);
+        const toggleLocation = document.getElementById('toggle-location');
+        toggleLocation.checked = true;
+    
     } else {
         console.log("Geolocation is not supported by this browser.");
     }
+}
+
+function handleError(error) {
+    console.error('Geolocation error:', error);
+    alert('Unable to retrieve your location. Please enter it manually.');
+}
+
+function getCoordinates(address) {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'OK') {
+                userLatitude = data.results[0].geometry.location.lat;
+                userLongitude = data.results[0].geometry.location.lng;
+                processLocation(userLatitude, userLongitude);
+            } else {
+                console.error('Geocoding failed: ' + data.status);
+            }
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 function storePosition(position) {
@@ -41,10 +84,12 @@ function storePosition(position) {
     processLocation(userLatitude, userLongitude);
 }
 
+
 let currentPage = 1;
 const pageSize = 10;
 
 function processLocation(latitude, longitude) {
+    currentPage = 1;
     fetch('/update_location', {
         method: 'POST',
         headers: {
@@ -55,7 +100,23 @@ function processLocation(latitude, longitude) {
     .then(response => response.json())
     .then(data => {
         document.getElementById('map').innerHTML = data.mapHtml;
+        bird_data = data.birdData;
+        createRectangles();
+        updatePagination();
+    })
+    .catch(error => console.error('Error:', error));
+}
 
+function fetchBirdData(latitude, longitude, page) {
+    fetch('/update_location', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ latitude, longitude, page, page_size: pageSize })
+    })
+    .then(response => response.json())
+    .then(data => {
         bird_data = data.birdData;
         createRectangles();
         updatePagination();
@@ -73,7 +134,8 @@ function createRectangles() {
         rectangle.className = 'rectangle'; 
 
         const img = document.createElement('img');
-        img.src = rect.imageUrl;
+        // img.src = rect.imageUrl;
+        img.src = rect.imageUrl ? rect.imageUrl : '../static/images/oop.png';
         img.alt = rect.title;
 
         const textContainer = document.createElement('div'); 
@@ -110,15 +172,15 @@ function updatePagination() {
     prevButton.onclick = () => {
         if (currentPage > 1) {
             currentPage--;
-            processLocation(userLatitude, userLongitude);
+            fetchBirdData(userLatitude, userLongitude, currentPage);
         }
     };
-    
+
     const nextButton = document.createElement('button');
     nextButton.innerText = 'Next';
     nextButton.onclick = () => {
         currentPage++;
-        processLocation(userLatitude, userLongitude);
+        fetchBirdData(userLatitude, userLongitude, currentPage);
     };
 
     paginationContainer.appendChild(prevButton);

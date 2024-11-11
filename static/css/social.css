@@ -20,6 +20,8 @@ body {
     top: 70px;
     right:0px;
     max-width:300px;
+    height: 90vh;
+    overflow: scroll;
 }
 
 .content {
@@ -192,22 +194,30 @@ p {
 
 .event-image-container {
     position: relative;
+    height:160px;
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 .event-image {
-    width: 100%;
-    border-radius: 5px;
-    object-fit: cover;
+    max-width: 100%;  
+    height: auto;
 }
 
 .favorite-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 20px;
-    color: red;
+    background-size: cover;
     cursor: pointer;
+    background-image: url('../images/empty-heart.png');
+    width: 22px;
+    height: 20px;
+    float: right;
 }
+
+/* Red heart  */
+.favorite-icon.favorited {
+    background-image: url('../images/filled-heart.png');
+}
+
 
 .event-details {
     padding-top: 10px;
@@ -217,6 +227,8 @@ p {
     margin: 0 0 5px;
     font-size: 16px;
     font-weight: bold;
+    width: 88%;
+    float: left;
 }
 
 .event-details p {
@@ -356,4 +368,62 @@ p {
 
 .nav-icons a:hover {
     color: #ddd;
+}
+
+
+.create-event-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.create-event-button img {
+    width: 19px;
+    height: 20px;
+}
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+}
+
+.events-headline{
+    width:100%;
+    height:max-content;
+    display: flex;
+}
+
+.events-headline p{
+    flex-basis: 92%;
+    padding:2px;
+    padding-left:0px;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+#createEventBtn{
+    width:max-content;
+    height:max-content;
+    flex-basis: 8%;
 }

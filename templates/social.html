@@ -11,24 +11,60 @@
 
 <body>
     <div id="app"></div>
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Create Event</h2>
+            <form id="eventForm">
+                <label for="title">Event Name:</label>
+                <input type="text" id="title" name="title" required><br><br>
+    
+                <label for="eventDate">Event Date:</label>
+                <input type="date" id="eventDate" name="eventDate" required><br><br>
+    
+                <label for="time">Event Time:</label>
+                <input type="time" id="time" name="time" required><br><br>
+    
+                <label for="location">Location</label>
+                <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..." autocomplete="off">
+                <datalist id="cityList"></datalist>
+                <br><br>
 
+    
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea><br><br>
+    
+            
+                <button type="submit">Create Event</button>
+            </form>
+        </div>
+    </div>
     <div class="sidebar">
         <div class="events" id="events"> 
-            <h3>Top Events</h3>
+            <div class="events-headline">
+                <p id="events-text">Birding Events Near You</p>
+                <button class="create-event-button" id="createEventBtn">
+                    <img id="createEventImg" src="../static/images/createicon.png" alt="Create Event">
+                </button>
+            </div>
             <div id="event_holder">
-              {% for event in events %}
-              <div class="event_img_details">
-                <div class="event-image-container">
-                    <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
-                    <span class= "favorite-icon">❤️</span>
+                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
+                {% for event in events %}
+                <div class="event_img_details">
+                    <div class="event-image-container">
+                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
+                        
+                    </div>
+                    <div class="event-details">
+                        <h4>{{event.title|e}}</h4>
+                        <span class= "favorite-icon" EventID="{{event.eventID}}"></span>
+                        <p>{{ event.eventDate| datetimeformat }}</p> 
+                        <p>{{event.location|e}}</p>
+                        <p style="margin-top:10px">{{event.description|e}}</p>
+                    </br>
+                    </div>
                 </div>
-                <div class="event-details">
-                    <h4>{{event.name|e}}</h4>
-                    <p>{{event.date|e}} at {{event.time|e}}</p>
-                    <p>{{event.location|e}}</p>
-                    <button onclick="showEventPopup('{{event|tojson|forceescape}}')">Details</button>
-                </div>
-              </div>
               {%endfor%}
             </div>
 
@@ -39,8 +75,209 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <script>
+        const googleMapsApiKey = "{{ google_maps_api_key }}";
+    </script>
+
+    <!--to format date and time for events-->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>  <!-- For moment.js -->
+    <script src="{{url_for('static', filename='scripts/social.js')}}"></script>
+
+
     <script type="text/babel">
         const domNode = document.getElementById('app');
+
+//Modal
+        const createEventBtn = document.getElementById('createEventBtn');
+        const modal = document.getElementById('eventModal');
+        const closeModal = document.getElementById('closeModal');
+
+        createEventBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        // Close modal when clicking close
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close modal if clicking outside of modal
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+
+        //for location dropdown
+        const locationInput = document.getElementById('location');
+        const cityList = document.getElementById('cityList');
+
+        // Debounce func to limit API calls
+        let debounceTimeout;
+        const debounce = (func, delay) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(func, delay);
+        };
+
+                
+        locationInput.addEventListener('input', () => {
+            debounce(() => {
+                const query = locationInput.value.trim();
+                if (query.length < 2) return; // dont search before 2 chars typed
+
+                // Fetch cities matching the input
+                fetch(`http://api.geonames.org/searchJSON?formatted=true&q=${query}&maxRows=40&lang=en&username=salonikaranth`)         
+                    .then(response => response.json())
+                    .then(data => {
+                        cityList.innerHTML = ''; // Clear previous options
+
+                        data.geonames.forEach(place => {
+                            const cityName = place.name;
+                            const country = place.countryName;
+                            const state = place.adminName1 || ''; // 'adminName1' holds the state/ region
+
+                            const option = document.createElement('option');
+                            option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                            option.textContent = option.value;
+                            cityList.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching cities:', error));
+            }, 50); 
+        });
+
+
+
+        // Handle form submission
+        const eventForm = document.getElementById('eventForm');
+        eventForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(eventForm);
+
+
+            const eventData = {
+                title: formData.get('title'),
+                eventDate: formData.get('eventDate'),
+                time: formData.get('time'),
+                location: formData.get('location'),
+                description: formData.get('description'),
+            };
+
+            console.log(eventData); // Send  data to server for saving
+
+            // Send event data to the /create_event endpoint
+            fetch('/create_event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    console.log("You need to log in to create an event");
+                    alert("You need to log in to create an event");
+                    return null; // Exit if the user is not logged in
+                }
+                return response.json(); 
+            })
+            .then(data => {
+                if(data){
+                    if (data.success) {
+                        console.log(data.message); //  created successfully
+                    }
+                    else
+                        console.log(data.message); //not created
+                }
+            })
+            .catch(error => {
+                console.error('Error creating event:', error);
+            });
+
+            eventForm.reset();
+
+            modal.style.display = 'none';
+        });
+
+        //call func to bind favorite icons to handle function
+        rebindFavoriteIcons();
+
+        function handleFavoriteClick(event) {
+            const button = event.target;
+            const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
+            const isFavorited = button.classList.contains('favorited');
+
+            if (!isFavorited){
+                button.classList.add('favorited'); //prematurely show favorited
+                fetch('/favorite_event', {
+                    method: 'POST',
+                    body: JSON.stringify({ eventID: eventID }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("You need to log in to favorite events.");
+                        button.classList.remove('favorited');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data){
+                        if (data.success) {
+                            console.log("Event favorited successfully!");
+                        }
+                        else{
+                            console.log("There was an issue with favoriting the event.");
+                            button.classList.remove('favorited');
+                            console.log(data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    button.classList.remove('favorited');
+                    console.error('Error favoriting event:', error);
+                });
+            }
+            else {
+                button.classList.remove('favorited');
+                fetch('/unfavorite_event', {
+                    method: 'POST',
+                    body: JSON.stringify({ eventID: eventID }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("You need to log in to unfavorite events.");
+                        button.classList.remove('favorited');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data){
+                        if (data.success) {
+                            console.log("Event removed from favorites successfully");
+                        }
+                        else{
+                            console.log("There was an issue with unfavoriting the event.");
+                            button.classList.add('favorited');
+                            console.log(data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    button.classList.add('favorited');
+                    console.error('Error unfavoriting event:', error);
+                });
+            }
+        }
+
+        //handle heart clicks for the events
+        function rebindFavoriteIcons() {
+            document.querySelectorAll('.favorite-icon').forEach(button => {
+                button.addEventListener('click', handleFavoriteClick);
+            });
+        }
 
 // Header Component
         function Header() {
@@ -66,7 +303,12 @@
                         <a href="/" title="Home"><i className="fas fa-home"></i></a>
                         <a href="/map" title="Map"><i className="fas fa-map"></i></a>
                         <a href="/profile" title="Profile"><i className="fa-solid fa-user"></i></a>
-                        <a href="/signin" title="Sign In"><i className="fas fa-sign-in-alt"></i></a>
+                        {% if user.is_authenticated %}
+                            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+                        {% else %}
+                            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+                        {% endif %}
+
                     </nav>
                 </div>
             );
@@ -213,7 +455,7 @@
 
         // HomePage Component
         function HomePage() {
-            return (
+            return ( 
                 <div>
                     <Header />
                     <div className="container">

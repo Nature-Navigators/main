@@ -1,16 +1,24 @@
 
 <div id="post_popup" class="post_popup popup">
+
     <link rel="stylesheet" href="{{url_for('static', filename='css/post_popup.css')}}">
-    
-    <button id="cancel_button" onclick="hideSocialPost()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
+    <div id="popup_header">
+        <button id="cancel_button" onclick="hideSocialPost()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
+        
+        {% if loggedIn %}
+        <button id="delete_button" onclick="deletePost()" class="img_button"><img src="{{url_for('static', filename='images/trash-can-icon.png')}}"></button>
+        {% endif %}
+    </div>
     <div class="post_popup_body">
         <div class="post">
             <div class="post-header">
-                <img src="../static/images/raven.png" alt="Profile Picture" class="profile-pic" />
+                <div class="profile_pic_container">
+                    <img id="profile_pic" src="../static/images/raven.png" alt="Profile Picture" class="profile-pic" />
+                </div>
                 <div class="profile-info">
                     <div class="profile-name-time">
-                        <span class="profile-name">John Doe</span>
-                        <span class="post-time">• 2 hours ago</span>
+                        <span class="profile-name" id="posted-by">John Doe</span>
+                        <span class="post-time" id="post-time">• 2 hours ago</span>
                     </div>
                 </div>
             </div>
@@ -36,3 +44,15 @@
     </div>
    
   </div>
+
+    
+  <div id="confirmation_popup" class="popup">
+    <p>Are you sure you want to delete this post?</p>
+    <div>
+        <form action="/profile/{{id}}" method="POST">
+            <input id="html_postID" type="hidden" name="postID" />
+            <button class="blue_button">Yes, Delete</button>
+        </form>
+        <button class="gray_button" onclick="hideConfirmation()">Cancel</button>    
+    </div>
+</div>
