@@ -466,8 +466,8 @@ def profile_id(profile_id):
 
                 print(savedEvents)
 
-                posts = []
-                #posts = user.to_dict()['posts']
+                #posts = []
+                posts = user.to_dict()['posts']
             except Exception as error:
                 print(traceback.format_exc())
                 return "Recursion error encountered"
