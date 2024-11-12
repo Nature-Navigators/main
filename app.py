@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash
 from sqlalchemy import select
 import uuid
 import requests
@@ -365,11 +365,16 @@ def profile_id(profile_id):
                 
                 if filename and filename != '':
                     
-                    upload_image(filename, image, app.config)
-                    imgPath = app.config["UPLOAD_PATH"] + "/" + filename
-                    dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
-                    db.session.add(dbImg)
-                
+                    success = upload_image(filename, image, app.config)
+
+                    if success:
+                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
+                        db.session.add(dbImg)
+
+                    else:
+                        flash("There was an issue uploading your file. Please ensure it is the proper image type.", category="error")
+                        return redirect(profile_id)
                 
                 db.session.commit()
 

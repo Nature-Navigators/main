@@ -122,6 +122,24 @@ function showDatabasePost(databasePost) {
     }
 }
 
+function onFileUpload(files, imgID)
+{
+    // FileReader support
+    
+    if (FileReader && files && files.length) {
+        var fr = new FileReader();
+        fr.onload = function () {
+            document.getElementById(imgID).src = fr.result;
+        }
+        fr.readAsDataURL(files[0]);
+    }
+    
+    // Not supported
+    else {
+        document.getElementById(imgID).src = "../static/images/green-checkmark-line-icon.png";
+    }
+}
+
 function deletePost() {
     document.getElementById("confirmation_popup").style.visibility = 'visible';
 }
