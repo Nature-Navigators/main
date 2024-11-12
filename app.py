@@ -323,16 +323,21 @@ def profile_id(profile_id):
                     
                     # filename checks out
                     if filename:                   
-                        upload_image(filename, image, app.config)
-                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        success = upload_image(filename, image, app.config)
 
-                        # delete original profile image
-                        if current_profile.profileImage != None:
-                            os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
-                            db.session.delete(current_profile.profileImage)
+                        if success:
+                            imgPath = app.config["UPLOAD_PATH"] + "/" + filename
 
-                        dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
-                        db.session.add(dbImg)
+                            # delete original profile image
+                            if current_profile.profileImage != None:
+                                os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
+                                db.session.delete(current_profile.profileImage)
+
+                            dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
+                            db.session.add(dbImg)
+                        else:
+                            flash("There was an issue uploading your profile image. Please check that your filetype is supported.", category="error")
+                            return redirect(profile_id)
 
                 db.session.commit()
                 print(db.session.scalars(select(Image.name)).all())
