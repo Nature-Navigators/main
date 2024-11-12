@@ -19,6 +19,40 @@ body {
   a {
     text-decoration: none;
   }
+
+
+  #alert_popup {
+    visibility:visible;
+    left: 40%;
+    top: 40%;
+    width: 20%;
+    height: 20%;
+    text-align:center;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 4px 12px;
+
+    padding:0.5em;
+  }
+  #alert_div_outer {
+      width:100%;
+      height:100%;
+      box-sizing: border-box;
+      text-align: center;
+      margin:auto;
+      row-gap: 0.5em;
+      display:flex;
+      padding:0;
+      margin:0;
+      align-items: center;
+      
+  }
+  #alert_div_inner {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    align-items: center;
+    row-gap: 1em;
+    width: 100%;
+  }
   
   .header header {
     width: 100%;
@@ -259,13 +293,26 @@ body {
 
   /* events container */
 
-  .header .container .right_column #events {
+  .header .container .right_column #createdEvents {
     display:none;
     margin-left: 0.5em;
 
   }
 
-  .header .container .right_column #event_holder {
+  .header .container .right_column #created_event_holder {
+    display:flex;
+    flex-direction: column;
+    align-items: first baseline;
+    width: 100%;
+  }
+
+  .header .container .right_column #savedEvents {
+    display:none;
+    margin-left: 0.5em;
+
+  }
+
+  .header .container .right_column #saved_event_holder {
     display:flex;
     flex-direction: column;
     align-items: first baseline;
@@ -527,18 +574,33 @@ body {
   }
 
   .favorite-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 20px;
-    color: red;
+    background-size: cover;
     cursor: pointer;
+    background-image: url('../images/empty-heart.png');
+    width: 29px;
+    height: 26px;
+    position: absolute;
+    right: 60px;
   }
+
+  .favorite-icon.favorited {
+    background-image: url('../images/filled-heart.png');
+}
+
+  .delete-icon {
+    background-size: cover;
+    cursor: pointer;
+    background-image: url('../images/trash-can-icon.png');
+    width: 23px;
+    height: 23px;
+    position: absolute;
+    right: 60px;
+  }
+
 
   .event-details {
     padding-top: 10px;
-    display: flex;
-    flex-direction: column;
+    width:70%;
   }
 
   .event-details h4 {

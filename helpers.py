@@ -38,7 +38,8 @@ def upload_image(filename, image, config):
 
     #check that the extension is valid
     if file_ext not in config["UPLOAD_EXTENSIONS"] or file_ext != validate_image(image.stream):
-        return {"error": "File type not supported"}, 400
+        return False
     
     # save it & create the DB object
     image.save(os.path.join(config["UPLOAD_PATH"], filename))
+    return True

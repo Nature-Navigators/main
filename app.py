@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash
 from sqlalchemy import select
 import uuid
 import requests
@@ -23,6 +23,7 @@ from helpers import *
 from flask_mail import Mail, Message
 from geopy.geocoders import Nominatim
 from geopy.geocoders import OpenCage
+import traceback
 import requests
 from math import radians, sin, cos, sqrt, atan2 #for haversine formula
 
@@ -35,8 +36,8 @@ app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
 app.config['UPLOAD_PATH'] = 'uploads'
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = '1k2jeh44596g'
-GOOGLE_MAPS_API_KEY ='AIzaSyB1nZm5o9f0bud-2R4FLHwV3uEgg3I7_CM' 
+EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
+GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 
 db.init_app(app)
@@ -322,16 +323,21 @@ def profile_id(profile_id):
                     
                     # filename checks out
                     if filename:                   
-                        upload_image(filename, image, app.config)
-                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        success = upload_image(filename, image, app.config)
 
-                        # delete original profile image
-                        if current_profile.profileImage != None:
-                            os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
-                            db.session.delete(current_profile.profileImage)
+                        if success:
+                            imgPath = app.config["UPLOAD_PATH"] + "/" + filename
 
-                        dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
-                        db.session.add(dbImg)
+                            # delete original profile image
+                            if current_profile.profileImage != None:
+                                os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
+                                db.session.delete(current_profile.profileImage)
+
+                            dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
+                            db.session.add(dbImg)
+                        else:
+                            flash("There was an issue uploading your profile image. Please check that your filetype is supported.", category="error")
+                            return redirect(profile_id)
 
                 db.session.commit()
                 print(db.session.scalars(select(Image.name)).all())
@@ -364,11 +370,16 @@ def profile_id(profile_id):
                 
                 if filename and filename != '':
                     
-                    upload_image(filename, image, app.config)
-                    imgPath = app.config["UPLOAD_PATH"] + "/" + filename
-                    dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
-                    db.session.add(dbImg)
-                
+                    success = upload_image(filename, image, app.config)
+
+                    if success:
+                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
+                        db.session.add(dbImg)
+
+                    else:
+                        flash("There was an issue uploading your file. Please ensure it is the proper image type.", category="error")
+                        return redirect(profile_id)
                 
                 db.session.commit()
 
@@ -437,18 +448,36 @@ def profile_id(profile_id):
 
         if selected_id != None:
             user = db.session.get(User, selected_id)
+
+            
             try:
+                createdEvents = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
+                print(createdEvents)
+
+                #get fav eventIDs
+                savedEventIDs = db.session.scalars(
+                    select(Favorite.eventID).where(Favorite.userID == current_user.userID)
+                ).all()
+
+                # Fetch fav events corresponding to fav eventIDs
+                savedEvents = db.session.scalars(
+                    select(Event).where(Event.eventID.in_(savedEventIDs))
+                ).all()
+
+                print(savedEvents)
+
+                #posts = []
                 posts = user.to_dict()['posts']
             except Exception as error:
-                print(error)
+                print(traceback.format_exc())
                 return "Recursion error encountered"
 
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
             is_following = current_user.userID != selected_id and current_user in current_profile.followedBy
             context = {
                 "socialPosts": socialPosts,
-                #"events": events,
-                "badges": badges,
+                "createdEvents": createdEvents,
+                "savedEvents": savedEvents,
                 "id" : profile_id,
                 "user": user,
                 "loggedIn": logged_in,
@@ -538,6 +567,27 @@ def create_event():
     db.session.commit()
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
+
+
+@app.route('/delete_event', methods=['POST'])
+def delete_event():
+    if not current_user.is_authenticated: 
+        print("Not logged in")
+        return jsonify({'error': 'Event not deleted, user not logged in'}), 401
+
+    data = request.json
+    event_id = uuid.UUID(data.get('eventID'))
+
+    event = Event.query.filter_by(eventID=event_id, userID=current_user.userID).first()
+
+    if not event:
+        return jsonify({'error': 'Event not found or you do not have permission to delete this event'}), 404
+
+    db.session.delete(event)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Event deleted successfully!'})
+
    
 @app.route('/favorite_event', methods=['POST'])
 def favorite_event():
@@ -607,8 +657,22 @@ def social_location():
 
     #max_distance_m = 1000
 
+    #check which events are previously favorited by user
+    if current_user.is_authenticated:
+        favorited_event_ids = set(
+            db.session.execute(
+                select(Favorite.eventID).filter_by(userID=current_user.userID)
+            ).scalars()
+        )
+    else:
+        favorited_event_ids = set()
+
+    #add a favorited flag if event exists in user fav list
     tempEvents = db.session.execute(select(Event)).scalars().all()
-    serialized_events = [event.to_dict() for event in tempEvents]
+    serialized_events = [
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        for event in tempEvents
+    ]
 
     #sort events by distance
     events_with_distance = [
@@ -624,12 +688,21 @@ def social_location():
 
 @app.route('/social')
 def social():     
-    # Query to get all events
-    tempEvents = db.session.execute(select(Event)).scalars().all()  
-    serialized_events = [event.to_dict() for event in tempEvents]
+    if current_user.is_authenticated:
+        favorited_event_ids = set(
+            db.session.execute(
+                select(Favorite.eventID).filter_by(userID=current_user.userID)
+            ).scalars()
+        )
+    else:
+        favorited_event_ids = set()
 
-    #signout to test functionality
-    #logout()
+    #add a favorited flag if event exists in user fav list
+    tempEvents = db.session.execute(select(Event)).scalars().all()
+    serialized_events = [
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        for event in tempEvents
+    ]
 
     return render_template('social.html', events=serialized_events)
 

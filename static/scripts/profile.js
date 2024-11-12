@@ -51,7 +51,8 @@ function hideProfilePopup() {
 function showGallery() {
     document.getElementById('gallery').style.display = 'grid';
     document.getElementById('badges').style.display = 'none';
-    document.getElementById('events').style.display = 'none';
+    document.getElementById('createdEvents').style.display = 'none';
+    document.getElementById('savedEvents').style.display = 'none';
 
     changeBoldedNav(0);
   }
@@ -60,17 +61,29 @@ function showGallery() {
 function showBadges() {
     document.getElementById('badges').style.display = 'block';
     document.getElementById('gallery').style.display = 'none';
-    document.getElementById('events').style.display = 'none';
+    document.getElementById('createdEvents').style.display = 'none';
+    document.getElementById('savedEvents').style.display = 'none';
+
 
     changeBoldedNav(1);
 }
 
-function showEvents() {
-    document.getElementById('events').style.display = 'block';
+function showCreatedEvents() {
+    document.getElementById('createdEvents').style.display = 'block';
+    document.getElementById('savedEvents').style.display = 'none';
     document.getElementById('gallery').style.display = 'none';
     document.getElementById('badges').style.display = 'none';
 
     changeBoldedNav(2);
+}
+
+function showSavedEvents() {
+    document.getElementById('savedEvents').style.display = 'block';
+    document.getElementById('createdEvents').style.display = 'none';
+    document.getElementById('gallery').style.display = 'none';
+    document.getElementById('badges').style.display = 'none';
+
+    changeBoldedNav(3);
 }
 
 function showPostPopup() {
@@ -122,6 +135,24 @@ function showDatabasePost(databasePost) {
     }
 }
 
+function onFileUpload(files, imgID)
+{
+    // FileReader support
+    
+    if (FileReader && files && files.length) {
+        var fr = new FileReader();
+        fr.onload = function () {
+            document.getElementById(imgID).src = fr.result;
+        }
+        fr.readAsDataURL(files[0]);
+    }
+    
+    // Not supported
+    else {
+        document.getElementById(imgID).src = "../static/images/green-checkmark-line-icon.png";
+    }
+}
+
 function deletePost() {
     document.getElementById("confirmation_popup").style.visibility = 'visible';
 }
@@ -159,6 +190,115 @@ function showSocialPost(postString) {
         document.getElementById("post_popup").style.visibility = 'visible';
         grayOut(true);
     
+    }
+}
+
+window.onload = rebindFavoriteIcons()
+
+function rebindFavoriteIcons() {
+    document.querySelectorAll('.favorite-icon').forEach(button => {
+        button.addEventListener('click', handleFavoriteClick);
+    });
+    document.querySelectorAll('.delete-icon').forEach(button => {
+        button.addEventListener('click', handleDeleteClick);
+    });
+}
+
+function handleFavoriteClick(event) {
+    const button = event.target;
+    const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
+    const isFavorited = button.classList.contains('favorited');
+
+    if (!isFavorited){
+        button.classList.add('favorited'); //prematurely show favorited
+        fetch('/favorite_event', {
+            method: 'POST',
+            body: JSON.stringify({ eventID: eventID }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => {
+            if (response.status === 401) {
+                alert("You need to log in to favorite events.");
+                button.classList.remove('favorited');
+                return null;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data){
+                if (data.success) {
+                    console.log("Event favorited successfully!");
+                }
+                else{
+                    console.log("There was an issue with favoriting the event.");
+                    button.classList.remove('favorited');
+                    console.log(data.message);
+                }
+            }
+        })
+        .catch(error => {
+            button.classList.remove('favorited');
+            console.error('Error favoriting event:', error);
+        });
+    }
+    else {
+        button.classList.remove('favorited');
+        fetch('/unfavorite_event', {
+            method: 'POST',
+            body: JSON.stringify({ eventID: eventID }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => {
+            if (response.status === 401) {
+                alert("You need to log in to unfavorite events.");
+                button.classList.remove('favorited');
+                return null;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if(data){
+                if (data.success) {
+                    console.log("Event removed from favorites successfully");
+                    button.closest('.event_img_details').remove();
+                }
+                else{
+                    console.log("There was an issue with unfavoriting the event.");
+                    button.classList.add('favorited');
+                    console.log(data.message);
+                }
+            }
+        })
+        .catch(error => {
+            button.classList.add('favorited');
+            console.error('Error unfavoriting event:', error);
+        });
+    }
+}
+
+function handleDeleteClick(event) {
+    const button = event.target;
+    const eventID = button.getAttribute('EventID'); 
+
+    if (confirm('Are you sure you want to delete this event?')) {
+        fetch('/delete_event', {
+            method: 'POST',
+            body: JSON.stringify({ eventID: eventID }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log("Event deleted successfully!");
+                button.closest('.event_img_details').remove();
+            } else {
+                console.log("There was an issue deleting the event.");
+                console.log(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting event:', error);
+        });
     }
 }
 

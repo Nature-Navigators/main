@@ -1,0 +1,16 @@
+    
+{% with error_messages = get_flashed_messages(category_filter=['error']) %}
+{% if error_messages %}
+ <div id="alert_popup" class="popup">
+    <div id="alert_div_outer">
+        <div id="alert_div_inner">
+            <p>{{error_messages[0]}}</p>
+            <form action="/profile/{{id}}">
+                <button class="blue_button">Okay</button>
+            </form>
+        </div>
+    
+    </div>
+</div>
+{% endif %}
+{% endwith %}
