@@ -49,7 +49,7 @@ class User(Base, UserMixin):
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
     # prevent recursion
-    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-createdEvents.creator', '-following', '-followedBy')
+    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-savedEvents', '-createdEvents', '-following', '-followedBy')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -124,7 +124,7 @@ class Post(Base):
 #     post = db.relationship('Post', back_populates='comments', lazy='joined') # o
 
 
-class Event(db.Model):
+class Event(Base):
     __tablename__ = "event_table"
     eventID = db.Column(db.Uuid, primary_key=True)
     #datePosted = db.Column(db.DateTime(timezone=True))
@@ -141,6 +141,7 @@ class Event(db.Model):
     #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
     favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
 
+    serialize_rules = ('-creator', '-favorited_by')
 
     def to_dict(self):
         return {
@@ -158,7 +159,7 @@ class Event(db.Model):
         return f'<Event {self.title}>'
 
 
-class Favorite(db.Model):
+class Favorite(Base):
     __tablename__ = 'favorite_table'
     id = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.Uuid, db.ForeignKey('user_table.userID'), nullable=False)
@@ -168,9 +169,14 @@ class Favorite(db.Model):
     user = db.relationship('User', back_populates='savedEvents', lazy='joined')
     event = db.relationship('Event', back_populates='favorited_by', lazy='joined')
 
+    serialize_rules = ('-user', '-event')
+
     __table_args__ = (
         db.UniqueConstraint('userID', 'eventID', name='unique_user_event_pair'),
     ) #ensure no duplicates
+
+    def to_dict(self):
+        return {}
 
 
 # base image class
