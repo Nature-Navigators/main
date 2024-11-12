@@ -25,6 +25,7 @@ from geopy.geocoders import Nominatim
 from geopy.geocoders import OpenCage
 import traceback
 import requests
+from flask_migrate import Migrate
 from math import radians, sin, cos, sqrt, atan2 #for haversine formula
 
 
@@ -48,6 +49,8 @@ login_manager.init_app(app)
 login_manager.login_view = "signin"
 
 geolocator = Nominatim(user_agent="event_locator")
+
+migrate = Migrate(app, db)
 
 with app.app_context():
     db.create_all()
@@ -73,9 +76,9 @@ app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PW')
 mail = Mail(app)
 class SignUpForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
-    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-    password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Password"})
-    confirm_password = PasswordField(validators=[InputRequired(), Length(min=4, max=20), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
+    username = StringField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Username"})
+    password = PasswordField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Password"})
+    confirm_password = PasswordField(validators=[InputRequired(), Length(min=1, max=200), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
     submit = SubmitField("Sign Up")
 
     def validate_username(self, username):
@@ -91,9 +94,9 @@ class SignUpForm(FlaskForm):
 class SignInForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(
-        min=4, max=20)], render_kw={"placeholder":"Username"})
+        min=1, max=200)], render_kw={"placeholder":"Username"})
     password = PasswordField(validators=[InputRequired(), Length(
-        min=4, max=20)], render_kw={"placeholder": "Password"}) 
+        min=1, max=200)], render_kw={"placeholder": "Password"}) 
     remember = BooleanField('Remember Me')
     submit = SubmitField("Login")     
 
@@ -257,7 +260,7 @@ def signin():
                     profile_route = 'profile/' + user.username
                     return redirect(profile_route)
             else:
-                raise ValidationError("Invalid username or email.")        
+                raise ValidationError("Invalid username or email. Try signing up or check the information entered")        
     return render_template("signin.html", form=form)
 
 @app.route('/logout')
@@ -759,5 +762,18 @@ def reset_token(token):
         db.session.commit()
         return redirect(url_for('signin'))
     return render_template('reset.html', title='Reset Password', form=form)
+
+@app.route('/like_post', methods=['POST'])
+@login_required
+def like_post():
+    post_id = request.json.get('post_id')
+    post = Post.query.get(post_id)
+    if post:
+        post.likes += 1
+        db.session.commit()
+        return jsonify({'likes': post.likes}), 200
+    return jsonify({'error': 'Post not found'}), 404
+
+
 if __name__ == "__main__":
     app.run(debug=True)
