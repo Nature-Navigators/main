@@ -224,12 +224,12 @@
                 <div id="image_upload">
                   <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
                   <div id="clickable_upload">
-                    <img class="upload_img" src="{{url_for('static', filename='images/upload_image.png')}}" >
-                    <input type="file" id="file_upload_input" name="image_file_bytes" >  
+                     
+                    <img class="upload_img" id="addPostImg" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                    <input onchange="onFileUpload(this.files, 'addPostImg')" type="file" accept=".jpg,.png,.gif,.webp" id="file_upload_input" name="image_file_bytes" >  
                   </div>
 
                 </div>
-                
                 <h3>Upload an image</h3>
               </div>
               <div class="text_div">
@@ -253,8 +253,8 @@
               <div id="image_upload">
                 <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
                 <div id="clickable_upload">
-                  <img class="upload_img" src="{{url_for('static', filename='images/upload_image.png')}}" >
-                  <input type="file" id="file_upload_input" name="image_file_bytes" >  
+                  <img class="upload_img" id="editProfileImg" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                  <input onchange="onFileUpload(this.files, 'editProfileImg')" accept=".jpg,.png,.gif,.webp" type="file" id="file_upload_input" name="image_file_bytes" >  
                 </div>
 
               </div>
@@ -276,6 +276,8 @@
         {% include "post_popup.html" with context %}
 
         {% include "event_popup.html" with context %}
+        
+        {% include "alert_popup.html" with context %}
 
       </div>
 

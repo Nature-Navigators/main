@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash
 from sqlalchemy import select
 import uuid
 import requests
@@ -323,16 +323,21 @@ def profile_id(profile_id):
                     
                     # filename checks out
                     if filename:                   
-                        upload_image(filename, image, app.config)
-                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        success = upload_image(filename, image, app.config)
 
-                        # delete original profile image
-                        if current_profile.profileImage != None:
-                            os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
-                            db.session.delete(current_profile.profileImage)
+                        if success:
+                            imgPath = app.config["UPLOAD_PATH"] + "/" + filename
 
-                        dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
-                        db.session.add(dbImg)
+                            # delete original profile image
+                            if current_profile.profileImage != None:
+                                os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
+                                db.session.delete(current_profile.profileImage)
+
+                            dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
+                            db.session.add(dbImg)
+                        else:
+                            flash("There was an issue uploading your profile image. Please check that your filetype is supported.", category="error")
+                            return redirect(profile_id)
 
                 db.session.commit()
                 print(db.session.scalars(select(Image.name)).all())
@@ -365,11 +370,16 @@ def profile_id(profile_id):
                 
                 if filename and filename != '':
                     
-                    upload_image(filename, image, app.config)
-                    imgPath = app.config["UPLOAD_PATH"] + "/" + filename
-                    dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
-                    db.session.add(dbImg)
-                
+                    success = upload_image(filename, image, app.config)
+
+                    if success:
+                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
+                        db.session.add(dbImg)
+
+                    else:
+                        flash("There was an issue uploading your file. Please ensure it is the proper image type.", category="error")
+                        return redirect(profile_id)
                 
                 db.session.commit()
 
@@ -456,6 +466,7 @@ def profile_id(profile_id):
 
                 print(savedEvents)
 
+                #posts = []
                 posts = user.to_dict()['posts']
             except Exception as error:
                 print(traceback.format_exc())
