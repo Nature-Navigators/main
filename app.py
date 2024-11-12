@@ -23,6 +23,7 @@ from helpers import *
 from flask_mail import Mail, Message
 from geopy.geocoders import Nominatim
 from geopy.geocoders import OpenCage
+import traceback
 import requests
 from math import radians, sin, cos, sqrt, atan2 #for haversine formula
 
@@ -458,7 +459,7 @@ def profile_id(profile_id):
                 posts = []
                 #posts = user.to_dict()['posts']
             except Exception as error:
-                print(error)
+                print(traceback.format_exc())
                 return "Recursion error encountered"
 
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
