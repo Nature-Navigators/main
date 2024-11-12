@@ -293,13 +293,26 @@ body {
 
   /* events container */
 
-  .header .container .right_column #events {
+  .header .container .right_column #createdEvents {
     display:none;
     margin-left: 0.5em;
 
   }
 
-  .header .container .right_column #event_holder {
+  .header .container .right_column #created_event_holder {
+    display:flex;
+    flex-direction: column;
+    align-items: first baseline;
+    width: 100%;
+  }
+
+  .header .container .right_column #savedEvents {
+    display:none;
+    margin-left: 0.5em;
+
+  }
+
+  .header .container .right_column #saved_event_holder {
     display:flex;
     flex-direction: column;
     align-items: first baseline;
@@ -561,18 +574,33 @@ body {
   }
 
   .favorite-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 20px;
-    color: red;
+    background-size: cover;
     cursor: pointer;
+    background-image: url('../images/empty-heart.png');
+    width: 29px;
+    height: 26px;
+    position: absolute;
+    right: 60px;
   }
+
+  .favorite-icon.favorited {
+    background-image: url('../images/filled-heart.png');
+}
+
+  .delete-icon {
+    background-size: cover;
+    cursor: pointer;
+    background-image: url('../images/trash-can-icon.png');
+    width: 23px;
+    height: 23px;
+    position: absolute;
+    right: 60px;
+  }
+
 
   .event-details {
     padding-top: 10px;
-    display: flex;
-    flex-direction: column;
+    width:70%;
   }
 
   .event-details h4 {
