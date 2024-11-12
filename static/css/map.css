@@ -263,7 +263,7 @@ input:checked + .slider:before {
     color: #ddd;
 }
 
-.pagination-container {
+/* .pagination-container {
     display: flex;
     justify-content: center;
     margin: 20px 0;
@@ -309,4 +309,4 @@ input:checked + .slider:before {
 .more-recent-button:active {
     background-color: #004085; 
     transform: scale(0.98);
-}
+} */

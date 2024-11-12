@@ -84,44 +84,36 @@ function storePosition(position) {
     processLocation(userLatitude, userLongitude);
 }
 
-
-let currentPage = 1;
-const pageSize = 10;
-
-function processLocation(latitude, longitude) {
-    currentPage = 1;
-    fetch('/update_location', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ latitude, longitude, page: currentPage, page_size: pageSize })
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('map').innerHTML = data.mapHtml;
-        bird_data = data.birdData;
-        createRectangles();
-        updatePagination();
-    })
-    .catch(error => console.error('Error:', error));
+async function fetchLocationData(latitude, longitude) {
+    try {
+        const response = await fetch('/update_location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ latitude, longitude })
+        });
+        const data = await response.json();
+        return {
+            mapHtml: data.mapHtml, // The HTML for the map
+            birdData: data.birdData // The bird data
+        };
+    } catch (error) {
+        console.error('Error fetching location data:', error);
+        return { mapHtml: '', birdData: [] };
+    }
 }
 
-function fetchBirdData(latitude, longitude, page) {
-    fetch('/update_location', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ latitude, longitude, page, page_size: pageSize })
-    })
-    .then(response => response.json())
-    .then(data => {
-        bird_data = data.birdData;
-        createRectangles();
-        updatePagination();
-    })
-    .catch(error => console.error('Error:', error));
+function processLocation(latitude, longitude) {
+    fetchLocationData(latitude, longitude)
+        .then(locationData => {
+            document.getElementById('map').innerHTML = locationData.mapHtml; 
+            bird_data = locationData.birdData; 
+            createRectangles();
+        })
+        .catch(error => {
+            console.error("Error loading data:", error);
+        });
 }
 
 function createRectangles() {
@@ -171,39 +163,6 @@ function createRectangles() {
     });
 }
 
-function updatePagination() {
-    const paginationContainer = document.getElementById('pagination');
-    paginationContainer.innerHTML = '';
-
-    const prevButton = document.createElement('button');
-    prevButton.innerText = 'Previous';
-    prevButton.disabled = currentPage === 1;
-    prevButton.onclick = () => {
-        if (currentPage > 1) {
-            currentPage--;
-            fetchBirdData(userLatitude, userLongitude, currentPage);
-        }
-    };
-
-    const nextButton = document.createElement('button');
-    nextButton.innerText = 'Next';
-    nextButton.onclick = () => {
-        currentPage++;
-        fetchBirdData(userLatitude, userLongitude, currentPage);
-    };
-
-    const displayButton = document.createElement('button');
-    displayButton.className = 'display-all-button'; 
-    displayButton.innerText = 'Display all species';
-    displayButton.onclick = () => {
-        processLocation(userLatitude, userLongitude);
-    };
-
-    paginationContainer.appendChild(prevButton);
-    paginationContainer.appendChild(nextButton);
-    paginationContainer.appendChild(displayButton);
-}
-
 function fetchAllRecentSightings(speciesCode) {
     if (!userLatitude || !userLongitude) {
         alert("Unable to retrieve location. Please try again.");
@@ -242,6 +201,5 @@ function fetchAllRecentSightings(speciesCode) {
             console.error("Error fetching recent sightings:", error);
         });
 }
-
 
 
