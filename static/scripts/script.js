@@ -152,6 +152,15 @@ function createRectangles() {
         rectangle.appendChild(img);
         rectangle.appendChild(textContainer); 
 
+        const moreButton = document.createElement('button');
+        moreButton.className = 'more-recent-button';
+        moreButton.innerText = 'All recent sightings';
+        moreButton.onclick = (event) => {
+            event.stopPropagation(); //prevent the rectangle click event
+            fetchAllRecentSightings(rect.speciesCode);
+        };
+        rectangle.appendChild(moreButton);
+
         rectangle.onclick = () => {
             window.location.href = rect.url;
         };
@@ -183,6 +192,56 @@ function updatePagination() {
         fetchBirdData(userLatitude, userLongitude, currentPage);
     };
 
+    const displayButton = document.createElement('button');
+    displayButton.className = 'display-all-button'; 
+    displayButton.innerText = 'Display all species';
+    displayButton.onclick = () => {
+        processLocation(userLatitude, userLongitude);
+    };
+
     paginationContainer.appendChild(prevButton);
     paginationContainer.appendChild(nextButton);
+    paginationContainer.appendChild(displayButton);
 }
+
+function fetchAllRecentSightings(speciesCode) {
+    if (!userLatitude || !userLongitude) {
+        alert("Unable to retrieve location. Please try again.");
+        return;
+    }
+
+    const url = `https://api.ebird.org/v2/data/obs/geo/recent/${speciesCode}?lat=${userLatitude}&lng=${userLongitude}`;
+    const headers = {
+        'X-eBirdApiToken': ebirdApiKey
+    };
+
+    fetch(url, { headers })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Received bird sightings:", data);
+            fetch('/update_map_with_bird_sightings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    birdSightings: data,  
+                    userLatitude: userLatitude,
+                    userLongitude: userLongitude
+                })
+            })
+            .then(response => response.json())
+            .then(updatedMap => {
+                document.getElementById('map').innerHTML = updatedMap.mapHtml;
+            })
+            .catch(error => {
+                console.error("Error updating the map:", error);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching recent sightings:", error);
+        });
+}
+
+
+

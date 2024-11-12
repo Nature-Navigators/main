@@ -134,7 +134,12 @@ def index():
 
 @app.route('/map')
 def map():
-    return render_template("map.html", google_maps_api_key=GOOGLE_MAPS_API_KEY)
+    return render_template(
+        "map.html", 
+        google_maps_api_key=GOOGLE_MAPS_API_KEY,
+        ebird_api_key=EBIRD_API_KEY 
+    )
+
 
 @app.route('/update_location', methods=['POST'])
 def update_location():
@@ -155,10 +160,22 @@ def update_location():
         bird_name = bird.get('comName')
         bird_lat = bird.get('lat')
         bird_long = bird.get('lng')
+        formatted_bird_name = formatBirdName(bird_name)
+        image_url = getWikipediaImage(formatted_bird_name)
+        bird_url = f'/bird/{quote(bird_name)}' 
+
+        popup_content = f'''
+        <a href="{bird_url}" target="_blank" style="display:block; width:100%; height:100%;">
+            <b>{bird_name}</b> -Click for more details
+        </a>
+        '''
+        # <img src="{image_url}" width="200"><br> 
+
         # formatted_bird_name = formatBirdName(bird_name)
         folium.Marker(
             location=[bird_lat, bird_long],
             tooltip=bird_name,
+            popup=popup_content,
             icon=folium.Icon(color='red'),
         ).add_to(m)
 
@@ -167,10 +184,10 @@ def update_location():
     paginated_birds = birds_near_user[start_index:end_index]
 
     bird_data = []
-    
+
     for index, bird in enumerate(paginated_birds):
         bird_name = bird.get('comName')
-
+        bird_code = bird.get('speciesCode')
         formatted_bird_name = formatBirdName(bird_name)
         image_url = getWikipediaImage(formatted_bird_name)
         description = f"{bird_name} spotted near your location."
@@ -179,13 +196,68 @@ def update_location():
             'imageUrl': image_url,
             'title': bird_name,
             'description': description,
-            'url': f'/bird/{quote(bird_name)}'
+            'url': f'/bird/{quote(bird_name)}',
+            'speciesCode': bird_code
         })
+
 
     # Get HTML of map
     map_html = m._repr_html_()
 
     return jsonify(mapHtml=map_html, birdData=bird_data)
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    #earth radius
+    R = 3958.8
+
+    #converting locations to radians
+    lat1_rad = radians(lat1)
+    lon1_rad = radians(lon1)
+    lat2_rad = radians(lat2)
+    lon2_rad = radians(lon2)
+    
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+    
+    #haversine formula
+    a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    
+    #get distance in miles
+    distance = R * c
+    return distance
+
+@app.route('/update_map_with_bird_sightings', methods=['POST'])
+def update_map_with_bird_sightings():
+    data = request.get_json()
+    
+    bird_sightings = data['birdSightings']
+    user_latitude = data['userLatitude']
+    user_longitude = data['userLongitude']
+
+    m = folium.Map(location=[user_latitude, user_longitude], zoom_start=13)
+
+    folium.Marker([user_latitude, user_longitude], popup="Your Location").add_to(m)
+
+    for sighting in bird_sightings:
+        bird_lat = sighting['lat']
+        bird_lng = sighting['lng']
+        bird_name = sighting['comName']
+
+        distance = calculate_distance(user_latitude, user_longitude, bird_lat, bird_lng)
+        popup_text = f"<b>{bird_name}</b><br>Spotted {distance:.2f} miles from you"
+        
+        folium.Marker(
+            location=[bird_lat, bird_lng],
+            icon=folium.Icon(color='purple'),
+            popup=popup_text
+        ).add_to(m)
+
+    
+    map_html = m._repr_html_()
+
+    
+    return jsonify({'mapHtml': map_html})
 
 def getRecentBirds(latitude, longitude):
     headers = {
@@ -231,10 +303,26 @@ def getWikipediaImage(bird_name):
 
     return None
 
+def getWikipediaPageContent(bird_name):
+    formatted_bird_name = formatBirdName(bird_name)
+    url = f'https://en.wikipedia.org/w/api.php?action=parse&page={formatted_bird_name}&format=json'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        page_content = data.get('parse', {}).get('text', {}).get('*', '')
+        return page_content
+    else:
+        print(f"Failed to fetch page content. Status code: {response.status_code}")
+        return None
+
 def get_bird_info(bird_name):
+    image_url = getWikipediaImage(bird_name)
+    content = getWikipediaPageContent(bird_name)
     return {
-        'imageUrl': getWikipediaImage(bird_name),
-        'title': bird_name
+        'imageUrl': image_url,
+        'title': bird_name,
+        'content': content
     }
 
 @app.route('/bird/<bird_name>')
@@ -712,6 +800,11 @@ def social():
 @app.route('/bird')
 def bird():
     return render_template("bird.html")
+
+def get_map_html():
+    # This function can be used to create and return the initial map HTML
+    m = folium.Map(location=[37.7749, -122.4194], zoom_start=13)  # Example starting location
+    return m._repr_html_()
 
 @app.route('/uploads/<path:filename>')
 def download_file(filename):

@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bird Information</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bird.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bird.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
         <div class="header-container">
             <div class="logo">
-                <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
+                <img src="{{ url_for('static', filename='images/raven.png') }}" alt="Featherly Logo">
                 <h1>Featherly</h1>
             </div>
             <nav class="nav-icons">
@@ -22,19 +22,12 @@
             </nav>
         </div>
     </header>
-    <div class="bird-page">
-        <div class="bird-image">
-            <img src="{{ bird.imageUrl }}" alt="{{ bird.title }}">
-        </div>
+
+    <main>
         <div class="bird-info">
             <h1 id="bird-name">{{ bird.title }}</h1>
-            <p id="bird-description">I am a {{ bird.title }}.</p>
-                <h2>I like</h2>
-                <p><strong>Diet:</strong> Bird seed.</p>
-                <p><strong>Habitat:</strong> A comfy tree.</p>
-                <p><strong>Conservation Status:</strong> I'm good.</p>
-                <p><strong>Geographical Range:</strong> Anywhere I want.</p>
+            <p>{{ bird.content|safe }}</p>
         </div>
-    </div>
+    </main>
 </body>
 </html>
