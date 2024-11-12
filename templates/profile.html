@@ -29,7 +29,7 @@
                   {% if user.profileImage != None %}
                     <img src="{{url_for('download_file', filename=user.profileImage['name'])}}"/>
                   {% else %}
-                    <img src="/static/images/birder.jpeg"/>
+                    <img src="{{url_for('static', filename='images/profile-icon.webp')}}"/>
                   {% endif %}
                 </button>
                 <p>Edit Profile</p>
@@ -43,7 +43,7 @@
                 {% if user.profileImage != None %}
                   <img src="{{url_for('download_file', filename=user.profileImage['name'])}}"/>
                 {% else %}
-                  <img src="/static/images/birder.jpeg"/>
+                  <img src="/static/images/profile-icon.webp"/>
                 {% endif %}
                 <span></span>
               </div>

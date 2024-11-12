@@ -27,7 +27,7 @@ import traceback
 import requests
 from flask_migrate import Migrate
 from math import radians, sin, cos, sqrt, atan2 #for haversine formula
-
+import babel
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -431,7 +431,7 @@ def profile_id(profile_id):
                             return redirect(profile_id)
 
                 db.session.commit()
-                print(db.session.scalars(select(Image.name)).all())
+                #print(db.session.scalars(select(Image.name)).all())
                 return redirect(profile_id)
             else:
                 return redirect(profile_id)
@@ -543,7 +543,7 @@ def profile_id(profile_id):
             
             try:
                 createdEvents = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
-                print(createdEvents)
+                #print(createdEvents)
 
                 #get fav eventIDs
                 savedEventIDs = db.session.scalars(
@@ -555,7 +555,7 @@ def profile_id(profile_id):
                     select(Event).where(Event.eventID.in_(savedEventIDs))
                 ).all()
 
-                print(savedEvents)
+                #print(savedEvents)
 
                 #posts = []
                 posts = user.to_dict()['posts']
@@ -774,7 +774,7 @@ def social_location():
     events_with_distance.sort(key=lambda x: x[0])
     sorted_events = [event for _, event in events_with_distance]
 
-    print(f"Filtered Events: {sorted_events}")
+    #print(f"Filtered Events: {sorted_events}")
     return jsonify(sorted_events)
 
 @app.route('/social')
@@ -788,6 +788,20 @@ def social():
     else:
         favorited_event_ids = set()
 
+    # get the posts
+    posts = []
+    dbPostGrabLimit = 50
+    try:
+        # add the posts to the list
+        dbPosts = db.session.scalars(select(Post).limit(dbPostGrabLimit)).all()
+        for dbPost in dbPosts:
+            posts.append(dbPost.to_dict())
+
+        print(posts[0])
+        
+    except Exception as error:
+        print(traceback.format_exc())
+
     #add a favorited flag if event exists in user fav list
     tempEvents = db.session.execute(select(Event)).scalars().all()
     serialized_events = [
@@ -795,7 +809,22 @@ def social():
         for event in tempEvents
     ]
 
-    return render_template('social.html', events=serialized_events)
+    context = {
+        "events": serialized_events,
+        "posts": posts
+    }
+
+    return render_template('social.html', **context)
+
+@app.template_filter()
+def format_datetime(value, format='medium'):
+    print(value)
+    convertedStr = datetime.strptime(value, '%Y-%d-%m %H:%M:%S')
+    if format == 'full':
+        format="EEEE, d. MMMM y 'at' h:mm a"
+    elif format == 'medium':
+        format="dd/MM/y 'at' h:mm a"
+    return babel.dates.format_datetime(convertedStr, format)
 
 @app.route('/bird')
 def bird():

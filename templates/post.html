@@ -1,0 +1,41 @@
+<div class="post">
+    <div class="post-header">
+        <a href="/profile/{{post.user.username}}">
+        <div class="profile_pic_container">
+            {% if post.user.profileImage != None %}
+            <img id="profile_pic" src="{{url_for('download_file', filename=post.user.profileImage.name)}}" alt="Profile Picture" class="profile-pic" />
+            {% else %}
+            <img id="profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <div class="profile-name-time">
+                <span class="profile-name" id="posted-by">{{post.user.username}}</span>
+                <span class="post-time" id="post-time">• {{post.datePosted|format_datetime}}</span>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    {% if post.images|length > 0 %}
+    <img id="post_image" src="{{url_for('download_file', filename=post.images[0].name)}}" alt="Post Image" />
+    {% else %}
+    <img id="post_image" src="{{url_for('static', filename='images/raven.png')}}" alt="Post Image" />
+
+    {% endif %}
+    <div class="post-info">
+        <div class="text-and-icons">
+            <div class="likes-and-icons">
+                <div class="likes" id="post_likes">{{post.likes}} likes</div>
+                <div class="post-icons">
+                    <button class="icon-button">🐤</button>
+                    <button class="icon-button">📍</button>
+                    <button class="icon-button">❤️</button>
+                </div>
+            </div>
+            <p id="post_content">{{post.caption}}</p>
+        </div>
+    </div>
+
+    
+</div>

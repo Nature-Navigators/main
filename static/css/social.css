@@ -42,6 +42,30 @@ body {
     font-size: medium;
 }
 
+
+.profile_pic_container {
+    width:2.5em;
+    height:2.5em;
+    min-width: 2.5em;
+    border-radius:50%;
+    overflow:hidden;
+    box-sizing:border-box;
+    padding:0;
+    margin-right: 0.5em;
+
+    display: inline-block;
+}
+ .profile_pic_container img {
+    width: 100%;
+    
+    height:100%;
+    padding:0;
+    margin:0;
+    display:inline;
+    object-fit: cover;
+
+}
+
 .post-header {
     display: flex;
     justify-content: flex-start;
@@ -50,17 +74,14 @@ body {
     font-size: 14px;
     color: #333;
     width: 100%;
+    height:4em;
+    padding: 0.5em;
+
 }
 
-.profile-pic {
-    justify-self: start;
-    margin-left: 15px;
-    margin-right: 15px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    width: 40px !important;
-    height: 40px !important;
-    object-fit: scale-down;
+.post-header a {
+    display: flex;
+    text-decoration: none;
 }
 
 .profile-info {
@@ -79,6 +100,7 @@ body {
 .profile-name {
     font-weight: bold;
     margin-right: 5px;
+    color: black;
 }
 
 .post-time {

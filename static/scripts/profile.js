@@ -125,7 +125,7 @@ function showDatabasePost(databasePost) {
         if(userJson["profileImage"] != null)
             document.getElementById("profile_pic").src = "/uploads/" + userJson["profileImage"]["name"]
         else
-            document.getElementById("profile_pic").src = "../static/images/raven.png";
+            document.getElementById("profile_pic").src = "../static/images/profile-icon.webp";
 
         document.getElementById("html_postID").value = postJson["postID"];  //invisible value used for deleting
         //make it visible
