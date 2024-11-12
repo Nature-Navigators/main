@@ -790,7 +790,7 @@ def social():
 
     # get the posts
     posts = []
-
+    shouldFillPosts = True # False only on searching
 
     # hit enter on the search bar
     if request.method == 'POST' and "usernameSearch" in request.form:
@@ -815,6 +815,8 @@ def social():
             
             if result != None:
                 posts = result.to_dict()["posts"]
+
+            shouldFillPosts = False
             
         
     elif request.method == 'POST':
@@ -839,7 +841,7 @@ def social():
     #TODO: change to use DB 
     try:
         # user logged in and toggle should only be followers
-        if current_user.is_authenticated and session['shouldOnlyFollowers'] and len(posts) == 0:
+        if current_user.is_authenticated and session['shouldOnlyFollowers'] and shouldFillPosts:
 
             if current_user.following:
 
@@ -858,7 +860,7 @@ def social():
                 posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post1["likes"]-post2["likes"]))
 
         # user not logged in, get top (most liked) posts
-        elif len(posts) == 0:
+        elif shouldFillPosts:
             # add the posts to the list
             dbPosts = db.session.scalars(select(Post).order_by(Post.likes).limit(dbPostGrabLimit)).all()
             for dbPost in dbPosts:
