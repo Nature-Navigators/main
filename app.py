@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload, aliased
 import uuid
 import requests
 import folium
@@ -28,6 +29,7 @@ import requests
 from flask_migrate import Migrate
 from math import radians, sin, cos, sqrt, atan2 #for haversine formula
 import babel
+from functools import cmp_to_key
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -777,8 +779,19 @@ def social_location():
     #print(f"Filtered Events: {sorted_events}")
     return jsonify(sorted_events)
 
-@app.route('/social')
-def social():     
+@app.route('/social', methods=["GET","POST"])
+def social():   
+
+    shouldShowOnlyFollowers = True
+
+    # POST happens on "only followers" checkbox change
+    if request.method == 'POST':
+        # form has nothing in it if it's an "off" checkbox
+        if len(request.form) == 0:
+            print("false")
+            shouldShowOnlyFollowers = False
+        
+
     if current_user.is_authenticated:
         favorited_event_ids = set(
             db.session.execute(
@@ -792,12 +805,35 @@ def social():
     posts = []
     dbPostGrabLimit = 50
     try:
-        # add the posts to the list
-        dbPosts = db.session.scalars(select(Post).limit(dbPostGrabLimit)).all()
-        for dbPost in dbPosts:
-            posts.append(dbPost.to_dict())
+        if current_user.is_authenticated and shouldShowOnlyFollowers:
 
-        print(posts[0])
+            if current_user.following:
+
+                following = current_user.following
+                followingPosts = []
+                
+                # append all posts
+                for follower in following:
+                    
+                    followerObj = db.session.get(User, follower.userID)
+                    for post in followerObj.posts:
+                        followingPosts.append(post.to_dict())
+
+                # get followers' most liked posts
+                posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post1["likes"]-post2["likes"]))
+
+                
+               
+                
+
+
+        # user not logged in, get top (most liked) posts
+        else:
+            # add the posts to the list
+            dbPosts = db.session.scalars(select(Post).order_by(Post.likes).limit(dbPostGrabLimit)).all()
+            for dbPost in dbPosts:
+                posts.append(dbPost.to_dict())
+
         
     except Exception as error:
         print(traceback.format_exc())
@@ -811,7 +847,8 @@ def social():
 
     context = {
         "events": serialized_events,
-        "posts": posts
+        "posts": posts,
+        "followersOnly": shouldShowOnlyFollowers
     }
 
     return render_template('social.html', **context)
@@ -889,7 +926,7 @@ def reset_token(token):
 @login_required
 def like_post():
     post_id = request.json.get('post_id')
-    post = Post.query.get(post_id)
+    post = db.session.get(Post,post_id)
     if post:
         post.likes += 1
         db.session.commit()

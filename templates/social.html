@@ -17,7 +17,23 @@
             <img src="../static/images/raven.png" alt="Featherly Logo" />
             <h1>Featherly</h1>
         </div>
+        
         <div class="search-bars">
+            <div class="follower-toggle">
+                <p>Followers Only</p>
+
+                <form action="/social" method="POST">
+                    <label class="switch">
+                        {% if followersOnly %}
+                        <input onchange="this.form.submit()" type="checkbox" checked name="toggle"/>
+                        {% else %}
+                        <input onchange="this.form.submit()" type="checkbox" name="toggle"/>
+                        {% endif %}
+                        <span class="slider round"></span>
+                    </label>
+                </form>
+            </div>
+            
             <div class="beige-search-bar">
                 <i class="fas fa-search icon-left"></i>
                 <input type="text" placeholder="Search" />
@@ -28,7 +44,10 @@
                 <input type="text" placeholder="Search" />
                 <img src="../static/images/birdicon.png" alt="Bird Icon" class="icon-right" />
             </div>
+            
         </div>
+        
+
         <nav class="nav-icons">
             <a href="/" title="Home"><i class="fas fa-home"></i></a>
             <a href="/map" title="Map"><i class="fas fa-map"></i></a>
@@ -42,13 +61,24 @@
         </nav>
     </div>
 
+
     <div class="mainFeed">
-        {% for post in posts %}
-            {% include "post.html" with context %}
-        {% endfor %}
+        {% if posts|length > 0 %}
+            {% for post in posts %}
+                {% include "post.html" with context %}
+            {% endfor %}
+        {% else %}
+            <div id="postFailed">
+                <h2>
+                    Looks like we couldn't find any posts
+                </h2>
+                <p>
+                    Either refine your search, or follow someone new!
+                </p>
+            </div>
+        {% endif %}
     </div>
 
-    <div id="app"></div>
     <div id="eventModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>

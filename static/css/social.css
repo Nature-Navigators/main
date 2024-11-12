@@ -16,10 +16,10 @@ body {
     padding: 20px;
     margin-left: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    position: absolute;
+    position: fixed;
     top: 70px;
     right:0px;
-    max-width:300px;
+    max-width:20%;
     height: 90vh;
     overflow: scroll;
 }
@@ -29,6 +29,26 @@ body {
     background-color: rgb(255, 255, 255);
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mainFeed {
+    margin-top: 80px;
+    height: 90vh;
+    width: 80%;
+    box-sizing: border-box;
+    display:relative;
+}
+
+
+
+#postFailed {
+    color: gray;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content:center;
+    align-items: center;
 }
 
 .post {
@@ -241,6 +261,9 @@ p {
 }
 
 
+/* ================================ EVENT =======================================*/
+
+
 .event-details {
     padding-top: 10px;
 }
@@ -258,6 +281,67 @@ p {
     font-size: 14px;
     color: #555;
 }
+
+
+.create-event-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.create-event-button img {
+    width: 19px;
+    height: 20px;
+}
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+}
+
+.events-headline{
+    width:100%;
+    height:max-content;
+    display: flex;
+}
+
+.events-headline p{
+    flex-basis: 92%;
+    padding:2px;
+    padding-left:0px;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+#createEventBtn{
+    width:max-content;
+    height:max-content;
+    flex-basis: 8%;
+}
+
+
+/* ================================== NAVBAR ====================================== */
 
 .navbar {
     display: flex;
@@ -343,10 +427,14 @@ p {
 }
 
 .header-container {
+    position: fixed;
+    top:0;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 20px;
+    box-sizing:border-box;
     background-color: #8bd7da;
 }
 
@@ -392,60 +480,84 @@ p {
     color: #ddd;
 }
 
+/* ======================== TOGGLE SWITCH (some from w3 schools) =============================== */
 
-.create-event-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.create-event-button img {
-    width: 19px;
-    height: 20px;
-}
-
-/* Modal styling */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
+.follower-toggle {
+    display:flex;
     justify-content: center;
     align-items: center;
-}
-
-.modal-content {
+    margin-right: 20px;
+    text-align: center;
+    padding: 5px 10px;
     background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    width: 400px;
+    border-radius: 20px;
 }
 
-.close {
-    float: right;
+.follower-toggle p {
+    margin-right: 0.5em;
+    color: rgb(73, 73, 73);
+    font-size:14px;
+}
+
+ /* The switch - the box around the slider */
+ .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
     cursor: pointer;
-}
-
-.events-headline{
-    width:100%;
-    height:max-content;
-    display: flex;
-}
-
-.events-headline p{
-    flex-basis: 92%;
-    padding:2px;
-    padding-left:0px;
-    margin-bottom: 20px;
-    font-size: 18px;
-}
-
-#createEventBtn{
-    width:max-content;
-    height:max-content;
-    flex-basis: 8%;
-}
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #b5b8c6;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #097c80;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  } 
