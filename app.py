@@ -35,8 +35,8 @@ app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
 app.config['UPLOAD_PATH'] = 'uploads'
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = '1k2jeh44596g'
-GOOGLE_MAPS_API_KEY ='AIzaSyB1nZm5o9f0bud-2R4FLHwV3uEgg3I7_CM' 
+EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
+GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 
 db.init_app(app)
@@ -437,7 +437,9 @@ def profile_id(profile_id):
 
         if selected_id != None:
             user = db.session.get(User, selected_id)
+            
             try:
+                events = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
                 posts = user.to_dict()['posts']
             except Exception as error:
                 print(error)
@@ -447,8 +449,7 @@ def profile_id(profile_id):
             is_following = current_user.userID != selected_id and current_user in current_profile.followedBy
             context = {
                 "socialPosts": socialPosts,
-                #"events": events,
-                "badges": badges,
+                "events": events,
                 "id" : profile_id,
                 "user": user,
                 "loggedIn": logged_in,
