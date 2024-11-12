@@ -36,7 +36,10 @@
             
             <div class="beige-search-bar">
                 <i class="fas fa-search icon-left"></i>
-                <input type="text" placeholder="Search" />
+                <form action="/social" method="POST">
+                    <input type="text" name="usernameSearch" placeholder="Search" />
+                    <input type="submit" style="display: none" />
+                </form>
                 <img src="../static/images/profile.png" alt="Profile Icon" class="icon-right" />
             </div>
             <div class="light-red-search-bar">

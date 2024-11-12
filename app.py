@@ -1,6 +1,6 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload, aliased
+from sqlalchemy.sql.expression import func
 import uuid
 import requests
 import folium
@@ -779,17 +779,50 @@ def social_location():
     #print(f"Filtered Events: {sorted_events}")
     return jsonify(sorted_events)
 
+
+
 @app.route('/social', methods=["GET","POST"])
 def social():   
 
-    shouldShowOnlyFollowers = True
+    if session.get('shouldOnlyFollowers') == None:
+        session['shouldOnlyFollowers'] = True
 
-    # POST happens on "only followers" checkbox change
-    if request.method == 'POST':
+
+    # get the posts
+    posts = []
+
+
+    # hit enter on the search bar
+    if request.method == 'POST' and "usernameSearch" in request.form:
+        text = request.form["usernameSearch"]
+
+        #TODO: LIKE (edit distance) instead of exact matches
+        text = text.lower()
+        if text != '':
+            result = None
+            if session['shouldOnlyFollowers'] and current_user.is_authenticated:
+                following = current_user.following
+                
+                # find the username in the following list
+                for follower in following:
+                    if follower.username == text:
+                        result = follower
+                        break
+            
+            # look for the user outside of following
+            else:
+                result = db.session.scalars(select(User).where(func.lower(User.username) == text)).first()
+            
+            if result != None:
+                posts = result.to_dict()["posts"]
+            
+        
+    elif request.method == 'POST':
         # form has nothing in it if it's an "off" checkbox
         if len(request.form) == 0:
-            print("false")
-            shouldShowOnlyFollowers = False
+            session['shouldOnlyFollowers'] = False
+        elif "toggle" in request.form:
+            session['shouldOnlyFollowers'] = True
         
 
     if current_user.is_authenticated:
@@ -801,11 +834,12 @@ def social():
     else:
         favorited_event_ids = set()
 
-    # get the posts
-    posts = []
     dbPostGrabLimit = 50
+
+    #TODO: change to use DB 
     try:
-        if current_user.is_authenticated and shouldShowOnlyFollowers:
+        # user logged in and toggle should only be followers
+        if current_user.is_authenticated and session['shouldOnlyFollowers'] and len(posts) == 0:
 
             if current_user.following:
 
@@ -816,19 +850,15 @@ def social():
                 for follower in following:
                     
                     followerObj = db.session.get(User, follower.userID)
+
                     for post in followerObj.posts:
                         followingPosts.append(post.to_dict())
 
                 # get followers' most liked posts
                 posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post1["likes"]-post2["likes"]))
 
-                
-               
-                
-
-
         # user not logged in, get top (most liked) posts
-        else:
+        elif len(posts) == 0:
             # add the posts to the list
             dbPosts = db.session.scalars(select(Post).order_by(Post.likes).limit(dbPostGrabLimit)).all()
             for dbPost in dbPosts:
@@ -848,7 +878,7 @@ def social():
     context = {
         "events": serialized_events,
         "posts": posts,
-        "followersOnly": shouldShowOnlyFollowers
+        "followersOnly": session['shouldOnlyFollowers']
     }
 
     return render_template('social.html', **context)
