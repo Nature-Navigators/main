@@ -85,7 +85,8 @@
               <ul id = "mini_nav">
                 <li><a href="#" onclick="showGallery()">Gallery</a></li>
                 <li><a href="#" onclick="showBadges()">Badges</a></li>
-                <li><a href="#" onclick="showEvents()">Created Events</a></li>
+                <li><a href="#" onclick="showCreatedEvents()">Created Events</a></li>
+                <li><a href="#" onclick="showSavedEvents()">Saved Events</a></li>
               </ul>
             {% if loggedIn %}
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
@@ -157,10 +158,10 @@
               </div>
                 
             </div>
-            <div class="saved_events" id="events"> 
-              <div id="event_holder">
+            <div class="events" id="createdEvents"> 
+              <div id="created_event_holder">
                 {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
-                {% for event in events %}
+                {% for event in createdEvents %}
                 <div class="event_img_details">
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
@@ -169,7 +170,31 @@
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
-                        <span class= "favorite-icon" EventID="{{event.eventID}}"></span>
+                        <span class= "delete-icon" EventID="{{event.eventID}}"></span>
+                        <p>{{ event.eventDate }}</p> 
+                        <p>{{event.location|e}}</p>
+                        <p style="margin-top:10px">{{event.description|e}}</p>
+                      </br>
+                    </div>
+                </div>
+                {%endfor%}
+              </div>
+              
+            </div>
+
+            <div class="events" id="savedEvents"> 
+              <div id="saved_event_holder">
+                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
+                {% for event in savedEvents %}
+                <div class="event_img_details">
+                    <div class="event-image-container">
+                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
+                        
+                    </div>
+                    <div class="event-details">
+                        <h4>{{event.title|e}}</h4>
+                        <span class= "favorite-icon favorited" EventID="{{event.eventID}}"></span>
                         <p>{{ event.eventDate }}</p> 
                         <p>{{event.location|e}}</p>
                         <p style="margin-top:10px">{{event.description|e}}</p>

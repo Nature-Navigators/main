@@ -437,10 +437,26 @@ def profile_id(profile_id):
 
         if selected_id != None:
             user = db.session.get(User, selected_id)
+
             
             try:
-                events = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
-                posts = user.to_dict()['posts']
+                createdEvents = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
+                print(createdEvents)
+
+                #get fav eventIDs
+                savedEventIDs = db.session.scalars(
+                    select(Favorite.eventID).where(Favorite.userID == current_user.userID)
+                ).all()
+
+                # Fetch fav events corresponding to fav eventIDs
+                savedEvents = db.session.scalars(
+                    select(Event).where(Event.eventID.in_(savedEventIDs))
+                ).all()
+
+                print(savedEvents)
+
+                posts = []
+                #posts = user.to_dict()['posts']
             except Exception as error:
                 print(error)
                 return "Recursion error encountered"
@@ -449,7 +465,8 @@ def profile_id(profile_id):
             is_following = current_user.userID != selected_id and current_user in current_profile.followedBy
             context = {
                 "socialPosts": socialPosts,
-                "events": events,
+                "createdEvents": createdEvents,
+                "savedEvents": savedEvents,
                 "id" : profile_id,
                 "user": user,
                 "loggedIn": logged_in,
@@ -539,6 +556,27 @@ def create_event():
     db.session.commit()
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
+
+
+@app.route('/delete_event', methods=['POST'])
+def delete_event():
+    if not current_user.is_authenticated: 
+        print("Not logged in")
+        return jsonify({'error': 'Event not deleted, user not logged in'}), 401
+
+    data = request.json
+    event_id = uuid.UUID(data.get('eventID'))
+
+    event = Event.query.filter_by(eventID=event_id, userID=current_user.userID).first()
+
+    if not event:
+        return jsonify({'error': 'Event not found or you do not have permission to delete this event'}), 404
+
+    db.session.delete(event)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Event deleted successfully!'})
+
    
 @app.route('/favorite_event', methods=['POST'])
 def favorite_event():

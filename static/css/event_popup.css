@@ -73,14 +73,7 @@
     object-fit: cover;
   }
 
-  .favorite-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 20px;
-    color: red;
-    cursor: pointer;
-  }
+ 
 
   .event-details {
     padding-top: 10px;
