@@ -456,8 +456,7 @@ def profile_id(profile_id):
 
                 print(savedEvents)
 
-                posts = []
-                #posts = user.to_dict()['posts']
+                posts = user.to_dict()['posts']
             except Exception as error:
                 print(traceback.format_exc())
                 return "Recursion error encountered"
@@ -647,8 +646,22 @@ def social_location():
 
     #max_distance_m = 1000
 
+    #check which events are previously favorited by user
+    if current_user.is_authenticated:
+        favorited_event_ids = set(
+            db.session.execute(
+                select(Favorite.eventID).filter_by(userID=current_user.userID)
+            ).scalars()
+        )
+    else:
+        favorited_event_ids = set()
+
+    #add a favorited flag if event exists in user fav list
     tempEvents = db.session.execute(select(Event)).scalars().all()
-    serialized_events = [event.to_dict() for event in tempEvents]
+    serialized_events = [
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        for event in tempEvents
+    ]
 
     #sort events by distance
     events_with_distance = [
@@ -664,12 +677,21 @@ def social_location():
 
 @app.route('/social')
 def social():     
-    # Query to get all events
-    tempEvents = db.session.execute(select(Event)).scalars().all()  
-    serialized_events = [event.to_dict() for event in tempEvents]
+    if current_user.is_authenticated:
+        favorited_event_ids = set(
+            db.session.execute(
+                select(Favorite.eventID).filter_by(userID=current_user.userID)
+            ).scalars()
+        )
+    else:
+        favorited_event_ids = set()
 
-    #signout to test functionality
-    #logout()
+    #add a favorited flag if event exists in user fav list
+    tempEvents = db.session.execute(select(Event)).scalars().all()
+    serialized_events = [
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        for event in tempEvents
+    ]
 
     return render_template('social.html', events=serialized_events)
 

@@ -15,7 +15,7 @@ function getLocation() {
             fetchLocationViaIP();
         },
         {
-            timeout: 800,     
+            timeout: 100,     
         }
     );
 }
@@ -81,6 +81,7 @@ function updateEventList(events) {
     events.forEach((event, index) => {
         const imageFile = `bird${(index % 4) + 1}.jpg`;  // Replace with logic for images
         const formattedDate = formatEventDate(event.eventDate); 
+        const fav = event.favorited ? 'favorited' : '';
         
         htmlContent += `
             <div class="event_img_details">
@@ -89,7 +90,7 @@ function updateEventList(events) {
                 </div>
                 <div class="event-details">
                     <h4>${event.title}</h4>
-                    <span class="favorite-icon" EventID="${event.eventID}"></span>
+                    <span class="favorite-icon ${fav}" EventID="${event.eventID}"></span>
                     <p>${formattedDate}</p>
                     <p>${event.location}</p>
                     <p style="margin-top:10px">${event.description}</p>

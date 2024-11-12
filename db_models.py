@@ -159,7 +159,7 @@ class Event(Base):
         return f'<Event {self.title}>'
 
 
-class Favorite(Base):
+class Favorite(Base, db.Model):
     __tablename__ = 'favorite_table'
     id = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.Uuid, db.ForeignKey('user_table.userID'), nullable=False)

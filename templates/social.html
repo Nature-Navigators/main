@@ -58,7 +58,7 @@
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
-                        <span class= "favorite-icon" EventID="{{event.eventID}}"></span>
+                        <span class= "favorite-icon {% if event.favorited %}favorited{% endif %}" EventID="{{event.eventID}}"></span>
                         <p>{{ event.eventDate| datetimeformat }}</p> 
                         <p>{{event.location|e}}</p>
                         <p style="margin-top:10px">{{event.description|e}}</p>
@@ -230,6 +230,7 @@
                             console.log("There was an issue with favoriting the event.");
                             button.classList.remove('favorited');
                             console.log(data.message);
+                            alert(data.message);
                         }
                     }
                 })
@@ -262,6 +263,7 @@
                             console.log("There was an issue with unfavoriting the event.");
                             button.classList.add('favorited');
                             console.log(data.message);
+                            alert(data.message);
                         }
                     }
                 })
