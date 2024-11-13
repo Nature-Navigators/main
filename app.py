@@ -444,8 +444,9 @@ def profile_id(profile_id):
 
     # POST happens on Add Photo submit button
     elif request.method == 'POST' and "add_photo_caption" in request.form:
-        
-        new_caption = request.form["add_photo_caption"]
+        bird_id = request.form.get('add_bird_id')
+        location_id = request.form.get('add_location')
+        new_caption = request.form.get('add_photo_caption')
 
         #add the new post to the database
         try:
@@ -454,7 +455,7 @@ def profile_id(profile_id):
 
                 # setting up & adding the post
                 new_postID = uuid.uuid4()
-                new_post = Post(postID=new_postID, caption=new_caption, datePosted=datetime.now(), userID=selected_id)
+                new_post = Post(postID=new_postID, caption=new_caption, birdID=bird_id, locationID=location_id, datePosted=datetime.now(), userID=selected_id)
                 db.session.add(new_post)
 
                 #handle the image upload
@@ -888,7 +889,7 @@ def social():
 @app.template_filter()
 def format_datetime(value, format='medium'):
     print(value)
-    convertedStr = datetime.strptime(value, '%Y-%d-%m %H:%M:%S')
+    convertedStr = datetime.strptime(value, '%Y-%m-%d %H:%M:%S') 
     if format == 'full':
         format="EEEE, d. MMMM y 'at' h:mm a"
     elif format == 'medium':
@@ -954,17 +955,23 @@ def reset_token(token):
         return redirect(url_for('signin'))
     return render_template('reset.html', title='Reset Password', form=form)
 
-@app.route('/like_post', methods=['POST'])
+@app.route('/api/posts/<post_id>/like', methods=['POST'])
 @login_required
-def like_post():
-    post_id = request.json.get('post_id')
-    post = db.session.get(Post,post_id)
+def like_post(post_id):
+    # this code currently allows one user to like the same post multiple times
+    try:
+        # Convert `post_id` to UUID 
+        post_uuid = uuid.UUID(post_id)  
+    except ValueError:
+        return jsonify({'error': 'Invalid post ID format'}), 400
+    
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
     if post:
         post.likes += 1
         db.session.commit()
         return jsonify({'likes': post.likes}), 200
+    
     return jsonify({'error': 'Post not found'}), 404
-
 
 if __name__ == "__main__":
     app.run(debug=True)
