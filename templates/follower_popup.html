@@ -9,18 +9,32 @@
     <div class="popup_body">
         <div class="follower">
             <div class="follower_tabs">
-                <span><a href="#" onclick=""><h3>Following</h3></a></span>
-                <span><a href="#" onclick=""><h3>Followers</h3></a></span>
+                <span><a href="#" onclick="clickFollowerFollowing(true)"><h3 id="followingHeader" class="active">Following</h3></a></span>
+                <span><a href="#" onclick="clickFollowerFollowing(false)"><h3 id="followersHeader">Followers</h3></a></span>
             </div>
 
-            <div class="follower_list">
+            
+            <div id="followingList" class="follower_list">
+                <div class="follow_row">
+                    <div class="f_profile_pic_container">
+                        <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+                    </div>
+                    <p>NameFollowing</p>
+                    <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
+                    <form action="/profile/">
+                        <button class="blue_button unfollow_list_btn">View</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="followersList" class="follower_list" style="display:none;">
                 <!-- "f" meaning follower / following -->
                
                 <div class="follow_row">
                     <div class="f_profile_pic_container">
                         <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
                     </div>
-                    <p>Name</p>
+                    <p>NameFollower</p>
                     <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
                     <form action="/profile/">
                         <button class="blue_button unfollow_list_btn">View</button>
