@@ -1,0 +1,39 @@
+
+<div id="follower_popup" class="popup">
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/follower_popup.css')}}">
+    <div id="popup_header">
+        <button id="cancel_button" onclick="hideFollowerPopup()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
+        
+    </div>
+    <div class="popup_body">
+        <div class="follower">
+            <div class="follower_tabs">
+                <span><a href="#" onclick=""><h3>Following</h3></a></span>
+                <span><a href="#" onclick=""><h3>Followers</h3></a></span>
+            </div>
+
+            <div class="follower_list">
+                <!-- "f" meaning follower / following -->
+               
+                <div class="follow_row">
+                    <div class="f_profile_pic_container">
+                        <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+                    </div>
+                    <p>Name</p>
+                    <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
+                    <form action="/profile/">
+                        <button class="blue_button unfollow_list_btn">View</button>
+                    </form>
+                </div>
+                
+
+            </div>
+
+            
+        </div>
+    </div>
+   
+</div>
+
+<script src="{{url_for('static', filename='scripts/follower_popup.js')}}"></script>

@@ -121,6 +121,7 @@ body {
   .header .container .left_column .profile_pic button:hover {
     background-color:rgba(0, 0, 0, 0);
     filter: brightness(30%);
+    cursor: pointer;
   }
 
   .header .container .left_column .profile_pic p {
@@ -162,6 +163,13 @@ body {
     margin: 35px 0;
     gap: 30px; 
 }
+
+  .header .container .left_column .about a {
+    text-decoration: none;
+    color: black;
+    display: flex;
+    gap: 2em;
+  }
   .header .container .left_column .about:after {
     position: absolute;
     content: "";

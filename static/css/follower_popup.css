@@ -1,0 +1,83 @@
+#follower_popup {
+    visibility: visible;
+}
+
+.follower {
+    width: 100%;
+    display:relative;
+    height: 100%;
+    margin-bottom: 1em;
+}
+
+.follower_tabs {
+    display: flex;
+    gap: 2em;
+    width: 100%;
+    height: 3em;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    border-bottom: 2px solid lightgray;
+    margin-bottom: 2em;
+}
+.follower_tabs h3 {
+    border-left: 2px solid gray;
+    color: gray;
+    padding-left: 0.5em;
+    font-size: 1.2em;
+}
+
+.follower_tabs h3:hover {
+    color: rgb(62, 62, 62);
+}
+
+.f_profile_pic_container {
+    width:3.5em;
+    height:3.5em;
+    min-width: 3.5em;
+    border-radius:50%;
+    overflow:hidden;
+    box-sizing:border-box;
+    padding:0;
+    margin-right: 0.5em;
+    
+    
+    
+}
+
+.follower_list {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    padding: 0.5em;
+}
+
+.follow_row {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    background-color: rgb(241, 241, 241);
+    padding: 1em;
+    margin-bottom: 0.5em;
+    border-radius: 10px;
+}
+
+.follow_row p {
+    margin-left: 1em;
+}
+
+.follow_row form {
+    margin-left: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+
+}
+
+.follow_row button {
+    margin-left: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+}
