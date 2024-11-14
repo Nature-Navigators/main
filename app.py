@@ -815,7 +815,7 @@ def social():
                 result = db.session.scalars(select(User).where(func.lower(User.username) == text)).first()
             
             if result != None:
-                posts = result.to_dict()["posts"]
+                posts = [post.to_dict() for post in result.posts]
 
             shouldFillPosts = False
             
@@ -855,7 +855,9 @@ def social():
                     followerObj = db.session.get(User, follower.userID)
 
                     for post in followerObj.posts:
-                        followingPosts.append(post.to_dict())
+                        post_dict = post.to_dict()
+                        post_dict['user'] = followerObj.to_dict()
+                        followingPosts.append(post_dict)
 
                 # get followers' most liked posts
                 posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post1["likes"]-post2["likes"]))
@@ -865,7 +867,9 @@ def social():
             # add the posts to the list
             dbPosts = db.session.scalars(select(Post).order_by(Post.likes).limit(dbPostGrabLimit)).all()
             for dbPost in dbPosts:
-                posts.append(dbPost.to_dict())
+                post_dict = dbPost.to_dict()
+                post_dict['user'] = dbPost.user.to_dict()
+                posts.append(post_dict)
 
         
     except Exception as error:
