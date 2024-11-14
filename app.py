@@ -16,7 +16,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage
+from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage, PostLike
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
@@ -962,20 +962,29 @@ def reset_token(token):
 @app.route('/api/posts/<post_id>/like', methods=['POST'])
 @login_required
 def like_post(post_id):
-    # this code currently allows one user to like the same post multiple times
     try:
-        # Convert `post_id` to UUID 
-        post_uuid = uuid.UUID(post_id)  
+        post_uuid = uuid.UUID(post_id)
     except ValueError:
         return jsonify({'error': 'Invalid post ID format'}), 400
-    
+
     post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
-    if post:
-        post.likes += 1
-        db.session.commit()
-        return jsonify({'likes': post.likes}), 200
-    
-    return jsonify({'error': 'Post not found'}), 404
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
+
+    if like:
+        db.session.delete(like)
+        post.likes_count -= 1
+        liked = False
+    else:
+        new_like = PostLike(userID=current_user.userID, postID=post_uuid)
+        db.session.add(new_like)
+        post.likes_count += 1
+        liked = True
+
+    db.session.commit()
+    return jsonify({'likes': post.likes_count, 'liked': liked}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
