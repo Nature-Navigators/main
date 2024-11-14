@@ -15,31 +15,46 @@
 
             
             <div id="followingList" class="follower_list">
+                {% for f in user.following %}
+
                 <div class="follow_row">
                     <div class="f_profile_pic_container">
-                        <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+                        {% if f.profileImage != None %}
+                            <img id="f_profile_pic" src="{{url_for('download_file', filename=f.profileImage['name'])}}" alt="Profile Picture" class="profile-pic" />
+
+                        {% else %}
+                            <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+                        {% endif %}
                     </div>
-                    <p>NameFollowing</p>
+                    <p>{{f.username|e}}</p>
                     <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
-                    <form action="/profile/">
+                    <form action="/profile/{{f.username|e}}">
                         <button class="blue_button unfollow_list_btn">View</button>
                     </form>
                 </div>
+                {% endfor %}
             </div>
 
             <div id="followersList" class="follower_list" style="display:none;">
                 <!-- "f" meaning follower / following -->
-               
+                {% for f in user.followedBy %}
+
                 <div class="follow_row">
                     <div class="f_profile_pic_container">
-                        <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+                        {% if f.profileImage != None %}
+                            <img id="f_profile_pic" src="{{url_for('download_file', filename=f.profileImage['name'])}}" alt="Profile Picture" class="profile-pic" />
+
+                        {% else %}
+                            <img id="f_profile_pic" src="{{url_for('static', filename='images/profile-icon.webp')}}" alt="Profile Picture" class="profile-pic" />
+                        {% endif %}
                     </div>
-                    <p>NameFollower</p>
+                    <p>{{f.username|e}}</p>
                     <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
-                    <form action="/profile/">
+                    <form action="/profile/{{f.username|e}}">
                         <button class="blue_button unfollow_list_btn">View</button>
                     </form>
                 </div>
+                {% endfor %}
                 
 
             </div>

@@ -68,11 +68,17 @@
               {% endif %}
             {% endif %}
             <ul class="about">
-              <a href="#">
+              {% if loggedIn %}
+                <a href="#" onclick="showFollowerPopup()">
+                  <span>{{user.followedBy|length}} Followers</span>
+                  <span>{{user.following|length}} Following</span>
+    
+                </a>
+              {% else %}
                 <span>{{user.followedBy|length}} Followers</span>
                 <span>{{user.following|length}} Following</span>
-  
-              </a>
+
+              {% endif %}
             </ul>
   
             <div class="content">
