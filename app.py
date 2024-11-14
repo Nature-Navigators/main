@@ -986,5 +986,20 @@ def like_post(post_id):
     db.session.commit()
     return jsonify({'likes': post.likes_count, 'liked': liked}), 200
 
+@app.route('/api/posts/<post_id>/like/status', methods=['GET'])
+@login_required
+def get_like_status(post_id):
+    try:
+        post_uuid = uuid.UUID(post_id)
+    except ValueError:
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
+    return jsonify({'liked': liked, 'likes': post.likes_count}), 200
+
 if __name__ == "__main__":
     app.run(debug=True)
