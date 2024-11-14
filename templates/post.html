@@ -76,7 +76,7 @@
         const placeholderButtons = document.querySelectorAll('.placeholder-button');
         placeholderButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const locationID = button.getAttribute('data-location-id'); // Fetch locationID from data attribute
+                const locationID = button.getAttribute('data-location-id'); 
                 Swal.fire({
                     text: `Location: ${locationID}`,
                     position: 'center',
