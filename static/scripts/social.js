@@ -1,8 +1,9 @@
-
 window.onload = onLoad;
 
 function onLoad() {
     getLocation();
+    setupLikeButtons();
+    persistLikeButtons();
 }
 
 function getLocation() {
@@ -104,8 +105,82 @@ function updateEventList(events) {
     eventHolder.innerHTML = htmlContent;
 
     rebindFavoriteIcons();
+    persistLikeButtons(); 
 }
 
 function formatEventDate(eventDate) {
     return moment(eventDate).format("MMMM DD, YYYY [at] hh:mm A");
+}
+
+function setupLikeButtons() {
+    const likeButtons = document.querySelectorAll('.like-button');
+    likeButtons.forEach(button => {
+        button.addEventListener('click', handleLikeButtonClick);
+    });
+}
+
+function persistLikeButtons() {
+    const likeButtons = document.querySelectorAll('.like-button');
+    likeButtons.forEach(button => {
+        const postId = button.getAttribute('data-post-id');
+        fetch(`/api/posts/${postId}/like/status`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            const icon = button.querySelector('.like-icon');
+            icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
+            icon.width = 20;
+            icon.height = 22;
+            const likesCountElement = document.querySelector(`#post_likes_${postId}`);
+            if (likesCountElement) {
+                likesCountElement.textContent = `${data.likes} likes`;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching like status:', error);
+        });
+    });
+}
+
+function handleLikeButtonClick(event) {
+    const button = event.currentTarget;
+    const postId = button.getAttribute('data-post-id');
+    const icon = button.querySelector('.like-icon');
+
+    fetch(`/api/posts/${postId}/like`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`Error: ${text}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.likes !== undefined) {
+            icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
+            icon.width = 20;
+            icon.height = 22;
+            const likesCountElement = document.querySelector(`#post_likes_${postId}`);
+            if (likesCountElement) {
+                likesCountElement.textContent = `${data.likes} likes`;
+            }
+        } else {
+            console.error('Error liking post:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }

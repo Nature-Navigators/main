@@ -49,50 +49,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         setupLikeButtons();
+        persistLikeButtons(); //on fetching the post again the likes should persist
     });
-
-    function setupLikeButtons() {
-        const likeButtons = document.querySelectorAll('.like-button');
-        likeButtons.forEach(button => {
-            button.addEventListener('click', handleLikeButtonClick);
-        });
-    }
-
-    function handleLikeButtonClick(event) {
-        const button = event.currentTarget;
-        const postId = button.getAttribute('data-post-id');
-        const icon = button.querySelector('.like-icon');
-
-        fetch(`/api/posts/${postId}/like`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(`Error: ${text}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.likes !== undefined) {
-                icon.src = data.liked ? "{{ url_for('static', filename='images/filled-heart.png') }}" : "{{ url_for('static', filename='images/empty-heart.png') }}";
-                icon.width = 20;
-                icon.height = 22;
-                const likesCountElement = document.querySelector(`#post_likes_${postId}`);
-                if (likesCountElement) {
-                    likesCountElement.textContent = `${data.likes} likes`;
-                }
-            } else {
-                console.error('Error liking post:', data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
 </script>
+<script src="{{ url_for('static', filename='scripts/social.js') }}"></script>
