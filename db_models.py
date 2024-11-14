@@ -280,6 +280,8 @@ class PostLike(Base):
         db.UniqueConstraint('userID', 'postID', name='unique_user_post_like'),
     )
 
+    serialize_rules = ('-user', '-post')
+
     @property
     def serialize(self):
         return {
