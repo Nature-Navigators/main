@@ -11,13 +11,13 @@
 </head>
 
 <body>
- 
+
     <div class="header-container">
         <div class="logo">
             <img src="../static/images/raven.png" alt="Featherly Logo" />
             <h1>Featherly</h1>
         </div>
-        
+
         <div class="search-bars">
             <div class="follower-toggle">
                 <p>Followers Only</p>
@@ -25,15 +25,15 @@
                 <form action="/social" method="POST">
                     <label class="switch">
                         {% if followersOnly %}
-                        <input onchange="this.form.submit()" type="checkbox" checked name="toggle"/>
+                        <input onchange="this.form.submit()" type="checkbox" checked name="toggle" />
                         {% else %}
-                        <input onchange="this.form.submit()" type="checkbox" name="toggle"/>
+                        <input onchange="this.form.submit()" type="checkbox" name="toggle" />
                         {% endif %}
                         <span class="slider round"></span>
                     </label>
                 </form>
             </div>
-            
+
             <div class="beige-search-bar">
                 <i class="fas fa-search icon-left"></i>
                 <form action="/social" method="POST">
@@ -47,18 +47,18 @@
                 <input type="text" placeholder="Search" />
                 <img src="../static/images/birdicon.png" alt="Bird Icon" class="icon-right" />
             </div>
-            
+
         </div>
-        
+
 
         <nav class="nav-icons">
             <a href="/" title="Home"><i class="fas fa-home"></i></a>
             <a href="/map" title="Map"><i class="fas fa-map"></i></a>
             <a href="/profile" title="Profile"><i class="fa-solid fa-user"></i></a>
             {% if user.is_authenticated %}
-                <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
             {% else %}
-                <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
             {% endif %}
 
         </nav>
@@ -67,18 +67,18 @@
 
     <div class="mainFeed">
         {% if posts|length > 0 %}
-            {% for post in posts %}
-                {% include "post.html" with context %}
-            {% endfor %}
+        {% for post in posts %}
+        {% include "post.html" with context %}
+        {% endfor %}
         {% else %}
-            <div id="postFailed">
-                <h2>
-                    Looks like we couldn't find any posts
-                </h2>
-                <p>
-                    Either refine your search, or follow someone new!
-                </p>
-            </div>
+        <div id="postFailed">
+            <h2>
+                Looks like we couldn't find any posts
+            </h2>
+            <p>
+                Either refine your search, or follow someone new!
+            </p>
+        </div>
         {% endif %}
     </div>
 
@@ -89,29 +89,30 @@
             <form id="eventForm">
                 <label for="title">Event Name:</label>
                 <input type="text" id="title" name="title" required><br><br>
-    
+
                 <label for="eventDate">Event Date:</label>
                 <input type="date" id="eventDate" name="eventDate" required><br><br>
-    
+
                 <label for="time">Event Time:</label>
                 <input type="time" id="time" name="time" required><br><br>
-    
+
                 <label for="location">Location</label>
-                <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..." autocomplete="off">
+                <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..."
+                    autocomplete="off">
                 <datalist id="cityList"></datalist>
                 <br><br>
 
-    
+
                 <label for="description">Description:</label>
                 <textarea id="description" name="description" required></textarea><br><br>
-    
-            
+
+
                 <button type="submit">Create Event</button>
             </form>
         </div>
     </div>
     <div class="sidebar">
-        <div class="events" id="events"> 
+        <div class="events" id="events">
             <div class="events-headline">
                 <p id="events-text">Birding Events Near You</p>
                 <button class="create-event-button" id="createEventBtn">
@@ -124,24 +125,26 @@
                 <div class="event_img_details">
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
-                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
-                        
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}"
+                            class="event-image" />
+
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
-                        <span class= "favorite-icon {% if event.favorited %}favorited{% endif %}" EventID="{{event.eventID}}"></span>
-                        <p>{{ event.eventDate| datetimeformat }}</p> 
+                        <span class="favorite-icon {% if event.favorited %}favorited{% endif %}"
+                            EventID="{{event.eventID}}"></span>
+                        <p>{{ event.eventDate| datetimeformat }}</p>
                         <p>{{event.location|e}}</p>
                         <p style="margin-top:10px">{{event.description|e}}</p>
-                    </br>
+                        </br>
                     </div>
                 </div>
-              {%endfor%}
+                {%endfor%}
             </div>
 
-          </div>
+        </div>
     </div>
-<!-- 
+    <!-- 
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -151,10 +154,10 @@
     </script> -->
 
     <!--to format date and time for events-->
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>  <!-- For moment.js -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script> <!-- For moment.js -->
     <script src="{{url_for('static', filename='scripts/social.js')}}"></script>
 
-<!-- 
+    <!-- 
     <script type="text/babel">
         const domNode = document.getElementById('app');
 
