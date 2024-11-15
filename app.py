@@ -865,7 +865,7 @@ def social():
         # user not logged in, get top (most liked) posts
         elif shouldFillPosts:
             # add the posts to the list
-            dbPosts = db.session.scalars(select(Post).order_by(Post.likes).limit(dbPostGrabLimit)).all()
+            dbPosts = db.session.scalars(select(Post).order_by(Post.likes_count.desc()).limit(dbPostGrabLimit)).all()
             for dbPost in dbPosts:
                 post_dict = dbPost.to_dict()
                 post_dict['user'] = dbPost.user.to_dict()
