@@ -24,15 +24,27 @@
     </header>
 
     <main>
-        <div class="bird-info">
-            <h1 id="bird-name">{{ bird.title }}</h1>
-            {% if bird.imageUrl %}
-                <img src="{{ bird.imageUrl }}" alt="{{ bird.title }} Image">
-            {% else %}
-                <p>No image available for this bird.</p>
-            {% endif %}
-            <p>{{ bird.content|safe }}</p>
-            <p><a href="{{ bird.wikiUrl }}" target="_blank">Visit Wikipedia Page</a></p>
+        <div class="bird-info-container">
+            <div class="bird-title-row">
+                <h1 id="bird-name">{{ bird.title }}</h1>
+            </div>
+            <div class="bird-content-row">
+                <div class="bird-image">
+                    {% if bird.imageUrl %}
+                        <img src="{{ bird.imageUrl }}" alt="{{ bird.title }} Image">
+                    {% else %}
+                        <p>No image available for this bird.</p>
+                    {% endif %}
+                </div>
+
+                <div class="bird-about">
+                    <h2>About the {{ bird.title }}</h2>
+                    <p>{{ bird.content|safe }}</p>
+                    <p><a href="{{ bird.wikiUrl }}" target="_blank">
+                        <i class="fas fa-crow"></i> Learn More
+                    </a></p>
+                </div>
+            </div>
         </div>
     </main>
 </body>
