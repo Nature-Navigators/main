@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.sql.expression import func
 import uuid
 import requests
@@ -860,12 +860,12 @@ def social():
                         followingPosts.append(post_dict)
 
                 # get followers' most liked posts
-                posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post1["likes"]-post2["likes"]))
+                posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post2["likes_count"]-post1["likes_count"]))
 
         # user not logged in, get top (most liked) posts
         elif shouldFillPosts:
             # add the posts to the list
-            dbPosts = db.session.scalars(select(Post).order_by(Post.likes).limit(dbPostGrabLimit)).all()
+            dbPosts = db.session.scalars(select(Post).order_by(desc(Post.likes_count)).limit(dbPostGrabLimit)).all()
             for dbPost in dbPosts:
                 post_dict = dbPost.to_dict()
                 post_dict['user'] = dbPost.user.to_dict()
