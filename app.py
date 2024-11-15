@@ -27,6 +27,8 @@ import time
 import logging
 from PIL import Image
 from io import BytesIO
+from folium.plugins import Search
+from folium.plugins import Geocoder
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -117,13 +119,28 @@ async def update_location():
     data = request.get_json()
     latitude = data['latitude']
     longitude = data['longitude']
+    bird_data = []
     
     birds_near_user = await getRecentBirds(latitude, longitude)
 
-    m = folium.Map(location=[latitude, longitude], zoom_start=13)
+    m = folium.Map(location=[latitude, longitude], zoom_start=11)
     folium.Marker([latitude, longitude], tooltip='Your Location').add_to(m)
 
-    bird_data = []
+    folium.Circle(
+    location=(latitude,longitude), 
+    radius=30000, 
+    fill_color='cornflowerblue', 
+    stroke=True,
+    fill=True,
+    fill_opacity=0.25).add_to(m)
+
+    folium.plugins.Fullscreen(
+    position="topright",
+    title="Expand me",
+    title_cancel="Exit me",
+    force_separate_button=True,
+    ).add_to(m)
+
     tasks = []
     for bird in birds_near_user:
         bird_name = bird.get('comName')
@@ -138,7 +155,6 @@ async def update_location():
         bird_url = f'/bird/{quote(bird_name)}'
         bird_code = bird.get('speciesCode')
         description = f"{bird_name} spotted near your location."
-        print(f"{bird_name} location: {bird_lat}, {bird_long}")
         
         bird_data.append({
             'title': bird_name,
@@ -150,7 +166,7 @@ async def update_location():
 
         popup_content = f'''
         <a href="{bird_url}" target="_blank" style="display:block; width:100%; height:100%;">
-            <b>{bird_name}</b> -Click for more details
+            <b>{bird_name}</b> - Click for more details
         </a>
         <img src="{image_urls[i]}" width="200"/>
         '''
@@ -158,7 +174,7 @@ async def update_location():
         folium.Marker(
             location=[bird_lat, bird_long],
             tooltip=bird_name,
-            icon=folium.Icon(color='red'),
+            icon=folium.Icon(color='orange'),
             popup=popup_content,
             lazy=True
         ).add_to(m)
@@ -193,12 +209,27 @@ def update_map_with_bird_sightings():
     data = request.get_json()
     
     bird_sightings = data['birdSightings']
-    user_latitude = data['userLatitude']
-    user_longitude = data['userLongitude']
+    user_latitude = data['latitude']
+    user_longitude = data['longitude']
 
-    m = folium.Map(location=[user_latitude, user_longitude], zoom_start=13)
+    m = folium.Map(location=[user_latitude, user_longitude], zoom_start=11)
 
     folium.Marker([user_latitude, user_longitude], popup="Your Location").add_to(m)
+
+    folium.plugins.Fullscreen(
+    position="topright",
+    title="Expand me",
+    title_cancel="Exit me",
+    force_separate_button=True,
+    ).add_to(m)
+
+    folium.Circle(
+    location=(user_latitude,user_longitude), 
+    radius=30000, 
+    fill_color='cornflowerblue', 
+    stroke=True,
+    fill=True,
+    fill_opacity=0.25).add_to(m)
 
     for sighting in bird_sightings:
         bird_lat = sighting['lat']

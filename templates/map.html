@@ -21,19 +21,25 @@
     </nav>
     <div class="container">
         <div id="sidebar-search">
+            <!-- <button id="your-location">Go to your location!</button> -->
             <div id="search-box">
-                <input type="text" placeholder=" Enter a location" id="search-input"></input>
+                <input type="text" placeholder="Search for a location to find nearby birds!" id="search-input"></input>
                 <!-- <img src="{{url_for('static', filename='images/search.png')}}" id="search"> -->
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-location">
-                <span class="slider round"></span>
-            </label>
+            <div class="toggle-location">
+                <p>Display all species</p>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-location">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
         <div class="list-section">
+            <div id="bird-search-container">
+                <input type="text" placeholder="Search for a specific bird" id="bird-search">
+            </div>
             <div class="scrollable-list" id="scrollableList">
             </div>
-            <div id="pagination" class="pagination-container"></div>
         </div>
         <div id="map" class="image-section"></div>
     </div>
