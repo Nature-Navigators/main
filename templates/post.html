@@ -28,8 +28,13 @@
     <div class="post-info">
         <div class="text-and-icons">
             <div class="likes-and-icons">
-
                 <div class="post-icons">
+                    <button class="icon-button bird-button" id="bird-button-{{ post.postID }}" data-post-id="{{ post.postID }}" data-bird-id="{{ post.birdID }}">
+                        <img src="{{ url_for('static', filename='images/birdID.png') }}" alt="Bird Icon" class="bird-icon" width="20" height="22" />
+                    </button>
+                    <button class="icon-button placeholder-button" id="placeholder-button-{{ post.postID }}" data-post-id="{{ post.postID }}" data-location-id="{{ post.locationID }}">
+                        <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Placeholder Icon" class="placeholder-icon" width="20" height="22" />
+                    </button>
                     <button class="icon-button like-button" id="like-button" data-post-id="{{ post.postID }}">
                         {% if post.liked_by_user %}
                         <img src="{{ url_for('static', filename='images/filled-heart.png') }}" alt="Like Icon" class="like-icon" width="20" height="22" />
@@ -38,62 +43,49 @@
                         {% endif %}
                     </button>
                 </div>
-                <div class="likes" id="post_likes_{{ post.postID }}">{{ post.likes }} likes</div>
-
+                <div class="likes" id="post_likes_{{ post.postID }}">{{ post.likes_count }} likes</div>
             </div>
             <p class="post-content">{{ post.caption }}</p>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         setupLikeButtons();
-    });
+        persistLikeButtons(); //on fetching the post again the likes should persist
 
-    function setupLikeButtons() {
-        const likeButtons = document.querySelectorAll('.like-button');
-        likeButtons.forEach(button => {
-            button.addEventListener('click', handleLikeButtonClick);
-        });
-    }
-
-    function handleLikeButtonClick(event) {
-        const button = event.currentTarget;
-        const postId = button.getAttribute('data-post-id');
-        const icon = button.querySelector('.like-icon');
-
-        fetch(`/api/posts/${postId}/like`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            console.log('Response Status:', response.status);
-            if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(`Error: ${text}`);
+        // Setup bird button popups using SweetAlert2
+        const birdButtons = document.querySelectorAll('.bird-button');
+        birdButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const birdID = button.getAttribute('data-bird-id'); // Fetch birdID from data attribute
+                const rect = button.getBoundingClientRect();
+                Swal.fire({
+                    text: `Bird species: ${birdID}`,
+                    position: 'center',
+                    width: 200,
+                    showConfirmButton: false,
+                    timer: 1000
                 });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.likes !== undefined) {
-                icon.src = data.liked ? "{{ url_for('static', filename='images/filled-heart.png') }}" : "{{ url_for('static', filename='images/empty-heart.png') }}";
-                icon.width = 20;
-                icon.height = 22;
-                const likesCountElement = document.querySelector(`#post_likes_${postId}`);
-                if (likesCountElement) {
-                    likesCountElement.textContent = `${data.likes} likes`;
-                }
-            } else {
-                console.error('Error liking post:', data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            });
         });
-    }
+
+        // Setup placeholder button popups using SweetAlert2
+        const placeholderButtons = document.querySelectorAll('.placeholder-button');
+        placeholderButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const locationID = button.getAttribute('data-location-id'); 
+                Swal.fire({
+                    text: `Location: ${locationID}`,
+                    position: 'center',
+                    width: 200,
+                    showConfirmButton: false,
+                    timer: 1000
+                });
+            });
+        });
+    });
 </script>
+<script src="{{ url_for('static', filename='scripts/social.js') }}"></script>

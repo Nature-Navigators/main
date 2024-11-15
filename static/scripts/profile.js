@@ -373,3 +373,40 @@ function changeBoldedNav(boldIndex)
 
 }
 
+// For location dropdown
+const locationInput = document.getElementById('location');
+const cityList = document.getElementById('cityList');
+
+// Debounce function to limit API calls
+let debounceTimeout;
+const debounce = (func, delay) => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(func, delay);
+};
+
+locationInput.addEventListener('input', () => {
+    debounce(() => {
+        const query = locationInput.value.trim();
+        if (query.length < 2) return; // Don't search before 2 chars typed
+
+        // Fetch cities matching the input
+        fetch(`http://api.geonames.org/searchJSON?formatted=true&q=${query}&maxRows=40&lang=en&username=salonikaranth`)
+            .then(response => response.json())
+            .then(data => {
+                cityList.innerHTML = ''; // Clear previous options
+
+                data.geonames.forEach(place => {
+                    const cityName = place.name;
+                    const country = place.countryName;
+                    const state = place.adminName1 || ''; // 'adminName1' holds the state/region
+
+                    const option = document.createElement('option');
+                    option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                    option.textContent = option.value;
+                    cityList.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching cities:', error));
+    }, 50);
+});
+

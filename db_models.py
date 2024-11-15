@@ -49,7 +49,8 @@ class User(Base, UserMixin):
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
     # prevent recursion
-    serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-savedEvents', '-createdEvents', '-following', '-followedBy')
+    serialize_rules = ('-posts.user', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following.followedBy', '-followedBy.following')
+    #serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-savedEvents', '-createdEvents', '-following', '-followedBy')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -79,6 +80,7 @@ class User(Base, UserMixin):
         back_populates="following"
     )
 
+    liked_posts: Mapped[List["PostLike"]] = relationship('PostLike', back_populates='user', lazy='selectin')
     
     def get_id(self):
         return self.userID
@@ -96,24 +98,54 @@ class User(Base, UserMixin):
             return None
         return db.session.query(User).get(userID)
 
+    @property
+    def serialize(self):
+        return {
+            'userID': str(self.userID),
+            'username': self.username,
+            'email': self.email,
+            'firstName': self.firstName,
+            'lastName': self.lastName,
+            'bio': self.bio,
+            'pronouns': self.pronouns,
+            'posts': [post.serialize for post in self.posts],
+            'createdEvents': [event.to_dict() for event in self.createdEvents],
+            'savedEvents': [favorite.to_dict() for favorite in self.savedEvents],
+            'profileImage': self.profileImage.serialize if self.profileImage else None,
+            'following': [user.serialize for user in self.following],
+            'followedBy': [user.serialize for user in self.followedBy],
+            'liked_posts': [like.serialize for like in self.liked_posts]
+        }
+
 class Post(Base):
     __tablename__ = "post_table"
     postID:Mapped[uuid.UUID] = mapped_column(primary_key=True)
     caption:Mapped[str] = mapped_column(nullable=True)
-    likes:Mapped[int] = mapped_column(nullable=False, default=0)
+    likes:Mapped[List["PostLike"]] = relationship('PostLike', back_populates='post', cascade="all, delete", passive_deletes=True)
+    likes_count:Mapped[int] = mapped_column(nullable=False, default=0)  # Correctly define likes_count column
     birdID:Mapped[str] = mapped_column(nullable=False, default="unidentified birdie")
     locationID:Mapped[str] = mapped_column(nullable=False, default="unknown location")
-
     datePosted:Mapped[datetime.datetime] = mapped_column(nullable=True)
-
     serialize_rules = ('-images.post',)
-
-
     # relationships + foreign keys
     userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
     user:Mapped["User"] = relationship('User', back_populates='posts', lazy='joined') # o
     #comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
     images: Mapped[List["PostImage"]] = relationship(back_populates='post', cascade="all, delete", passive_deletes=True)
+
+    @property
+    def serialize(self):
+        return {
+            'postID': str(self.postID),
+            'caption': self.caption,
+            'likes_count': self.likes_count,
+            'birdID': self.birdID,
+            'locationID': self.locationID,
+            'datePosted': self.datePosted.isoformat() if self.datePosted else None,
+            'userID': str(self.userID),
+            'user': self.user.serialize,  # Include the user attribute
+            'images': [image.serialize for image in self.images]
+        }
 
 # class Comment(db.Model):
 #     __tablename__ = "comment_table"
@@ -182,6 +214,14 @@ class Favorite(Base, db.Model):
     def to_dict(self):
         return {}
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'userID': str(self.userID),
+            'eventID': str(self.eventID)
+        }
+
 
 # base image class
 class Image(Base):
@@ -216,3 +256,36 @@ class ProfileImage(Image):
     __mapper_args__ = {
         "polymorphic_identity": "profile_image"
     }
+
+    @property
+    def serialize(self):
+        return {
+            'imageID': str(self.imageID),
+            'name': self.name,
+            'imagePath': self.imagePath,
+            'altText': self.altText,
+            'userID': str(self.userID)
+        }
+
+class PostLike(Base):
+    __tablename__ = 'post_like_table'
+    id = db.Column(db.Integer, primary_key=True)
+    userID = db.Column(db.Uuid, db.ForeignKey('user_table.userID'), nullable=False)
+    postID = db.Column(db.Uuid, db.ForeignKey('post_table.postID'), nullable=False)
+
+    user = db.relationship('User', back_populates='liked_posts', lazy='joined')
+    post = db.relationship('Post', back_populates='likes', lazy='joined')
+
+    __table_args__ = (
+        db.UniqueConstraint('userID', 'postID', name='unique_user_post_like'),
+    )
+
+    serialize_rules = ('-user', '-post')
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'userID': str(self.userID),
+            'postID': str(self.postID)
+        }
