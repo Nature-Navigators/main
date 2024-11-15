@@ -68,8 +68,17 @@
               {% endif %}
             {% endif %}
             <ul class="about">
-              <span>{{user.followedBy|length}} Followers</span>
-              <span>{{user.following|length}} Following</span>
+              {% if loggedIn %}
+                <a href="#" onclick="showFollowerPopup()">
+                  <span>{{user.followedBy|length}} Followers</span>
+                  <span>{{user.following|length}} Following</span>
+    
+                </a>
+              {% else %}
+                <span>{{user.followedBy|length}} Followers</span>
+                <span>{{user.following|length}} Following</span>
+
+              {% endif %}
             </ul>
   
             <div class="content">
@@ -281,6 +290,8 @@
         {% include "event_popup.html" with context %}
         
         {% include "alert_popup.html" with context %}
+
+        {% include "follower_popup.html" with context %}
 
       </div>
 

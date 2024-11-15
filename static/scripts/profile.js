@@ -328,6 +328,19 @@ function hideEventPopup()
 
 }
 
+function showFollowerPopup()
+{
+    document.getElementById("follower_popup").style.visibility = 'visible';
+    grayOut(true);
+
+}
+function hideFollowerPopup() {
+
+    document.getElementById("follower_popup").style.visibility = 'hidden';
+    grayOut(false);
+}
+
+
 function grayOut(shouldGray)
 {
     if(shouldGray)
