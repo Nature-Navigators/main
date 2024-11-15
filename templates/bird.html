@@ -26,7 +26,13 @@
     <main>
         <div class="bird-info">
             <h1 id="bird-name">{{ bird.title }}</h1>
+            {% if bird.imageUrl %}
+                <img src="{{ bird.imageUrl }}" alt="{{ bird.title }} Image">
+            {% else %}
+                <p>No image available for this bird.</p>
+            {% endif %}
             <p>{{ bird.content|safe }}</p>
+            <p><a href="{{ bird.wikiUrl }}" target="_blank">Visit Wikipedia Page</a></p>
         </div>
     </main>
 </body>

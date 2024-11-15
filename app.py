@@ -30,6 +30,14 @@ from flask_migrate import Migrate
 from math import radians, sin, cos, sqrt, atan2 #for haversine formula
 import babel
 from functools import cmp_to_key
+import asyncio
+import aiohttp
+import time
+import logging
+from PIL import Image
+from io import BytesIO
+from folium.plugins import Search
+from folium.plugins import Geocoder
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -37,6 +45,8 @@ app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
 
 app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
 app.config['UPLOAD_PATH'] = 'uploads'
+app.logger.setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
@@ -144,66 +154,71 @@ def map():
 
 
 @app.route('/update_location', methods=['POST'])
-def update_location():
+async def update_location():
+
     data = request.get_json()
     latitude = data['latitude']
     longitude = data['longitude']
+    bird_data = []
     
-    page = data.get('page', 1)
-    page_size = 3
-    
-    birds_near_user = getRecentBirds(latitude, longitude)
+    birds_near_user = await getRecentBirds(latitude, longitude)
 
-
-    m = folium.Map(location=[latitude, longitude], zoom_start=13)
+    m = folium.Map(location=[latitude, longitude], zoom_start=11)
     folium.Marker([latitude, longitude], tooltip='Your Location').add_to(m)
 
+    folium.Circle(
+    location=(latitude,longitude), 
+    radius=30000, 
+    fill_color='cornflowerblue', 
+    stroke=True,
+    fill=True,
+    fill_opacity=0.25).add_to(m)
+
+    folium.plugins.Fullscreen(
+    position="topright",
+    title="Expand me",
+    title_cancel="Exit me",
+    force_separate_button=True,
+    ).add_to(m)
+
+    tasks = []
     for bird in birds_near_user:
+        bird_name = bird.get('comName')
+        formatted_bird_name = formatBirdName(bird_name)
+        tasks.append(getWikipediaImage(formatted_bird_name))
+    image_urls = await asyncio.gather(*tasks)
+
+    for i, bird in enumerate(birds_near_user):
         bird_name = bird.get('comName')
         bird_lat = bird.get('lat')
         bird_long = bird.get('lng')
-        formatted_bird_name = formatBirdName(bird_name)
-        image_url = getWikipediaImage(formatted_bird_name)
-        bird_url = f'/bird/{quote(bird_name)}' 
+        bird_url = f'/bird/{quote(bird_name)}'
+        bird_code = bird.get('speciesCode')
+        description = f"{bird_name} spotted near your location."
+        
+        bird_data.append({
+            'title': bird_name,
+            'speciesCode': bird_code,
+            'imageUrl': image_urls[i],
+            'description': description,
+            'url': f'/bird/{quote(bird_name)}'
+        })
 
         popup_content = f'''
         <a href="{bird_url}" target="_blank" style="display:block; width:100%; height:100%;">
-            <b>{bird_name}</b> -Click for more details
+            <b>{bird_name}</b> - Click for more details
         </a>
+        <img src="{image_urls[i]}" width="200"/>
         '''
-        # <img src="{image_url}" width="200"><br> 
 
-        # formatted_bird_name = formatBirdName(bird_name)
         folium.Marker(
             location=[bird_lat, bird_long],
             tooltip=bird_name,
+            icon=folium.Icon(color='orange'),
             popup=popup_content,
-            icon=folium.Icon(color='red'),
+            lazy=True
         ).add_to(m)
-
-    start_index = (page - 1) * page_size
-    end_index = start_index + page_size
-    paginated_birds = birds_near_user[start_index:end_index]
-
-    bird_data = []
-
-    for index, bird in enumerate(paginated_birds):
-        bird_name = bird.get('comName')
-        bird_code = bird.get('speciesCode')
-        formatted_bird_name = formatBirdName(bird_name)
-        image_url = getWikipediaImage(formatted_bird_name)
-        description = f"{bird_name} spotted near your location."
-
-        bird_data.append({
-            'imageUrl': image_url,
-            'title': bird_name,
-            'description': description,
-            'url': f'/bird/{quote(bird_name)}',
-            'speciesCode': bird_code
-        })
-
-
-    # Get HTML of map
+    
     map_html = m._repr_html_()
 
     return jsonify(mapHtml=map_html, birdData=bird_data)
@@ -234,12 +249,27 @@ def update_map_with_bird_sightings():
     data = request.get_json()
     
     bird_sightings = data['birdSightings']
-    user_latitude = data['userLatitude']
-    user_longitude = data['userLongitude']
+    user_latitude = data['latitude']
+    user_longitude = data['longitude']
 
-    m = folium.Map(location=[user_latitude, user_longitude], zoom_start=13)
+    m = folium.Map(location=[user_latitude, user_longitude], zoom_start=11)
 
     folium.Marker([user_latitude, user_longitude], popup="Your Location").add_to(m)
+
+    folium.plugins.Fullscreen(
+    position="topright",
+    title="Expand me",
+    title_cancel="Exit me",
+    force_separate_button=True,
+    ).add_to(m)
+
+    folium.Circle(
+    location=(user_latitude,user_longitude), 
+    radius=30000, 
+    fill_color='cornflowerblue', 
+    stroke=True,
+    fill=True,
+    fill_opacity=0.25).add_to(m)
 
     for sighting in bird_sightings:
         bird_lat = sighting['lat']
@@ -258,23 +288,24 @@ def update_map_with_bird_sightings():
     
     map_html = m._repr_html_()
 
-    
     return jsonify({'mapHtml': map_html})
 
-def getRecentBirds(latitude, longitude):
+async def getRecentBirds(latitude, longitude):
     headers = {
         'X-eBirdApiToken': EBIRD_API_KEY
     }
     params = {
         'lat': latitude,
         'lng': longitude,
-        'dist': 30  #Distance in km for observations
+        'dist': 30  # Distance in km for observations
     }
-    response = requests.get(EBIRD_API_RECENT_BIRDS_URL, headers=headers, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return []
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(EBIRD_API_RECENT_BIRDS_URL, headers=headers, params=params) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                return []
     
 def formatBirdName(bird_name):
     bird_name = bird_name.replace(' ', '_')
@@ -288,43 +319,65 @@ def formatBirdName(bird_name):
 
     return formatted_name
 
-def getWikipediaImage(bird_name):
-    formatted_bird_name = formatBirdName(bird_name)
+
+async def getWikipediaImage(bird_name):
+
+    formatted_bird_name = bird_name
     search_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=500'
-    response = requests.get(search_url)
-
-    if response.status_code == 200:
-        data = response.json()
-        pages = data.get('query', {}).get('pages', {})
-        for page_id, page in pages.items():
-            image_url = page.get('thumbnail', {}).get('source')
-            if image_url:
-                return image_url
-    else:
-        print(f"Failed to fetch data from Wikipedia. Status code: {response.status_code}")
-
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(search_url) as response:
+            if response.status == 200:
+                data = await response.json()
+                pages = data.get('query', {}).get('pages', {})
+                for page_id, page in pages.items():
+                    image_url = page.get('thumbnail', {}).get('source')
+                    if image_url:
+                        return image_url
+            else:
+                print(f"Failed to fetch data from Wikipedia. Status code: {response.status}")
     return None
 
 def getWikipediaPageContent(bird_name):
     formatted_bird_name = formatBirdName(bird_name)
-    url = f'https://en.wikipedia.org/w/api.php?action=parse&page={formatted_bird_name}&format=json'
-    response = requests.get(url)
+    content_url = f'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles={formatted_bird_name}&format=json'
+    img_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=500'
     
-    if response.status_code == 200:
-        data = response.json()
-        page_content = data.get('parse', {}).get('text', {}).get('*', '')
-        return page_content
+    content_response = requests.get(content_url)
+    content = None
+    if content_response.status_code == 200:
+        content_data = content_response.json()
+        pages = content_data.get('query', {}).get('pages', {})
+        content = next(iter(pages.values())).get('extract', '')
     else:
-        print(f"Failed to fetch page content. Status code: {response.status_code}")
-        return None
+        print(f"Failed to fetch content. Status code: {content_response.status}")
+
+    img_response = requests.get(img_url)
+    image_url = None
+    if img_response.status_code == 200:
+        img_data = img_response.json()
+        pages = img_data.get('query', {}).get('pages', {})
+        first_page = next(iter(pages.values()), {})
+        image_url = first_page.get('thumbnail', {}).get('source')
+
+    else:
+        print(f"Failed to fetch image. Status code: {img_response.status}")
+
+    wiki = f'https://en.wikipedia.org/wiki/{formatted_bird_name}'
+
+    return {
+        'content': content,
+        'imageUrl': image_url,
+        'wikiUrl': wiki
+    }
 
 def get_bird_info(bird_name):
-    image_url = getWikipediaImage(bird_name)
-    content = getWikipediaPageContent(bird_name)
+    bird_data = getWikipediaPageContent(bird_name)
     return {
-        'imageUrl': image_url,
+        'imageUrl': bird_data['imageUrl'],
         'title': bird_name,
-        'content': content
+        'content': bird_data['content'],
+        'wikiUrl': bird_data['wikiUrl']
     }
 
 @app.route('/bird/<bird_name>')
