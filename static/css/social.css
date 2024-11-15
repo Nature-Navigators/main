@@ -93,9 +93,11 @@ body {
     background-color: white;
     font-size: 14px;
     color: #333;
-    width: 100%;
-    height:4em;
+    width: 100%; 
+    max-width: 97%; 
+    height:4.5em;
     padding: 0.5em;
+    
 
 }
 
@@ -561,3 +563,7 @@ p {
   .slider.round:before {
     border-radius: 50%;
   }
+
+.post-image {
+    object-fit: contain; 
+}
