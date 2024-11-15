@@ -49,7 +49,7 @@ class User(Base, UserMixin):
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
     # prevent recursion
-    serialize_rules = ('-posts.user', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following.followedBy', '-followedBy.following')
+    serialize_rules = ('-posts.user.posts', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following.followedBy', '-followedBy.following')
     #serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-savedEvents', '-createdEvents', '-following', '-followedBy')
 
     #relationships:
@@ -117,7 +117,7 @@ class User(Base, UserMixin):
             'liked_posts': [like.serialize for like in self.liked_posts]
         }
 
-class Post(Base):
+class Post(Base, UserMixin):
     __tablename__ = "post_table"
     postID:Mapped[uuid.UUID] = mapped_column(primary_key=True)
     caption:Mapped[str] = mapped_column(nullable=True)

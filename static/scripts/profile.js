@@ -103,6 +103,7 @@ function showDatabasePost(databasePost) {
     if(databasePost != null && databasePost != "")
     {
         let postJson = JSON.parse(cleanStr);
+        console.log(postJson);
         let userJson = postJson["user"];
         let postImages = postJson["images"];
 

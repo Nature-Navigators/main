@@ -615,6 +615,7 @@ def profile_id(profile_id):
 
                 #posts = []
                 posts = user.to_dict()['posts']
+                print(user.to_dict())
             except Exception as error:
                 print(traceback.format_exc())
                 return "Recursion error encountered"
