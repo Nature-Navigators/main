@@ -300,24 +300,44 @@ async def getWikipediaImage(bird_name):
 
 def getWikipediaPageContent(bird_name):
     formatted_bird_name = formatBirdName(bird_name)
-    url = f'https://en.wikipedia.org/w/api.php?action=parse&page={formatted_bird_name}&format=json'
-    response = requests.get(url)
+    content_url = f'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles={formatted_bird_name}&format=json'
+    img_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=500'
     
-    if response.status_code == 200:
-        data = response.json()
-        page_content = data.get('parse', {}).get('text', {}).get('*', '')
-        return page_content
+    content_response = requests.get(content_url)
+    content = None
+    if content_response.status_code == 200:
+        content_data = content_response.json()
+        pages = content_data.get('query', {}).get('pages', {})
+        content = next(iter(pages.values())).get('extract', '')
     else:
-        print(f"Failed to fetch page content. Status code: {response.status_code}")
-        return None
+        print(f"Failed to fetch content. Status code: {content_response.status}")
+
+    img_response = requests.get(img_url)
+    image_url = None
+    if img_response.status_code == 200:
+        img_data = img_response.json()
+        pages = img_data.get('query', {}).get('pages', {})
+        first_page = next(iter(pages.values()), {})
+        image_url = first_page.get('thumbnail', {}).get('source')
+
+    else:
+        print(f"Failed to fetch image. Status code: {img_response.status}")
+
+    wiki = f'https://en.wikipedia.org/wiki/{formatted_bird_name}'
+
+    return {
+        'content': content,
+        'imageUrl': image_url,
+        'wikiUrl': wiki
+    }
 
 def get_bird_info(bird_name):
-    image_url = getWikipediaImage(bird_name)
-    content = getWikipediaPageContent(bird_name)
+    bird_data = getWikipediaPageContent(bird_name)
     return {
-        'imageUrl': image_url,
+        'imageUrl': bird_data['imageUrl'],
         'title': bird_name,
-        'content': content
+        'content': bird_data['content'],
+        'wikiUrl': bird_data['wikiUrl']
     }
 
 @app.route('/bird/<bird_name>')
