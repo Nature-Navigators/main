@@ -21,33 +21,71 @@
     </nav>
         <div class="container">
           <div class="left_column">
+
+            <!-- VIEWING OWN PROFILE -->
             {% if loggedIn %}
               <div class="profile_pic" id="clickable_profile">
                 <button>
-                  <img src="/static/images/birder.jpeg"/>
+                  {% if user.profileImage != None %}
+                    <img src="{{url_for('download_file', filename=user.profileImage['name'])}}"/>
+                  {% else %}
+                    <img src="{{url_for('static', filename='images/profile-icon.webp')}}"/>
+                  {% endif %}
                 </button>
                 <p>Edit Profile</p>
                 <span></span>
               </div>
+            
+            <!-- VIEWING SOMEONE ELSE'S PROFILE-->
             {% else %}
               <div class="profile_pic">
                 <p>Edit Profile</p>
-                <img src="/static/images/birder.jpeg"/>
+                {% if user.profileImage != None %}
+                  <img src="{{url_for('download_file', filename=user.profileImage['name'])}}"/>
+                {% else %}
+                  <img src="/static/images/profile-icon.webp"/>
+                {% endif %}
                 <span></span>
               </div>
             {% endif %}
+            
+            {% if user.firstName != None %}
+              <h2 id="name">{{user.firstName|e}}</h2>
+            {% else %}
+              <h2 id="name">{{user.username|e}}</h2>
+            {% endif %}
 
-            <h2 id="name">{{user.firstName|e}}</h2>
             <p id="title">Professional Photographer</p>
-            <button class="profile_button">Follow</button>
+            {% if not loggedIn %}
+              {% if isFollowing %}
+              <form action="/profile/{{id}}" method="POST">
+                <button class="gray_button" name="followBtn">Unfollow</button>
+              </form>
+              {% else %}
+              <form action="/profile/{{id}}" method="POST">
+                <button class="blue_button" name="followBtn">Follow</button>
+              </form>
+              {% endif %}
+            {% endif %}
             <ul class="about">
-              <span>120 Followers</span>
-              <span>322 Following</span>
+              {% if loggedIn %}
+                <a href="#" onclick="showFollowerPopup()">
+                  <span>{{user.followedBy|length}} Followers</span>
+                  <span>{{user.following|length}} Following</span>
+    
+                </a>
+              {% else %}
+                <span>{{user.followedBy|length}} Followers</span>
+                <span>{{user.following|length}} Following</span>
+
+              {% endif %}
             </ul>
   
             <div class="content">
               <p>
-                As I wander through the early morning light, my camera slung around my neck, I feel a sense of peace enveloping me. Each rustle in the bushes or distant call of a bird ignites my excitement; it's like the world is whispering secrets meant only for me. I’m Jane Doe, a passionate bird enthusiast and photographer, and nothing brings me more joy than capturing the beauty of avian life. Whether I’m nestled quietly in my backyard, waiting for the perfect moment, or exploring new habitats, I find inspiration in every feathered friend I encounter. The thrill of freezing those fleeting moments in time fuels my passion and deepens my love for nature.
+                {% if user.bio != None %}
+                  {{user.bio|e}}
+                {% endif %}
               </p>
             </div>
           </div>
@@ -56,7 +94,8 @@
               <ul id = "mini_nav">
                 <li><a href="#" onclick="showGallery()">Gallery</a></li>
                 <li><a href="#" onclick="showBadges()">Badges</a></li>
-                <li><a href="#" onclick="showEvents()">Saved Events</a></li>
+                <li><a href="#" onclick="showCreatedEvents()">Created Events</a></li>
+                <li><a href="#" onclick="showSavedEvents()">Saved Events</a></li>
               </ul>
             {% if loggedIn %}
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
@@ -65,7 +104,12 @@
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->
               {% for post in userPosts %}
+                {% if post['images']|length > 0 %}
                 <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="{{url_for('download_file', filename=post['images'][0]['name'])}}" alt="Photo"></button>
+                {% else %}
+                <button onclick="showDatabasePost('{{post|tojson|forceescape}}')"><img src="../static/images/raven.png" alt="Photo"></button>
+
+                {% endif %}
               {% endfor %}
               {% for post in socialPosts %}
                 <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
@@ -123,24 +167,53 @@
               </div>
                 
             </div>
-            <div class="saved_events" id="events"> 
-              <h3>My Saved Events</h3>
-              <div id="event_holder">
-                {% for event in events %}
+            <div class="events" id="createdEvents"> 
+              <div id="created_event_holder">
+                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
+                {% for event in createdEvents %}
                 <div class="event_img_details">
-                  <div class="event-image-container">
-                      <img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />
-                      <span class= "favorite-icon">❤️</span>
-                  </div>
-                  <div class="event-details">
-                      <h4>{{event.name|e}}</h4>
-                      <p>{{event.date|e}} at {{event.time|e}}</p>
-                      <p>{{event.location|e}}</p>
-                      <button onclick="showEventPopup('{{event|tojson|forceescape}}')">Details</button>
-                  </div>
+                    <div class="event-image-container">
+                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
+                        
+                    </div>
+                    <div class="event-details">
+                        <h4>{{event.title|e}}</h4>
+                        <span class= "delete-icon" EventID="{{event.eventID}}"></span>
+                        <p>{{ event.eventDate }}</p> 
+                        <p>{{event.location|e}}</p>
+                        <p style="margin-top:10px">{{event.description|e}}</p>
+                      </br>
+                    </div>
                 </div>
                 {%endfor%}
               </div>
+              
+            </div>
+
+            <div class="events" id="savedEvents"> 
+              <div id="saved_event_holder">
+                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
+                {% for event in savedEvents %}
+                <div class="event_img_details">
+                    <div class="event-image-container">
+                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
+                        
+                    </div>
+                    <div class="event-details">
+                        <h4>{{event.title|e}}</h4>
+                        <span class= "favorite-icon favorited" EventID="{{event.eventID}}"></span>
+                        <p>{{ event.eventDate }}</p> 
+                        <p>{{event.location|e}}</p>
+                        <p style="margin-top:10px">{{event.description|e}}</p>
+                      </br>
+                    </div>
+                </div>
+                {%endfor%}
+              </div>
+              
+            </div>
 
             </div>
           </div>
@@ -160,16 +233,18 @@
                 <div id="image_upload">
                   <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
                   <div id="clickable_upload">
-                    <img class="upload_img" src="{{url_for('static', filename='images/upload_image.png')}}" >
-                    <input type="file" id="file_upload_input" name="image_file_bytes" >  
+                     
+                    <img class="upload_img" id="addPostImg" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                    <input onchange="onFileUpload(this.files, 'addPostImg')" type="file" accept=".jpg,.png,.gif,.webp" id="file_upload_input" name="image_file_bytes" >  
                   </div>
 
                 </div>
-                
-                <!--<button id="upload_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>-->
                 <h3>Upload an image</h3>
               </div>
               <div class="text_div">
+                <input name="add_bird_id" placeholder="Enter the species of the bird">
+                <input list="cityList" id="location" name="add_location" placeholder="Enter the location of the bird">
+                <datalist id="cityList"></datalist>
                 <textarea name="add_photo_caption" placeholder="Write a caption here!"></textarea>
                 <button class="profile_button">Post</button>
               </div>
@@ -183,10 +258,18 @@
           <h1>Edit Your Profile</h1>
 
           <div class="popup_body">
-          <form action="/profile/{{id}}" method="POST">
+          <form action="/profile/{{id}}" method="POST" enctype="multipart/form-data">
             <div class="popup_upload_img_div">
               <h3>Profile Image</h3>
-              <button id="upload_profile_button" class="img_button"><img src="{{url_for('static', filename='images/upload_image.png')}}"></button>
+
+              <div id="image_upload">
+                <input type="text" style="visibility:hidden; padding:0; margin:0; display:none" id='file-upload-text' />
+                <div id="clickable_upload">
+                  <img class="upload_img" id="editProfileImg" src="{{url_for('static', filename='images/upload_image.png')}}" >
+                  <input onchange="onFileUpload(this.files, 'editProfileImg')" accept=".jpg,.png,.gif,.webp" type="file" id="file_upload_input" name="image_file_bytes" >  
+                </div>
+
+              </div>
             </div>
             <div class="text_div" id="edit_profile_form">
               <h3>Name</h3>
@@ -205,11 +288,14 @@
         {% include "post_popup.html" with context %}
 
         {% include "event_popup.html" with context %}
+        
+        {% include "alert_popup.html" with context %}
+
+        {% include "follower_popup.html" with context %}
 
       </div>
 
       <script src="{{url_for('static', filename='scripts/profile.js')}}"></script>
-
 </body>
 
 </html>

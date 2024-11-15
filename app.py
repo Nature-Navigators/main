@@ -1,5 +1,6 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory
-from sqlalchemy import select
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session
+from sqlalchemy import select, desc
+from sqlalchemy.sql.expression import func
 import uuid
 import requests
 import folium
@@ -8,19 +9,27 @@ import xyzservices.providers as xyz #Can use this to change map type
 from temp_data import *
 from urllib.parse import quote
 # from markupsafe import Markup
+from sqlalchemy.exc import IntegrityError
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from itsdangerous import URLSafeTimedSerializer as Serializer
-from db_models import db, User, Post, Event, Favorite, Image, PostImage
+from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage, PostLike
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
-from helpers import validate_image
-from math import radians, sin, cos, sqrt, atan2
+from helpers import *
+from flask_mail import Mail, Message
+from geopy.geocoders import Nominatim
+from geopy.geocoders import OpenCage
+import traceback
+import requests
+from flask_migrate import Migrate
+from math import radians, sin, cos, sqrt, atan2 #for haversine formula
+import babel
+from functools import cmp_to_key
 import asyncio
 import aiohttp
 import time
@@ -46,11 +55,14 @@ GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
-
 login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
 
+login_manager.init_app(app)
+login_manager.login_view = "signin"
+
+geolocator = Nominatim(user_agent="event_locator")
+
+migrate = Migrate(app, db)
 
 with app.app_context():
     db.create_all()
@@ -58,33 +70,45 @@ with app.app_context():
 
 @login_manager.user_loader
 def load_user(user_id):
+    if isinstance(user_id, str):
+        user_id = uuid.UUID(user_id)
     return db.session.get(User, user_id)
 
 
 
+@app.context_processor
+def inject_user():
+    return {'user': current_user}
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS']= True
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PW')
+mail = Mail(app)
 class SignUpForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
-    username = StringField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
-    password = PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Password"})
-    confirm_password = PasswordField(validators=[InputRequired(), Length(min=4, max=20), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
+    username = StringField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Username"})
+    password = PasswordField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Password"})
+    confirm_password = PasswordField(validators=[InputRequired(), Length(min=1, max=200), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
     submit = SubmitField("Sign Up")
 
-def validate_username(self, username):
-    exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
-    if exists_user != None:
-        raise ValidationError("Username already exists. Select a new username.")
+    def validate_username(self, username):
+        exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
+        if exists_user != None:
+            raise ValidationError("Username already exists. Select a new username.")
 
-def validate_email(self, email):
-    exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
-    if exists_email != None:
-        raise ValidationError("Email already exists. Use another email address.")
+    def validate_email(self, email):
+        exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
+        if exists_email != None:
+            raise ValidationError("Email already exists. Use another email address.")
         
 class SignInForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(
-        min=4, max=20)], render_kw={"placeholder":"Username"})
+        min=1, max=200)], render_kw={"placeholder":"Username"})
     password = PasswordField(validators=[InputRequired(), Length(
-        min=4, max=20)], render_kw={"placeholder": "Password"}) 
+        min=1, max=200)], render_kw={"placeholder": "Password"}) 
     remember = BooleanField('Remember Me')
     submit = SubmitField("Login")     
 
@@ -98,7 +122,23 @@ class SignInForm(FlaskForm):
         if exists_email == None:
             raise ValidationError("Email does not exist.")
 
+class RequestResetForm(FlaskForm):
+    email = StringField('Email', 
+                        validators=[InputRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
 
+    def validate_email(self, email):
+        stmt = select(User).where(User.email == email.data)
+        exists_email = db.session.execute(stmt).scalars().first()
+        if exists_email is None:
+            raise ValidationError("Email not associated with any account, try signing up.")
+        
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', 
+                             validators=[InputRequired()])
+    confirm_password = PasswordField('Confirm Password', 
+                                     validators=[InputRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 
 @app.route('/')
 def index():
@@ -346,66 +386,107 @@ def bird_page(bird_name):
     return render_template('bird.html', bird=bird_info)
 
 @app.route('/signin', methods=['GET','POST'])
+
 def signin():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
     form = SignInForm()
     if form.validate_on_submit():
-        try:
             found_id = db.session.scalars(select(User.userID).where(User.username == form.username.data, User.email == form.email.data)).first()
             if found_id != None:
                 user = db.session.get(User, found_id)
                 if not bcrypt.check_password_hash(user.password, form.password.data):
-                    raise ValidationError("Incorrect password.")
+                    #raise ValidationError("Incorrect password.")
+                    form.password.errors.append("Incorrect password.")
                 else:
-                    login_user(user)
+                    login_user(user, remember=True)
                     profile_route = 'profile/' + user.username
                     return redirect(profile_route)
             else:
-                raise ValidationError("Invalid username or email.")
-        except ValidationError as e:
-            form.username.errors.append(e.args[0])  
-            return render_template("signin.html", form=form)
+                raise ValidationError("Invalid username or email. Try signing up or check the information entered")        
     return render_template("signin.html", form=form)
 
-
-def signout():
+@app.route('/logout')
+def logout():
     logout_user()
-    return redirect(url_for('signin'))
+    return redirect(url_for('index'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
     form = SignUpForm()
+    alert_message = ""
 
     if form.validate_on_submit():
         hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         new_user = User(userID=uuid.uuid4(),email=form.email.data, username=form.username.data, password=hashed_passwd)
         
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('signin'))
-    return render_template("signup.html", form=form)
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('signin'))
+        except IntegrityError:
+            db.session.rollback()  
+            alert_message = "Username already exists. Select a new username."
+
+    return render_template("signup.html", form=form, alert_message=alert_message)
+
 
 # TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
+@login_required
 def profile_id(profile_id):
   
     current_profile = None
-
-    selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
-    if selected_id != None:
-        current_profile = db.session.get(User, selected_id)
-
+    selected_id = None
+    
+    try:
+        selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
+        if selected_id != None:
+            current_profile = db.session.get(User, selected_id)
+    except Exception as error:
+        print(error)
+        return "There was an error loading the profile"
 
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
         new_name = request.form["edit_profile_name"]
-        
+        image = request.files["image_file_bytes"]
+
         try:
             # try to get the current profile from the DB based on username
             if selected_id != None and selected_id == current_user.userID:
-                current_profile.firstName = new_name
+
+                if current_profile.firstName != new_name:
+                    current_profile.firstName = new_name
+
+                # if an image is being uploaded
+                if image.filename != '':
+
+                    filename = clean_image_filename(image)
+                    
+                    # filename checks out
+                    if filename:                   
+                        success = upload_image(filename, image, app.config)
+
+                        if success:
+                            imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+
+                            # delete original profile image
+                            if current_profile.profileImage != None:
+                                os.remove(os.path.join(app.config["UPLOAD_PATH"], current_profile.profileImage.name))
+                                db.session.delete(current_profile.profileImage)
+
+                            dbImg = ProfileImage(imageID=uuid.uuid4(), userID=selected_id, name=filename, imagePath=imgPath)
+                            db.session.add(dbImg)
+                        else:
+                            flash("There was an issue uploading your profile image. Please check that your filetype is supported.", category="error")
+                            return redirect(profile_id)
 
                 db.session.commit()
+                #print(db.session.scalars(select(Image.name)).all())
                 return redirect(profile_id)
             else:
                 return redirect(profile_id)
@@ -416,8 +497,9 @@ def profile_id(profile_id):
 
     # POST happens on Add Photo submit button
     elif request.method == 'POST' and "add_photo_caption" in request.form:
-        
-        new_caption = request.form["add_photo_caption"]
+        bird_id = request.form.get('add_bird_id')
+        location_id = request.form.get('add_location')
+        new_caption = request.form.get('add_photo_caption')
 
         #add the new post to the database
         try:
@@ -426,35 +508,25 @@ def profile_id(profile_id):
 
                 # setting up & adding the post
                 new_postID = uuid.uuid4()
-                new_post = Post(postID=new_postID, caption=new_caption, datePosted=datetime.now(), userID=selected_id)
+                new_post = Post(postID=new_postID, caption=new_caption, birdID=bird_id, locationID=location_id, datePosted=datetime.now(), userID=selected_id)
                 db.session.add(new_post)
 
                 #handle the image upload
                 image = request.files["image_file_bytes"]
-                filename = secure_filename(image.filename)
-
-                # check to see if the filename exists in the database
-                matching_name = db.session.scalars(select(Image).where(Image.name == filename))
-                if matching_name != None:
-                    #add a unique ID to the start in case it already exists
-                    unique_str = str(uuid.uuid4())[:8]
-                    image.filename = f"{unique_str}_{image.filename}"
+                filename = clean_image_filename(image)
                 
-                # upload image
-                filename = secure_filename(image.filename)
-                if filename:
-                    file_ext = os.path.splitext(filename)[1]
-
-                    #check that the extension is valid
-                    if file_ext not in app.config["UPLOAD_EXTENSIONS"] or file_ext != validate_image(image.stream):
-                        return {"error": "File type not supported"}, 400
+                if filename and filename != '':
                     
-                    # save it & create the DB object
-                    image.save(os.path.join(app.config["UPLOAD_PATH"], filename))
-                    imgPath = app.config["UPLOAD_PATH"] + "/" + filename
-                    dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
-                    db.session.add(dbImg)
-                
+                    success = upload_image(filename, image, app.config)
+
+                    if success:
+                        imgPath = app.config["UPLOAD_PATH"] + "/" + filename
+                        dbImg = PostImage(imageID=uuid.uuid4(), postID=new_postID, name=filename, imagePath=imgPath)
+                        db.session.add(dbImg)
+
+                    else:
+                        flash("There was an issue uploading your file. Please ensure it is the proper image type.", category="error")
+                        return redirect(profile_id)
                 
                 db.session.commit()
 
@@ -497,23 +569,68 @@ def profile_id(profile_id):
             return "There was an error deleting your post"
         return redirect(profile_id)
 
+    # POST happens on follow button
+    elif request.method == 'POST' and "followBtn" in request.form:
+
+        # not on your own profile
+        if selected_id != None and selected_id != current_user.userID:
+            try:
+                #follow
+                if current_user not in current_profile.followedBy:
+                    current_profile.followedBy.append(current_user)
+                #unfollow
+                else:
+                    current_profile.followedBy.remove(current_user)
+
+                db.session.commit()
+
+            except Exception as error:
+                print(error)
+                return "There was an error following"
+
+        return redirect(profile_id)
+
     # page is loaded normally
     else:
 
         if selected_id != None:
             user = db.session.get(User, selected_id)
-            posts = user.to_dict()['posts']
-            print(posts[0]["images"][0]["imagePath"])
+
+            
+            try:
+                createdEvents = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
+                #print(createdEvents)
+
+                #get fav eventIDs
+                savedEventIDs = db.session.scalars(
+                    select(Favorite.eventID).where(Favorite.userID == current_user.userID)
+                ).all()
+
+                # Fetch fav events corresponding to fav eventIDs
+                savedEvents = db.session.scalars(
+                    select(Event).where(Event.eventID.in_(savedEventIDs))
+                ).all()
+
+                #print(savedEvents)
+
+                #posts = []
+                posts = user.to_dict()['posts']
+                print(user.to_dict())
+            except Exception as error:
+                print(traceback.format_exc())
+                return "Recursion error encountered"
 
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
+            is_following = current_user.userID != selected_id and current_user in current_profile.followedBy
             context = {
                 "socialPosts": socialPosts,
-                #"events": events,
-                "badges": badges,
+                "createdEvents": createdEvents,
+                "savedEvents": savedEvents,
                 "id" : profile_id,
                 "user": user,
                 "loggedIn": logged_in,
-                "userPosts": posts
+                "userPosts": posts,
+                "isFollowing": is_following
             }
             return render_template("profile.html", **context)
         
@@ -522,6 +639,7 @@ def profile_id(profile_id):
             return "User does not exist"
 
 @app.route('/profile')
+@login_required
 def profile():
 
     #redirect to the signin page if not logged in
@@ -541,6 +659,16 @@ def datetimeformat(value):
     return parsed_date.strftime("%B %d, %Y at %I:%M %p")
 
 
+def get_coordinates(city_state):
+    geolocator = OpenCage(api_key="029ce9756caf4c8ab64c155f894d651e")
+    location = geolocator.geocode(city_state)
+    if location:
+        return location.latitude, location.longitude
+    else:
+        print("Location not found.")
+        return None
+
+
 @app.route('/create_event', methods=['POST', 'GET'])
 def create_event():
 
@@ -549,7 +677,7 @@ def create_event():
 
     if not current_user.is_authenticated: #identify loggedin/loggedout users 
         print(f"Not logged in")
-        return jsonify({'success': False, 'message': 'Event not created, not logged in.'})
+        return jsonify({'error': 'Event not created, user not logged in'}), 401
     
     #print(f"logged in!")
     print(f"user id: ")
@@ -560,7 +688,10 @@ def create_event():
     title = data.get('title')
     description = data.get('description')
     creator =  current_user.userID 
+    
     location = data.get('location')
+    latitude, longitude = get_coordinates(location)
+
     event_date_str = data.get('eventDate')  # Assume this is in 'YYYY-MM-DD' format
     event_time_str = data.get('time')  # Assume this is in 'HH:MM' format
 
@@ -577,11 +708,34 @@ def create_event():
             eventDate=dateAndTime,
             userID=creator,
             location=location,
+            latitude=latitude,
+            longitude=longitude,
         )
     db.session.add(new_event)
     db.session.commit()
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
+
+
+@app.route('/delete_event', methods=['POST'])
+def delete_event():
+    if not current_user.is_authenticated: 
+        print("Not logged in")
+        return jsonify({'error': 'Event not deleted, user not logged in'}), 401
+
+    data = request.json
+    event_id = uuid.UUID(data.get('eventID'))
+
+    event = Event.query.filter_by(eventID=event_id, userID=current_user.userID).first()
+
+    if not event:
+        return jsonify({'error': 'Event not found or you do not have permission to delete this event'}), 404
+
+    db.session.delete(event)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Event deleted successfully!'})
+
    
 @app.route('/favorite_event', methods=['POST'])
 def favorite_event():
@@ -623,17 +777,182 @@ def unfavorite_event():
     else:
         return jsonify({'success': False, 'message': 'Event not found in favorites'})
 
-  
-@app.route('/social')
-def social():     
-    # Query to get all events
-    tempEvents = db.session.execute(select(Event)).scalars().all()  
-    serialized_events = [event.to_dict() for event in tempEvents]
 
-    #signout to test functionality
-    #signout()
 
-    return render_template('social.html', events=serialized_events)
+def haversine(lat1, lon1, lat2, lon2):
+    R = 3959.0
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat2 = radians(lat2)
+    lon2 = radians(lon2)
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    #Haversine
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+
+@app.route('/social_location', methods=['POST'])
+def social_location():
+    data = request.get_json()
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+
+    #max_distance_m = 1000
+
+    #check which events are previously favorited by user
+    if current_user.is_authenticated:
+        favorited_event_ids = set(
+            db.session.execute(
+                select(Favorite.eventID).filter_by(userID=current_user.userID)
+            ).scalars()
+        )
+    else:
+        favorited_event_ids = set()
+
+    #add a favorited flag if event exists in user fav list
+    tempEvents = db.session.execute(select(Event)).scalars().all()
+    serialized_events = [
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        for event in tempEvents
+    ]
+
+    #sort events by distance
+    events_with_distance = [
+        (haversine(latitude, longitude, event.get('latitude'), event.get('longitude')), event)
+        for event in serialized_events
+    ]
+
+    events_with_distance.sort(key=lambda x: x[0])
+    sorted_events = [event for _, event in events_with_distance]
+
+    #print(f"Filtered Events: {sorted_events}")
+    return jsonify(sorted_events)
+
+
+
+@app.route('/social', methods=["GET","POST"])
+def social():   
+
+    if session.get('shouldOnlyFollowers') == None:
+        session['shouldOnlyFollowers'] = True
+
+
+    # get the posts
+    posts = []
+    shouldFillPosts = True # False only on searching
+
+    # hit enter on the search bar
+    if request.method == 'POST' and "usernameSearch" in request.form:
+        text = request.form["usernameSearch"]
+
+        #TODO: LIKE (edit distance) instead of exact matches
+        text = text.lower()
+        if text != '':
+            result = None
+            if session['shouldOnlyFollowers'] and current_user.is_authenticated:
+                following = current_user.following
+                
+                # find the username in the following list
+                for follower in following:
+                    if follower.username == text:
+                        result = follower
+                        break
+            
+            # look for the user outside of following
+            else:
+                result = db.session.scalars(select(User).where(func.lower(User.username) == text)).first()
+            
+            if result != None:
+                posts = [post.to_dict() for post in result.posts]
+
+            shouldFillPosts = False
+            
+        
+    elif request.method == 'POST':
+        # form has nothing in it if it's an "off" checkbox
+        if len(request.form) == 0:
+            session['shouldOnlyFollowers'] = False
+        elif "toggle" in request.form:
+            session['shouldOnlyFollowers'] = True
+        
+
+    if current_user.is_authenticated:
+        favorited_event_ids = set(
+            db.session.execute(
+                select(Favorite.eventID).filter_by(userID=current_user.userID)
+            ).scalars()
+        )
+    else:
+        favorited_event_ids = set()
+
+    dbPostGrabLimit = 50
+
+    #TODO: change to use DB 
+    try:
+        # user logged in and toggle should only be followers
+        if current_user.is_authenticated and session['shouldOnlyFollowers'] and shouldFillPosts:
+
+            if current_user.following:
+
+                following = current_user.following
+                followingPosts = []
+                
+                # append all posts
+                for follower in following:
+                    
+                    followerObj = db.session.get(User, follower.userID)
+
+                    for post in followerObj.posts:
+                        post_dict = post.to_dict()
+                        post_dict['user'] = followerObj.to_dict()
+                        followingPosts.append(post_dict)
+
+                # get followers' most liked posts
+                posts = sorted(followingPosts, key = cmp_to_key(lambda post1, post2 : post2["likes_count"]-post1["likes_count"]))
+
+        # user not logged in, get top (most liked) posts
+        elif shouldFillPosts:
+            # add the posts to the list
+            dbPosts = db.session.scalars(select(Post).order_by(desc(Post.likes_count)).limit(dbPostGrabLimit)).all()
+            for dbPost in dbPosts:
+                post_dict = dbPost.to_dict()
+                post_dict['user'] = dbPost.user.to_dict()
+                posts.append(post_dict)
+
+        
+    except Exception as error:
+        print(traceback.format_exc())
+
+    #add a favorited flag if event exists in user fav list
+    tempEvents = db.session.execute(select(Event)).scalars().all()
+    serialized_events = [
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        for event in tempEvents
+    ]
+
+    context = {
+        "events": serialized_events,
+        "posts": posts,
+        "followersOnly": session['shouldOnlyFollowers']
+    }
+
+    return render_template('social.html', **context)
+
+@app.template_filter()
+def format_datetime(value, format='medium'):
+    print(value)
+    convertedStr = datetime.strptime(value, '%Y-%m-%d %H:%M:%S') 
+    if format == 'full':
+        format="EEEE, d. MMMM y 'at' h:mm a"
+    elif format == 'medium':
+        format="dd/MM/y 'at' h:mm a"
+    return babel.dates.format_datetime(convertedStr, format)
 
 @app.route('/bird')
 def bird():
@@ -647,6 +966,94 @@ def get_map_html():
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
     return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)
+
+def send_email(user):
+    try:
+        token = user.get_reset_token()
+        print(f"Generated token: {token}")  # Debugging statement
+        msg = Message('Password Reset Request', sender='noreply@featherly.com', recipients=[user.email])
+        msg.body = f'''To reset your password, click the following link:
+{url_for('reset_token', token=token, _external=True)}
+
+If you did not make this request, ignore this email
+'''
+        mail.send(msg)
+        print("Email sent successfully")  # Debugging statement
+    except Exception as e:
+        print(f"Error sending email: {e}")  # Debugging statement
+
+@app.route('/reset_request', methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = db.session.scalars(select(User).where(User.email == form.email.data)).first()
+        if user:
+            send_email(user)
+            print("send_email function called")  # Debugging statement
+        else:
+            print("User not found")  # Debugging statement
+        return redirect(url_for('signin'))
+    return render_template('reset_req.html', title='Reset password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    user = User.verify_reset_token(token)
+    if user is None:
+        raise ValidationError('That is an invalid or expired token')
+        return redirect(url_for('reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_passwd        
+        db.session.commit()
+        return redirect(url_for('signin'))
+    return render_template('reset.html', title='Reset Password', form=form)
+
+@app.route('/api/posts/<post_id>/like', methods=['POST'])
+@login_required
+def like_post(post_id):
+    try:
+        post_uuid = uuid.UUID(post_id)
+    except ValueError:
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
+
+    if like:
+        db.session.delete(like)
+        post.likes_count -= 1
+        liked = False
+    else:
+        new_like = PostLike(userID=current_user.userID, postID=post_uuid)
+        db.session.add(new_like)
+        post.likes_count += 1
+        liked = True
+
+    db.session.commit()
+    return jsonify({'likes': post.likes_count, 'liked': liked}), 200
+
+@app.route('/api/posts/<post_id>/like/status', methods=['GET'])
+@login_required
+def get_like_status(post_id):
+    try:
+        post_uuid = uuid.UUID(post_id)
+    except ValueError:
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
+    return jsonify({'liked': liked, 'likes': post.likes_count}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -5,12 +5,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social Media</title>
-    <link rel="stylesheet" href="../static/css/social.css">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/social.css')}}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
-    <div id="app"></div>
+
+    <div class="header-container">
+        <div class="logo">
+            <img src="../static/images/raven.png" alt="Featherly Logo" />
+            <h1>Featherly</h1>
+        </div>
+
+        <div class="search-bars">
+            <div class="follower-toggle">
+                <p>Followers Only</p>
+
+                <form action="/social" method="POST">
+                    <label class="switch">
+                        {% if followersOnly %}
+                        <input onchange="this.form.submit()" type="checkbox" checked name="toggle" />
+                        {% else %}
+                        <input onchange="this.form.submit()" type="checkbox" name="toggle" />
+                        {% endif %}
+                        <span class="slider round"></span>
+                    </label>
+                </form>
+            </div>
+
+            <div class="beige-search-bar">
+                <i class="fas fa-search icon-left"></i>
+                <form action="/social" method="POST">
+                    <input type="text" name="usernameSearch" placeholder="Search" />
+                    <input type="submit" style="display: none" />
+                </form>
+                <img src="../static/images/profile.png" alt="Profile Icon" class="icon-right" />
+            </div>
+            <div class="light-red-search-bar">
+                <i class="fas fa-search icon-left"></i>
+                <input type="text" placeholder="Search" />
+                <img src="../static/images/birdicon.png" alt="Bird Icon" class="icon-right" />
+            </div>
+
+        </div>
+
+
+        <nav class="nav-icons">
+            <a href="/" title="Home"><i class="fas fa-home"></i></a>
+            <a href="/map" title="Map"><i class="fas fa-map"></i></a>
+            <a href="/profile" title="Profile"><i class="fa-solid fa-user"></i></a>
+            {% if user.is_authenticated %}
+            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+            {% else %}
+            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+            {% endif %}
+
+        </nav>
+    </div>
+
+
+    <div class="mainFeed">
+        {% if posts|length > 0 %}
+        {% for post in posts %}
+        {% include "post.html" with context %}
+        {% endfor %}
+        {% else %}
+        <div id="postFailed">
+            <h2>
+                Looks like we couldn't find any posts
+            </h2>
+            <p>
+                Either refine your search, or follow someone new!
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
     <div id="eventModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
@@ -18,26 +89,30 @@
             <form id="eventForm">
                 <label for="title">Event Name:</label>
                 <input type="text" id="title" name="title" required><br><br>
-    
+
                 <label for="eventDate">Event Date:</label>
                 <input type="date" id="eventDate" name="eventDate" required><br><br>
-    
+
                 <label for="time">Event Time:</label>
                 <input type="time" id="time" name="time" required><br><br>
-    
-                <label for="location">Location:</label>
-                <input type="text" id="location" name="location" required><br><br>
-    
+
+                <label for="location">Location</label>
+                <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..."
+                    autocomplete="off">
+                <datalist id="cityList"></datalist>
+                <br><br>
+
+
                 <label for="description">Description:</label>
                 <textarea id="description" name="description" required></textarea><br><br>
-    
-            
+
+
                 <button type="submit">Create Event</button>
             </form>
         </div>
     </div>
     <div class="sidebar">
-        <div class="events" id="events"> 
+        <div class="events" id="events">
             <div class="events-headline">
                 <p id="events-text">Birding Events Near You</p>
                 <button class="create-event-button" id="createEventBtn">
@@ -50,26 +125,39 @@
                 <div class="event_img_details">
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
-                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
-                        <span class= "favorite-icon" EventID="{{event.eventID}}"></span>
+                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}"
+                            class="event-image" />
+
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
-                        <p>{{ event.eventDate| datetimeformat }}</p> 
+                        <span class="favorite-icon {% if event.favorited %}favorited{% endif %}"
+                            EventID="{{event.eventID}}"></span>
+                        <p>{{ event.eventDate| datetimeformat }}</p>
                         <p>{{event.location|e}}</p>
-                    </br>
+                        <p style="margin-top:10px">{{event.description|e}}</p>
+                        </br>
                     </div>
                 </div>
-              {%endfor%}
+                {%endfor%}
             </div>
 
-          </div>
+        </div>
     </div>
-
+    <!-- 
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <script>
+        const googleMapsApiKey = "{{ google_maps_api_key }}";
+    </script> -->
+
+    <!--to format date and time for events-->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script> <!-- For moment.js -->
+    <script src="{{url_for('static', filename='scripts/social.js')}}"></script>
+
+    <!-- 
     <script type="text/babel">
         const domNode = document.getElementById('app');
 
@@ -93,6 +181,47 @@
                 modal.style.display = 'none';
             }
         });
+
+
+        //for location dropdown
+        const locationInput = document.getElementById('location');
+        const cityList = document.getElementById('cityList');
+
+        // Debounce func to limit API calls
+        let debounceTimeout;
+        const debounce = (func, delay) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(func, delay);
+        };
+
+                
+        locationInput.addEventListener('input', () => {
+            debounce(() => {
+                const query = locationInput.value.trim();
+                if (query.length < 2) return; // dont search before 2 chars typed
+
+                // Fetch cities matching the input
+                fetch(`http://api.geonames.org/searchJSON?formatted=true&q=${query}&maxRows=40&lang=en&username=salonikaranth`)         
+                    .then(response => response.json())
+                    .then(data => {
+                        cityList.innerHTML = ''; // Clear previous options
+
+                        data.geonames.forEach(place => {
+                            const cityName = place.name;
+                            const country = place.countryName;
+                            const state = place.adminName1 || ''; // 'adminName1' holds the state/ region
+
+                            const option = document.createElement('option');
+                            option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                            option.textContent = option.value;
+                            cityList.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching cities:', error));
+            }, 50); 
+        });
+
+
 
         // Handle form submission
         const eventForm = document.getElementById('eventForm');
@@ -121,16 +250,18 @@
                 if (response.status === 401) {
                     console.log("You need to log in to create an event");
                     alert("You need to log in to create an event");
-                    return; // Exit if the user is not logged in
+                    return null; // Exit if the user is not logged in
                 }
                 return response.json(); 
             })
             .then(data => {
-                if (data.success) {
-                    console.log(data.message); //  created successfully
+                if(data){
+                    if (data.success) {
+                        console.log(data.message); //  created successfully
+                    }
+                    else
+                        console.log(data.message); //not created
                 }
-                else
-                    console.log(data.message); //not created
             })
             .catch(error => {
                 console.error('Error creating event:', error);
@@ -141,80 +272,88 @@
             modal.style.display = 'none';
         });
 
+        //call func to bind favorite icons to handle function
+        rebindFavoriteIcons();
+
+        function handleFavoriteClick(event) {
+            const button = event.target;
+            const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
+            const isFavorited = button.classList.contains('favorited');
+
+            if (!isFavorited){
+                button.classList.add('favorited'); //prematurely show favorited
+                fetch('/favorite_event', {
+                    method: 'POST',
+                    body: JSON.stringify({ eventID: eventID }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("You need to log in to favorite events.");
+                        button.classList.remove('favorited');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data){
+                        if (data.success) {
+                            console.log("Event favorited successfully!");
+                        }
+                        else{
+                            console.log("There was an issue with favoriting the event.");
+                            button.classList.remove('favorited');
+                            console.log(data.message);
+                            alert(data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    button.classList.remove('favorited');
+                    console.error('Error favoriting event:', error);
+                });
+            }
+            else {
+                button.classList.remove('favorited');
+                fetch('/unfavorite_event', {
+                    method: 'POST',
+                    body: JSON.stringify({ eventID: eventID }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("You need to log in to unfavorite events.");
+                        button.classList.remove('favorited');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data){
+                        if (data.success) {
+                            console.log("Event removed from favorites successfully");
+                        }
+                        else{
+                            console.log("There was an issue with unfavoriting the event.");
+                            button.classList.add('favorited');
+                            console.log(data.message);
+                            alert(data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    button.classList.add('favorited');
+                    console.error('Error unfavoriting event:', error);
+                });
+            }
+        }
 
         //handle heart clicks for the events
-        document.querySelectorAll('.favorite-icon').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
-                const isFavorited = button.classList.contains('favorited');
-
-                if (!isFavorited){
-                    button.classList.add('favorited'); //prematurely show favorited
-                    fetch('/favorite_event', {
-                        method: 'POST',
-                        body: JSON.stringify({ eventID: eventID }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => {
-                        if (response.status === 401) {
-                            alert("You need to log in to favorite events.");
-                            button.classList.remove('favorited');
-                            return null;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if(data){
-                            if (data.success) {
-                                console.log("Event favorited successfully!");
-                            }
-                            else{
-                                console.log("There was an issue with favoriting the event.");
-                                button.classList.remove('favorited');
-                                console.log(data.message);
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        button.classList.remove('favorited');
-                        console.error('Error favoriting event:', error);
-                    });
-                }
-                else {
-                    button.classList.remove('favorited');
-                    fetch('/unfavorite_event', {
-                        method: 'POST',
-                        body: JSON.stringify({ eventID: eventID }),
-                        headers: { 'Content-Type': 'application/json' }
-                    })
-                    .then(response => {
-                        if (response.status === 401) {
-                            alert("You need to log in to unfavorite events.");
-                            button.classList.remove('favorited');
-                            return null;
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if(data){
-                            if (data.success) {
-                                console.log("Event removed from favorites successfully");
-                            }
-                            else{
-                                console.log("There was an issue with unfavoriting the event.");
-                                button.classList.add('favorited');
-                                console.log(data.message);
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        button.classList.add('favorited');
-                        console.error('Error unfavoriting event:', error);
-                    });
-                }
-                    
+        function rebindFavoriteIcons() {
+            document.querySelectorAll('.favorite-icon').forEach(button => {
+                button.addEventListener('click', handleFavoriteClick);
             });
-        });
+        }
 
 // Header Component
         function Header() {
@@ -240,7 +379,12 @@
                         <a href="/" title="Home"><i className="fas fa-home"></i></a>
                         <a href="/map" title="Map"><i className="fas fa-map"></i></a>
                         <a href="/profile" title="Profile"><i className="fa-solid fa-user"></i></a>
-                        <a href="/signin" title="Sign In"><i className="fas fa-sign-in-alt"></i></a>
+                        {% if user.is_authenticated %}
+                            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+                        {% else %}
+                            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+                        {% endif %}
+
                     </nav>
                 </div>
             );
@@ -321,9 +465,9 @@
                             <div className="likes-and-icons">
                                 <div className="likes">{likes} likes</div>
                                 <div className="post-icons">
-                                    <button className="icon-button">🐤</button>
-                                    <button className="icon-button">📍</button>
-                                    <button className="icon-button">❤️</button>
+                                    <button className="icon-button" id="tweet-button">🐤</button>
+                                    <button className="icon-button" id="location-button">📍</button>
+                                    <button className="icon-button" id="like-button">❤️</button>
                                 </div>
                             </div>
                             <p>{content}</p>
@@ -399,7 +543,7 @@
 
         const root = ReactDOM.createRoot(domNode);
         root.render(<HomePage />);
-    </script>
+    </script> -->
 </body>
 
 </html>
