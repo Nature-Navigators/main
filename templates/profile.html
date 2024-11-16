@@ -19,7 +19,41 @@
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
         <a href="/social" title="Social Media"><i class="fa-solid fa-users"></i></a>
     </nav>
-        <div class="container">
+
+    <!--event popup-->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+          <span class="close" id="closeModal" onclick="hideEditEventPopup()">&times;</span>
+          <h2>Edit Event</h2>
+          <form id="editForm">
+              <input type="hidden" id="eventID" name="eventID"> <!--stores eventId without showing-->
+
+              <label for="title">Event Name:</label>
+              <input type="text" id="title" name="title" required><br><br>
+
+              <label for="eventDate">Event Date:</label>
+              <input type="date" id="eventDate" name="eventDate" required><br><br>
+
+              <label for="time">Event Time:</label>
+              <input type="time" id="time" name="time" required><br><br>
+
+              <label for="location">Location</label>
+              <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..."
+                  autocomplete="off">
+              <datalist id="cityList"></datalist>
+              <br><br>
+
+
+              <label for="description">Description:</label>
+              <textarea id="description" name="description" required></textarea><br><br>
+
+
+              <button type="submit">Update Event</button>
+          </form>
+       </div>
+    </div>
+
+    <div class="container">
           <div class="left_column">
 
             <!-- VIEWING OWN PROFILE -->
@@ -179,6 +213,7 @@
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
+                        <span id="editBtn" class="edit-icon" EventID="{{event.eventID}}"></span>
                         <span class= "delete-icon" EventID="{{event.eventID}}"></span>
                         <p>{{ event.eventDate }}</p> 
                         <p>{{event.location|e}}</p>
@@ -296,6 +331,7 @@
       </div>
 
       <script src="{{url_for('static', filename='scripts/profile.js')}}"></script>
+
 </body>
 
 </html>

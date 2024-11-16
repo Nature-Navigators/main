@@ -194,10 +194,14 @@ function showSocialPost(postString) {
 }
 
 window.onload = rebindFavoriteIcons()
+window.onload = setupEditModal()
 
 function rebindFavoriteIcons() {
     document.querySelectorAll('.favorite-icon').forEach(button => {
         button.addEventListener('click', handleFavoriteClick);
+    });
+    document.querySelectorAll('.edit-icon').forEach(button => {
+        button.addEventListener('click', handleEditClick);
     });
     document.querySelectorAll('.delete-icon').forEach(button => {
         button.addEventListener('click', handleDeleteClick);
@@ -275,6 +279,27 @@ function handleFavoriteClick(event) {
         });
     }
 }
+
+function handleEditClick(event) {
+    const button = event.target;
+    const eventID = button.getAttribute('EventID'); 
+
+    fetch(`/get_event_details/${eventID}`)  // route to get event details
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('eventID').value = data.eventID;
+            document.getElementById('title').value = data.title;
+            document.getElementById('eventDate').value = data.eventDate.split('T')[0];
+            document.getElementById('time').value = data.eventDate.split('T')[1].substring(0, 5);
+            document.getElementById('location').value = data.location;
+            document.getElementById('description').value = data.description;
+            document.getElementById('editModal').style.visibility = 'visible';
+        });
+
+    showEventModal(); //display modal with event data
+}
+
+
 
 function handleDeleteClick(event) {
     const button = event.target;
@@ -423,3 +448,39 @@ locationInput.addEventListener('input', () => {
     }, 50);
 });
 
+function setupEditModal(){
+    const editForm = document.getElementById('editForm');
+    editForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(editForm);
+        const eventData = Object.fromEntries(formData.entries()); //get form entries from user
+
+        fetch('/edit_event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Event updated successfully!');
+                location.reload(); 
+            } else {
+                console.error('Error updating event:', data.message);
+            }
+        });
+    });
+
+    hideEditEventPopup();
+}
+
+function showEventPopup(){
+    document.getElementById("editModal").style.visibility = 'visible';
+    grayOut(true);
+
+}
+
+function hideEditEventPopup() {
+    document.getElementById('editModal').style.visibility = 'hidden';
+    grayOut(false);
+}

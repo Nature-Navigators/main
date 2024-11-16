@@ -53,6 +53,7 @@ EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
 GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 
+
 db.init_app(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
@@ -615,7 +616,7 @@ def profile_id(profile_id):
 
                 #posts = []
                 posts = user.to_dict()['posts']
-                print(user.to_dict())
+                #print(user.to_dict())
             except Exception as error:
                 print(traceback.format_exc())
                 return "Recursion error encountered"
@@ -716,6 +717,47 @@ def create_event():
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
 
+#get event details to display in editModal
+@app.route('/get_event_details/<eventID>', methods=['GET'])
+def get_event_details(eventID):
+    event_id = uuid.UUID(eventID)
+    event = db.session.scalars(select(Event).filter_by(eventID=event_id)).first()
+
+    if event:
+        return jsonify({
+            'eventID': event.eventID,
+            'title': event.title,
+            'eventDate': event.eventDate.isoformat(),
+            'location': event.location,
+            'description': event.description
+        })
+    return jsonify({'error': 'Event not found'}), 404
+
+
+@app.route('/edit_event', methods=['POST'])
+def edit_event():
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'User not logged in'}), 401
+
+    data = request.json
+    event_id = uuid.UUID(data.get('eventID'))
+
+    event = db.session.scalars(select(Event).filter_by(eventID=event_id)).first()
+    
+
+    if event:
+        event.title = data.get('title')
+        event.eventDate = datetime.strptime(
+            f"{data.get('eventDate')} {data.get('time')}", '%Y-%m-%d %H:%M'
+        )                                                                           #parse string to get date/time
+        event.location = data.get('location')
+        event.latitude, event.longitude = get_coordinates(data.get('location')) 
+        event.description = data.get('description')
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Event updated successfully!'})
+    
+    return jsonify({'error': 'Event not found'}), 404
+
 
 @app.route('/delete_event', methods=['POST'])
 def delete_event():
@@ -726,7 +768,7 @@ def delete_event():
     data = request.json
     event_id = uuid.UUID(data.get('eventID'))
 
-    event = Event.query.filter_by(eventID=event_id, userID=current_user.userID).first()
+    event = db.session.scalars(select(Event).filter_by(eventID=event_id, userID=current_user.userID)).first()
 
     if not event:
         return jsonify({'error': 'Event not found or you do not have permission to delete this event'}), 404
@@ -769,6 +811,8 @@ def unfavorite_event():
 
     # Find the favorite entry to delete
     favorite = Favorite.query.filter_by(userID=user_id, eventID=event_id).first()
+    favorite = db.session.scalars(select(Favorite).filter_by(userID=user_id, eventID=event_id)).first()
+    
     
     if favorite:
         db.session.delete(favorite)
@@ -833,7 +877,6 @@ def social_location():
 
     #print(f"Filtered Events: {sorted_events}")
     return jsonify(sorted_events)
-
 
 
 @app.route('/social', methods=["GET","POST"])
@@ -946,7 +989,7 @@ def social():
 
 @app.template_filter()
 def format_datetime(value, format='medium'):
-    print(value)
+    #print(value)
     convertedStr = datetime.strptime(value, '%Y-%m-%d %H:%M:%S') 
     if format == 'full':
         format="EEEE, d. MMMM y 'at' h:mm a"
