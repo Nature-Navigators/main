@@ -3,6 +3,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.sql.expression import func
 import uuid
 import requests
+import random
 import folium
 import os
 import xyzservices.providers as xyz #Can use this to change map type
@@ -52,6 +53,13 @@ EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent'
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
 GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
+random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 
+                'Black-necked Stilt', 'Red-crested Cardinal', 'Black Noddy', 'Red Avadavat',
+                'Lesser Yellowlegs', 'Rosy-faced Lovebird', 'Eastern Rosella', 'Masked Lapwing',
+                'California Quail', 'Monk Parakeet', 'Killdeer', 'Indigo Bunting', 'Hooded Warbler',
+                'Bananaquit', 'Burrowing Owl', 'Carolina Wren', 'Painted Bunting', 'Talamanca Hummingbird',
+                'Keel-billed Toucan', 'Long-tailed Broadbill', 'Large-billed Crow', 'Stork-billed Kingfisher',
+                'Forest Wagtail']
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -142,7 +150,9 @@ class ResetPasswordForm(FlaskForm):
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    # return render_template("index.html")
+    bird_name = random.choice(random_birds)
+    return render_template('index.html', bird_name=bird_name)
 
 @app.route('/map')
 def map():
@@ -341,7 +351,7 @@ async def getWikipediaImage(bird_name):
 async def getWikipediaPageContent(bird_name):
     formatted_bird_name = formatBirdName(bird_name)
     content_url = f'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles={formatted_bird_name}&format=json'
-    img_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=500'
+    img_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=600'
     images_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=images&format=json'
 
     async with aiohttp.ClientSession() as session:

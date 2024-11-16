@@ -44,33 +44,88 @@
                             <i class="fas fa-crow"></i> Learn more about me!
                         </a>
                     </div>
-                    <p>{{ bird.content|safe }}</p>
+                    <p>
+                        {% if bird.content %}
+                            {{ bird.content|safe }}
+                        {% else %}
+                            We're still taking notes on this bird! <br><br>Click the 'Learn More' button for more information.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
-            <div class="bird-images-gallery">
-                <div class="images-container">
-                    {% for media in bird.imageUrls %}
-                        <div class="image-item">
-                            {% if media.endswith('.jpg') or media.endswith('.jpeg') or media.endswith('.png') or media.endswith('.gif') %}
-                                <img src="{{ media }}" alt="Image of {{ bird.title }}">
-                            {% elif media.endswith('.mp4') or media.endswith('.webm') or media.endswith('.ogg') %}
-                                <video controls>
-                                    <source src="{{ media }}" type="video/{{ media.split('.')[-1] }}">
-                                    Your browser does not support the video tag.
-                                </video>
-                            {% elif media.endswith('.mp3') or media.endswith('.wav') or media.endswith('.ogg') or media.endswith('.tif') or media.endswith('.ogv') %}
-                                <audio controls>
-                                    <source src="{{ media }}" type="audio/{{ media.split('.')[-1] }}">
-                                    Your browser does not support the audio tag.
-                                </audio>
-                            {% else %}
-                                <img src="{{ media }}" alt="Image of {{ bird.title }}">
-                            {% endif %}
-                        </div>
-                    {% endfor %}
+            {% if bird.imageUrls %}
+                <div class="bird-images-gallery">
+                <h2 class="gallery-title">{{ bird.title }} Gallery</h2>
+                    <div class="images-container">
+                        {% for media in bird.imageUrls %}
+                            <div class="image-item">
+                                {% set media_extension = media.split('.')[-1]|lower %}
+                                {% if media_extension in ['jpg', 'jpeg', 'png', 'gif', 'svg'] %}
+                                    <a href="{{ media }}" class="image-link" data-media-type="image">
+                                        <img src="{{ media }}" alt="Image of {{ bird.title }}">
+                                    </a>
+                                {% elif media_extension in ['mp4', 'webm', 'ogg'] %}
+                                    <video controls>
+                                        <source src="{{ media }}" type="video/{{ media_extension }}">
+                                    </video>
+                                {% elif media_extension in ['mp3', 'wav'] %}
+                                    <audio controls>
+                                        <source src="{{ media }}" type="audio/{{ media_extension }}">
+                                    </audio>
+                                {% elif media_extension in ['ogv'] %}
+                                    <video controls>
+                                        <source src="{{ media }}" type="application/ogg">
+                                    </video>
+                                {% else %}
+                                    <!-- <img src="{{ media }}" alt="Image of {{ bird.title }}"> -->
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+            </div>
+            {% endif %}
+            <div id="mediaModal" class="modal">
+                <span class="close">&times;</span>
+                <div class="modal-content">
+                    <img id="modalImage" class="modal-media" style="display:none;">
+                    <video id="modalVideo" class="modal-media" style="display:none;" controls>
+                        <source id="modalVideoSource">
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
             </div>
         </div>
     </main>
+    <script>
+        var modal = document.getElementById("mediaModal");
+        var modalImage = document.getElementById("modalImage");
+        var links = document.querySelectorAll('.image-link');
+
+        links.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var mediaUrl = this.getAttribute('href');
+                var mediaType = this.getAttribute('data-media-type');
+                modal.style.display = "flex";
+                modalImage.style.display = "block";
+                modalImage.src = mediaUrl;
+            });
+        });
+
+        var closeBtn = document.getElementsByClassName("close")[0];
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+            modalImage.style.display = "none";
+            modalVideo.style.display = "none";
+        };
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                modalImage.style.display = "none";
+                modalVideo.style.display = "none";
+            }
+        };
+    </script>
 </body>
 </html>
