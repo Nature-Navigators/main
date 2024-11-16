@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bird Information</title>
+    <title>{{ bird.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bird.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <header>
+    <header class="header">
         <div class="header-container">
             <div class="logo">
                 <img src="{{ url_for('static', filename='images/raven.png') }}" alt="Featherly Logo">
@@ -33,16 +33,41 @@
                     {% if bird.imageUrl %}
                         <img src="{{ bird.imageUrl }}" alt="{{ bird.title }} Image">
                     {% else %}
-                        <p>No image available for this bird.</p>
+                        <img src="{{ url_for('static', filename='../static/images/watch.png') }}" alt="{{ bird.title }} Image">
                     {% endif %}
                 </div>
 
                 <div class="bird-about">
-                    <h2>About the {{ bird.title }}</h2>
+                    <div class="about-header-container">
+                        <h2>About the {{ bird.title }}</h2>
+                        <a href="{{ bird.wikiUrl }}" target="_blank" class="learn-more-btn">
+                            <i class="fas fa-crow"></i> Learn more about me!
+                        </a>
+                    </div>
                     <p>{{ bird.content|safe }}</p>
-                    <p><a href="{{ bird.wikiUrl }}" target="_blank">
-                        <i class="fas fa-crow"></i> Learn More
-                    </a></p>
+                </div>
+            </div>
+            <div class="bird-images-gallery">
+                <div class="images-container">
+                    {% for media in bird.imageUrls %}
+                        <div class="image-item">
+                            {% if media.endswith('.jpg') or media.endswith('.jpeg') or media.endswith('.png') or media.endswith('.gif') %}
+                                <img src="{{ media }}" alt="Image of {{ bird.title }}">
+                            {% elif media.endswith('.mp4') or media.endswith('.webm') or media.endswith('.ogg') %}
+                                <video controls>
+                                    <source src="{{ media }}" type="video/{{ media.split('.')[-1] }}">
+                                    Your browser does not support the video tag.
+                                </video>
+                            {% elif media.endswith('.mp3') or media.endswith('.wav') or media.endswith('.ogg') or media.endswith('.tif') or media.endswith('.ogv') %}
+                                <audio controls>
+                                    <source src="{{ media }}" type="audio/{{ media.split('.')[-1] }}">
+                                    Your browser does not support the audio tag.
+                                </audio>
+                            {% else %}
+                                <img src="{{ media }}" alt="Image of {{ bird.title }}">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

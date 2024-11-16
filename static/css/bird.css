@@ -10,13 +10,24 @@ body {
     color: #333;
 }
 
-header {
-    background-color: #8bd7da;
-    color: white;
-    padding: 10px 20px;
-    position: relative;
+.header {
+    height: 70px;
+    width: 100%;
+    font-size: 24px;
+    padding-left: 20px;
+    padding-top: 10px;
+    background-image: url('../images/header.png');
+    background-size: cover;
+    background-position: center;
+    color: #eaeaea;
 }
 
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
 .header-container {
     display: flex;
     justify-content: space-between;
@@ -24,6 +35,9 @@ header {
 }
 
 .logo {
+    position: absolute;
+    top: 10px;
+    left: 20px;
     display: flex;
     align-items: center;
     color: #BCDADB;
@@ -43,19 +57,22 @@ header {
     color: rgb(0, 0, 0);
 }
 
+.nav-icons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+}
+
 .nav-icons a {
-    color: white;
-    margin-left: 20px;
-    font-size: 1.5em;
+    color: rgb(255, 255, 255);
+    margin-left: 15px;
+    font-size: 1em;
     text-decoration: none;
 }
 
 .nav-icons a:hover {
     color: #ddd;
-}
-
-main {
-    padding-top: 10px;
 }
 
 .bird-info-container {
@@ -98,9 +115,15 @@ main {
     margin-left: 30px;
 }
 
+.about-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .bird-about h2 {
     font-size: 1.8em;
-    margin-bottom: 20px;
     color: #333;
 }
 
@@ -113,9 +136,9 @@ main {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #0fa4cd;
+    background-color: #499ec9;
     color: white;
-    padding: 15px 20px;
+    padding: 15px 15px;
     text-decoration: none;
     font-size: 1em;
     transition: background-color 0.3s ease, transform 0.3s ease;
@@ -130,4 +153,36 @@ main {
 .bird-about a:hover {
     background-color: #0690b6;
     transform: translateY(-2px);
+}
+
+.bird-images-gallery {
+    margin-top: 20px;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.images-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.image-item {
+    flex: 1 1 400px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+}
+
+.image-item img, 
+.image-item video, 
+.image-item audio {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
 }

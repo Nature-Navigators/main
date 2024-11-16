@@ -188,8 +188,12 @@ function createRectangles(birdArray) {
         };
         rectangle.appendChild(moreButton);
 
+        // rectangle.onclick = () => {
+        //     window.location.href = rect.url;
+        // };
+        
         rectangle.onclick = () => {
-            window.location.href = rect.url;
+            window.open(rect.url, '_blank');
         };
 
         rectangle.style.cursor = 'pointer';
