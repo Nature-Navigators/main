@@ -1,7 +1,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page is loaded and ready.');
     const toggleLocation = document.getElementById('toggle-location');
-    
+
+    const input = document.getElementById('search-input');
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['geocode'],
+    });
+
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        if (place.geometry) {
+            searched_latitude = place.geometry.location.lat();
+            searched_longitude = place.geometry.location.lng();
+            processLocation(searched_latitude, searched_longitude);
+            toggleLocation.checked = true;
+        }
+    });
+
     document.getElementById('search-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             toggleLocation.checked = true;
@@ -66,7 +81,7 @@ function getLocation() {
 
 function handleNoLocation() {
     processLocation(userLatitude, userLongitude)
-}
+} 
 
 function getCoordinates(address) {
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
@@ -96,6 +111,8 @@ function getCoordinates(address) {
 function storePosition(position) {
     userLatitude = position.coords.latitude;
     userLongitude = position.coords.longitude;
+    searched_latitude = userLatitude;
+    searched_longitude = userLongitude;
     localStorage.setItem('userLatitude', userLatitude);
     localStorage.setItem('userLongitude', userLongitude);
     processLocation(userLatitude, userLongitude);
@@ -127,8 +144,6 @@ function processLocation(latitude, longitude) {
         .then(locationData => {
             document.getElementById('map').innerHTML = locationData.mapHtml; 
             bird_data = locationData.birdData;
-            // searched_latitude = latitude;
-            // searched_longitude = longitude; 
             createRectangles();
         })
         .catch(error => {
