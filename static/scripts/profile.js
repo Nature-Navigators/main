@@ -312,6 +312,14 @@ fileInput.addEventListener("change", (e) => {
     handleFiles(files);
 });
 
+//if click outside modal
+const modal = document.getElementById('editModal');
+window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+        hideEditEventPopup();
+    }
+});
+
 function handleFiles(files) {
     if (files.length > 0) {
         const file = files[0];
@@ -334,10 +342,19 @@ function handleFiles(files) {
     }
 }
 
+function clearImagePreview() {
+    const dropZone = document.getElementById("drop-zone");
+    dropZone.innerHTML = `<img style="width:100px" src="../static/images/upload_image.png">
+                            <br>
+                            <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
+                            <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">`;
+}
+
 
 function handleEditClick(event) {
     const button = event.target;
     const eventID = button.getAttribute('EventID'); 
+    clearImagePreview();
 
     fetch(`/get_event_details/${eventID}`)  // route to get event details
         .then(response => response.json())
@@ -348,7 +365,23 @@ function handleEditClick(event) {
             document.getElementById('time').value = data.eventDate.split('T')[1].substring(0, 5);
             document.getElementById('location').value = data.location;
             document.getElementById('description').value = data.description;
+
+            if (data.imagePath) {
+                const preview = document.createElement("img");
+                preview.src = "../" +data.imagePath;  // Use the correct path from event data
+                console.log("preview");
+                console.log(preview.src);
+                preview.alt = data.imageName;  // Assuming imageName is provided
+                preview.style.maxWidth = "100%";
+                preview.id = "uploaded-image";
+
+                // Clear any existing image in the drop zone and append the preview
+                dropZone.innerHTML = "";
+                dropZone.appendChild(preview);
+            }
+
             document.getElementById('editModal').style.visibility = 'visible';
+
         });
 
     showEventModal(); //display modal with event data
@@ -504,6 +537,8 @@ locationInput.addEventListener('input', () => {
             .catch(error => console.error('Error fetching cities:', error));
     }, 50);
 });
+
+
 
 function setupEditModal(){
     const editForm = document.getElementById('editForm');

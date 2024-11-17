@@ -762,8 +762,13 @@ def get_event_details(eventID):
     event_id = uuid.UUID(eventID)
     event = db.session.scalars(select(Event).filter_by(eventID=event_id)).first()
 
+    event_images = {image.eventID: {'imagePath': image.imagePath, 'imageName': image.name} 
+                    for image in db.session.execute(select(EventImage)).scalars().all()}
+
     if event:
         return jsonify({
+            'imagePath': event_images.get(event_id, {}).get('imagePath'),
+            'imageName': event_images.get(event_id, {}).get('imageName'),
             'eventID': event.eventID,
             'title': event.title,
             'eventDate': event.eventDate.isoformat(),
