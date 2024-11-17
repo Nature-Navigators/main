@@ -642,6 +642,36 @@ body {
     cursor: pointer;
   }
 
+  
+  #drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 90%;
+    height: 150px;
+    overflow-y: scroll;
+    display: inline-block;
+  }
+
+  #drop-zone.drag-over {
+    background-color: #f0f0f0;
+    border-color: #333;
+  }
+
+  #drop-zone img {
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  #drop-zone p {
+    font-size: 16px;
+    color: #333;
+  }
 
 
   .event-details {

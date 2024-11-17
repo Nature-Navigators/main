@@ -280,6 +280,61 @@ function handleFavoriteClick(event) {
     }
 }
 
+
+
+//for drag drop image
+const dropZone = document.getElementById("drop-zone");
+const fileInput = document.getElementById("image-input");
+
+dropZone.addEventListener("click", () => {
+    fileInput.click();
+});
+
+dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("drag-over");
+});
+
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("drag-over");
+});
+
+dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("drag-over");
+    const files = e.dataTransfer.files;
+    handleFiles(files);
+});
+
+fileInput.addEventListener("change", (e) => {
+    const files = e.target.files;
+    console.log("File input changed, selected files:", files); //delete
+    handleFiles(files);
+});
+
+function handleFiles(files) {
+    if (files.length > 0) {
+        const file = files[0];
+        console.log("retrieved file:",file);
+        if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.createElement("img");
+                preview.src = e.target.result;
+                preview.alt = file.name;
+                preview.style.maxWidth = "100%";
+                preview.id = "uploaded-image"
+                dropZone.innerHTML = ""; // clear drop zone
+                dropZone.appendChild(preview);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert("Please upload a valid image file.");
+        }
+    }
+}
+
+
 function handleEditClick(event) {
     const button = event.target;
     const eventID = button.getAttribute('EventID'); 
@@ -455,7 +510,24 @@ function setupEditModal(){
     editForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const formData = new FormData(editForm);
-        const eventData = Object.fromEntries(formData.entries()); //get form entries from user
+        
+        const fileInput = document.getElementById("uploaded-image");
+            //console.log("Image file:", fileInput.src); //send img data
+            //console.log("Image file:", fileInput.alt); //send img name 
+
+        const eventData = {
+            image: fileInput && fileInput.src ? fileInput.src : undefined,
+            imageName:fileInput && fileInput.alt ? fileInput.alt : undefined,
+            eventID : formData.get('eventID'),
+            title: formData.get('title'),
+            eventDate: formData.get('eventDate'),
+            time: formData.get('time'),
+            location: formData.get('location'),
+            description: formData.get('description'),
+        };
+
+        console.log("eventData in profile.js:")
+        console.log(eventData)
 
         fetch('/edit_event', {
             method: 'POST',

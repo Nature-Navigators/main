@@ -29,31 +29,34 @@
               <input type="hidden" id="eventID" name="eventID"> <!--stores eventId without showing-->
               
               <!--drag and drop image-->
-              <label for="image"></label>
-              <div id="dropZone" class="drop-zone">
-                <p>Drag and drop an image or click to upload</p>
-                <input type="file" id="imageInput" name="image" accept="image/*" hidden>
-              </div><br>
-
-              <label for="title">Event Name:</label>
+              <div id="image-upload-container">
+                <label for="image-input" id="drop-zone">
+                    <img style="width:100px" src="../static/images/upload_image.png">
+                    <br>
+                    <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
+                    <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">
+                </label>
+              </div>
+              <br>
+              
+              <label class="modal-label" for="title">Event Name:</label>
               <input type="text" id="title" name="title" required><br><br>
 
-              <label for="eventDate">Event Date:</label>
+              <label class="modal-label" for="eventDate">Event Date:</label>
               <input type="date" id="eventDate" name="eventDate" required><br><br>
 
-              <label for="time">Event Time:</label>
+              <label class="modal-label" for="time">Event Time:</label>
               <input type="time" id="time" name="time" required><br><br>
 
-              <label for="location">Location</label>
+              <label class="modal-label" for="location">Location:</label>
               <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..."
                   autocomplete="off">
               <datalist id="cityList"></datalist>
               <br><br>
 
 
-              <label for="description">Description:</label>
+              <label class="modal-label" for="description">Description:</label>
               <textarea id="description" name="description" required></textarea><br><br>
-
 
               <button type="submit">Update Event</button>
           </form>

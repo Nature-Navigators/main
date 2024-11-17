@@ -241,10 +241,13 @@ p {
     height:160px;
     border-radius: 5px;
     overflow: hidden;
+    display: flex;
+    justify-content: center; 
+    align-items: center;    
 }
 
 .event-image {
-    max-width: 100%;  
+    width: 100%;  
     height: auto;
 }
 

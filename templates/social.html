@@ -297,12 +297,12 @@
 
             //console.log("Image in FormData:", formData.get("image-input")); //delete
             const fileInput = document.getElementById("uploaded-image");
-            console.log("Image file:", fileInput.src); //send img data
-            console.log("Image file:", fileInput.alt); //send img name 
+            //console.log("Image file:", fileInput.src); //send img data
+            //console.log("Image file:", fileInput.alt); //send img name 
 
             const eventData = {
-                image: fileInput.src,
-                imageName:fileInput.alt,
+                image: fileInput && fileInput.src ? fileInput.src : undefined,
+                imageName:fileInput && fileInput.alt ? fileInput.alt : undefined,
                 title: formData.get('title'),
                 eventDate: formData.get('eventDate'),
                 time: formData.get('time'),
@@ -331,6 +331,7 @@
                 if(data){
                     if (data.success) {
                         console.log(data.message); //  created successfully
+                        location.reload();
                     }
                     else
                         console.log(data.message); //not created

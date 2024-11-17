@@ -51,8 +51,8 @@ app.logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = '1k2jeh44596g'
-GOOGLE_MAPS_API_KEY ='AIzaSyB1nZm5o9f0bud-2R4FLHwV3uEgg3I7_CM' 
+EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
+GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
 
 
@@ -793,6 +793,29 @@ def edit_event():
         event.latitude, event.longitude = get_coordinates(data.get('location')) 
         event.description = data.get('description')
         db.session.commit()
+
+        #get image 
+        event_image = data.get('image')
+        imageName = data.get('imageName')
+
+        if event_image:
+            #decode Base64 
+            #print(f"event_image exists!")
+            image_data = event_image.split(",")[1]  # remove "data:image/png;base64,"
+            image_binary = base64.b64decode(image_data)
+
+            # create file path
+            file_path = app.config["UPLOAD_PATH"] + "/" + imageName
+            
+            # Write image data to file and save
+            with open(file_path, "wb") as f:
+                f.write(image_binary)
+
+            # Save image details in db
+            new_image = EventImage(imageID=uuid.uuid4(), eventID=event_id, name=imageName, imagePath=file_path)
+            db.session.add(new_image)
+            db.session.commit()
+
         return jsonify({'success': True, 'message': 'Event updated successfully!'})
     
     return jsonify({'error': 'Event not found'}), 404
