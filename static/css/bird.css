@@ -159,6 +159,7 @@ body::before {
     font-size: 1em;
     transition: background-color 0.3s ease, transform 0.3s ease;
     position: relative;
+    border-radius: 15px;
 }
 
 .bird-about a i {
@@ -177,6 +178,18 @@ body::before {
     align-items: center;
     padding: 20px;
     margin-top: 20px;
+}
+
+.bird-audios-gallery {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 100%;
 }
 
 .images-container {

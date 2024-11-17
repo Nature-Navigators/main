@@ -22,7 +22,6 @@
             </nav>
         </div>
     </header>
-
     <main>
         <div class="bird-info-container">
             <div class="bird-title-row">
@@ -55,34 +54,41 @@
             </div>
             {% if bird.imageUrls %}
                 <div class="bird-images-gallery">
-                <h2 class="gallery-title">{{ bird.title }} Gallery</h2>
+                    <h2 class="gallery-title">{{ bird.title }} Gallery</h2>
+                    <div class="bird-audios-gallery">
+                        {% for media in bird.imageUrls %}
+                            {% set media_extension = media.split('.')[-1]|lower %}
+                            {% if media_extension in ['mp3', 'wav', 'ogg'] %}
+                                <audio controls>
+                                    <source src="{{ media }}" type="audio/{{ media_extension }}">
+                                </audio>
+                                {% elif media_extension in ['ogv'] %}
+                                <video controls>
+                                    <source src="{{ media }}" type="application/ogg">
+                                </video>
+                                {% else %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                     <div class="images-container">
                         {% for media in bird.imageUrls %}
-                            <div class="image-item">
-                                {% set media_extension = media.split('.')[-1]|lower %}
-                                {% if media_extension in ['jpg', 'jpeg', 'png', 'gif', 'svg'] %}
+                            {% set media_extension = media.split('.')[-1]|lower %}
+                            {% if media_extension in ['jpg', 'jpeg', 'png', 'gif', 'svg'] %}
+                                <div class="image-item">
                                     <a href="{{ media }}" class="image-link" data-media-type="image">
                                         <img src="{{ media }}" alt="Image of {{ bird.title }}">
                                     </a>
-                                {% elif media_extension in ['mp4', 'webm', 'ogg'] %}
+                                </div>
+                            {% elif media_extension in ['mp4', 'webm'] %}
+                                <div class="image-item">
                                     <video controls>
                                         <source src="{{ media }}" type="video/{{ media_extension }}">
                                     </video>
-                                {% elif media_extension in ['mp3', 'wav'] %}
-                                    <audio controls>
-                                        <source src="{{ media }}" type="audio/{{ media_extension }}">
-                                    </audio>
-                                {% elif media_extension in ['ogv'] %}
-                                    <video controls>
-                                        <source src="{{ media }}" type="application/ogg">
-                                    </video>
-                                {% else %}
-                                    <!-- <img src="{{ media }}" alt="Image of {{ bird.title }}"> -->
-                                {% endif %}
-                            </div>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
-            </div>
+                </div>
             {% endif %}
             <div id="mediaModal" class="modal">
                 <span class="close">&times;</span>
