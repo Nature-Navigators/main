@@ -60,6 +60,8 @@ let searched_longitude = userLongitude;
 window.onload = onLoad();
 
 function onLoad() {
+    const toggleLocation = document.getElementById('toggle-location');
+    toggleLocation.checked = true;
     adjustWidth();
     getLocation();
 }
