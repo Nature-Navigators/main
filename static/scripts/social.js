@@ -16,7 +16,7 @@ function getLocation() {
             fetchLocationViaIP();
         },
         {
-            timeout: 100,     
+            timeout: 5000,     
         }
     );
 }
