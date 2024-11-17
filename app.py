@@ -218,7 +218,8 @@ async def update_location():
         <a href="{bird_url}" target="_blank" style="display:block; width:100%; height:100%;">
             <b>{bird_name}</b> - Click for more details
         </a>
-        <img src="{image_urls[i]}" width="200"/>
+        <img src="{image_urls[i] if image_urls[i] else '/static/images/oop.png'}" 
+            width="{150 if not image_urls[i] else 200}" />
         '''
 
         folium.Marker(

@@ -145,6 +145,7 @@ body {
     height: 40px; 
     margin: 0;
     z-index: 100; 
+    min-width: 560px;
 }
 
 .toggle-location {
@@ -347,13 +348,15 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: absolute;
-    left: 0;
-    right: 0;
+    position: fixed;
     top: 50%;
-    transform: translateY(-50%);
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
     visibility: visible;
+    width: auto;
+    max-width: 90%;
+    pointer-events: none;
     z-index: 1;
 }
 
