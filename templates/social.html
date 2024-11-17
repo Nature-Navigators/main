@@ -85,25 +85,37 @@
     <div id="eventModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
-            <h2>Create Event</h2>
+            <h3>Create Event</h3>
             <form id="eventForm">
-                <label for="title">Event Name:</label>
+
+                <!--drag and drop image-->
+                <div id="image-upload-container">
+                    <label for="image-input" id="drop-zone">
+                        <img style="width:100px" src="../static/images/upload_image.png">
+                        <br>
+                        <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
+                        <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">
+                    </label>
+                </div>
+                <br>
+                
+                <label class="modal-label" for="title">Event Name:</label>
                 <input type="text" id="title" name="title" required><br><br>
 
-                <label for="eventDate">Event Date:</label>
+                <label class="modal-label" for="eventDate">Event Date:</label>
                 <input type="date" id="eventDate" name="eventDate" required><br><br>
 
-                <label for="time">Event Time:</label>
+                <label class="modal-label" for="time">Event Time:</label>
                 <input type="time" id="time" name="time" required><br><br>
 
-                <label for="location">Location</label>
+                <label class="modal-label" for="location">Location:</label>
                 <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..."
                     autocomplete="off">
                 <datalist id="cityList"></datalist>
                 <br><br>
 
 
-                <label for="description">Description:</label>
+                <label class="modal-label" for="description">Description:</label>
                 <textarea id="description" name="description" required></textarea><br><br>
 
 
@@ -120,13 +132,15 @@
                 </button>
             </div>
             <div id="event_holder">
-                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
                 {% for event in events %}
                 <div class="event_img_details">
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
-                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}"
-                            class="event-image" />
+                        {% if event.imagePath %}
+                        <img src="{{ event.imagePath }}" alt="{{ event.title|e }}" class="event-image" />
+                        {% else %}
+                        <img src="../static/images/raven.png" alt="Default image" class="event-image default-image" />
+                        {% endif %}
 
                     </div>
                     <div class="event-details">
@@ -223,6 +237,57 @@
         });
 
 
+        //for drag drop image
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("image-input");
+
+        dropZone.addEventListener("click", () => {
+            fileInput.click();
+        });
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("drag-over");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("drag-over");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drag-over");
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            const files = e.target.files;
+            console.log("File input changed, selected files:", files); //delete
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                console.log("retrieved file:",file);
+                if (file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const preview = document.createElement("img");
+                        preview.src = e.target.result;
+                        preview.alt = file.name;
+                        preview.style.maxWidth = "100%";
+                        preview.id = "uploaded-image"
+                        dropZone.innerHTML = ""; // clear drop zone
+                        dropZone.appendChild(preview);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert("Please upload a valid image file.");
+                }
+            }
+        }
 
         // Handle form submission
         const eventForm = document.getElementById('eventForm');
@@ -230,16 +295,23 @@
             event.preventDefault();
             const formData = new FormData(eventForm);
 
+            //console.log("Image in FormData:", formData.get("image-input")); //delete
+            const fileInput = document.getElementById("uploaded-image");
+            console.log("Image file:", fileInput.src); //send img data
+            console.log("Image file:", fileInput.alt); //send img name 
 
             const eventData = {
+                image: fileInput.src,
+                imageName:fileInput.alt,
                 title: formData.get('title'),
                 eventDate: formData.get('eventDate'),
                 time: formData.get('time'),
                 location: formData.get('location'),
                 description: formData.get('description'),
             };
+            
 
-            console.log(eventData); // Send  data to server for saving
+            console.log(eventData); 
 
             // Send event data to the /create_event endpoint
             fetch('/create_event', {

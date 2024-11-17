@@ -160,10 +160,10 @@ class Post(Base, UserMixin):
 #     post = db.relationship('Post', back_populates='comments', lazy='joined') # o
 
 
+
 class Event(Base):
     __tablename__ = "event_table"
     eventID = db.Column(db.Uuid, primary_key=True)
-    #datePosted = db.Column(db.DateTime(timezone=True))
     eventDate = db.Column(db.DateTime(timezone=True), nullable=False)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(256))
@@ -177,7 +177,10 @@ class Event(Base):
     #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
     favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
 
-    serialize_rules = ('-creator', '-favorited_by')
+    serialize_rules = ('-creator', '-favorited_by', '-images')
+
+    #images = db.relationship("Image",secondary="eventimage_table",backref="events",lazy="selectin" )
+    images: Mapped[List["EventImage"]] = relationship(back_populates='event', cascade="all, delete", passive_deletes=True)
 
     def to_dict(self):
         return {
@@ -188,7 +191,8 @@ class Event(Base):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'description': self.description,
-            'userID': self.userID
+            'userID': self.userID,
+            'images': [image.to_dict() for image in self.images]
         }
 
     def __repr__(self):
@@ -235,6 +239,30 @@ class Image(Base):
     __mapper_args__ = {
         "polymorphic_identity": "image",
         "polymorphic_on": "type"
+    }
+
+
+#class EventImage(Base):
+#    __tablename__ = "eventimage_table"
+#    id = db.Column(db.Integer, primary_key=True)
+#    eventID = db.Column(db.Uuid, db.ForeignKey("event_table.eventID"), nullable=False)
+#    imageID = db.Column(db.Uuid, db.ForeignKey("image_table.imageID"), nullable=False)
+#
+#    event = db.relationship("Event", backref="event_images", lazy="joined")
+#    image = db.relationship("Image", lazy="joined")
+#
+#    __table_args__ = (
+#        db.UniqueConstraint("eventID", "imageID", name="unique_event_image_pair"),
+#)
+
+class EventImage(Image):
+    __tablename__ = "eventimage_table"
+    imageID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("image_table.imageID"), primary_key=True)
+    eventID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("event_table.eventID", ondelete="CASCADE"), nullable=False)
+
+    event: Mapped["Event"] = relationship(back_populates="images")
+    __mapper_args__ = {
+        "polymorphic_identity": "event_image"
     }
 
 class PostImage(Image):

@@ -24,9 +24,16 @@
     <div id="editModal" class="modal">
       <div class="modal-content">
           <span class="close" id="closeModal" onclick="hideEditEventPopup()">&times;</span>
-          <h2>Edit Event</h2>
+          <h3>Edit Event</h3>
           <form id="editForm">
               <input type="hidden" id="eventID" name="eventID"> <!--stores eventId without showing-->
+              
+              <!--drag and drop image-->
+              <label for="image"></label>
+              <div id="dropZone" class="drop-zone">
+                <p>Drag and drop an image or click to upload</p>
+                <input type="file" id="imageInput" name="image" accept="image/*" hidden>
+              </div><br>
 
               <label for="title">Event Name:</label>
               <input type="text" id="title" name="title" required><br><br>
@@ -203,12 +210,15 @@
             </div>
             <div class="events" id="createdEvents"> 
               <div id="created_event_holder">
-                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
                 {% for event in createdEvents %}
                 <div class="event_img_details">
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
-                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
+                        {% if event.imagePath %}
+                        <img src="../{{event.imagePath}}" alt="{{ event.title|e }}" class="event-image" />
+                        {% else %}
+                        <img src="../static/images/raven.png" alt="Default image" class="event-image default-image" />
+                        {% endif %}
                         
                     </div>
                     <div class="event-details">
@@ -233,8 +243,11 @@
                 <div class="event_img_details">
                     <div class="event-image-container">
                         <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
-                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}" class="event-image" />
-                        
+                        {% if event.imagePath %}
+                        <img src="../{{event.imagePath}}" alt="{{ event.title|e }}" class="event-image" />
+                        {% else %}
+                        <img src="../static/images/raven.png" alt="Default image" class="event-image default-image" />
+                        {% endif %}                        
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>

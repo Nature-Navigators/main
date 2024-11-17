@@ -79,16 +79,17 @@ function updateEventList(events) {
     let htmlContent = '';
 
     
-    events.forEach((event, index) => {
-        const imageFile = `bird${(index % 4) + 1}.jpg`;  // Replace with logic for images
+    events.forEach((event) => {
+        console.log(event);
+        const imageFile = event.imagePath ? event.imagePath : `../static/images/raven.png`;
+        const defaultclass = event.imagePath ? ``:  `default-image`        
         const formattedDate = formatEventDate(event.eventDate); 
         const fav = event.favorited ? 'favorited' : '';
         
         htmlContent += `
             <div class="event_img_details">
                 <div class="event-image-container">
-                    <img src='../static/images/${imageFile}' alt="${event.title}" class="event-image" />
-                </div>
+                    <img src='${imageFile}' alt="${event.title}" class="event-image ${defaultclass}" />                </div>
                 <div class="event-details">
                     <h4>${event.title}</h4>
                     <span class="favorite-icon ${fav}" EventID="${event.eventID}"></span>

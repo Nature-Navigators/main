@@ -16,7 +16,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage, PostLike
+from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage, PostLike, EventImage
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
@@ -38,6 +38,8 @@ from PIL import Image
 from io import BytesIO
 from folium.plugins import Search
 from folium.plugins import Geocoder
+import base64
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -49,8 +51,8 @@ app.logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
-GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
+EBIRD_API_KEY = '1k2jeh44596g'
+GOOGLE_MAPS_API_KEY ='AIzaSyB1nZm5o9f0bud-2R4FLHwV3uEgg3I7_CM' 
 
 
 
@@ -600,7 +602,18 @@ def profile_id(profile_id):
             
             try:
                 createdEvents = db.session.scalars(select(Event).where(Event.userID == selected_id)).all()
-                #print(createdEvents)
+                image_path = {image.eventID: image.imagePath for image in db.session.execute(select(EventImage)).scalars().all()}   
+
+                #serialize and include images
+                createdEvents = [
+                    {
+                        **event.to_dict(),
+                        "imagePath": image_path.get(event.eventID),
+                    }
+                    for event in createdEvents
+                ] 
+                print(f"createdEvents:")
+                print(createdEvents)
 
                 #get fav eventIDs
                 savedEventIDs = db.session.scalars(
@@ -612,7 +625,13 @@ def profile_id(profile_id):
                     select(Event).where(Event.eventID.in_(savedEventIDs))
                 ).all()
 
-                #print(savedEvents)
+                savedEvents = [
+                    {
+                        **event.to_dict(),
+                        "imagePath": image_path.get(event.eventID),
+                    }
+                    for event in savedEvents
+                ]
 
                 #posts = []
                 posts = user.to_dict()['posts']
@@ -686,6 +705,9 @@ def create_event():
 
     data = request.json
 
+    event_image = data.get('image')
+    imageName = data.get('imageName')
+
     title = data.get('title')
     description = data.get('description')
     creator =  current_user.userID 
@@ -713,6 +735,23 @@ def create_event():
             longitude=longitude,
         )
     db.session.add(new_event)
+    
+    if event_image:
+        #decode Base64 
+        image_data = event_image.split(",")[1]  # remove "data:image/png;base64,"
+        image_binary = base64.b64decode(image_data)
+
+        # create file path
+        file_path = app.config["UPLOAD_PATH"] + "/" + imageName
+        
+        # Write image data to file and save
+        with open(file_path, "wb") as f:
+            f.write(image_binary)
+
+        # Save image details in db
+        new_image = EventImage(imageID=uuid.uuid4(), eventID=temp_event_id, name=imageName, imagePath=file_path)
+        db.session.add(new_image)
+
     db.session.commit()
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
@@ -861,8 +900,10 @@ def social_location():
 
     #add a favorited flag if event exists in user fav list
     tempEvents = db.session.execute(select(Event)).scalars().all()
+    image_path = {image.eventID: image.imagePath for image in db.session.execute(select(EventImage)).scalars().all()}   
+
     serialized_events = [
-        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids, "imagePath": image_path.get(event.eventID)}
         for event in tempEvents
     ]
 
@@ -974,8 +1015,12 @@ def social():
 
     #add a favorited flag if event exists in user fav list
     tempEvents = db.session.execute(select(Event)).scalars().all()
+
+    # get image paths for each event
+    image_path = {image.eventID: image.imagePath for image in db.session.execute(select(EventImage)).scalars().all()}   
+
     serialized_events = [
-        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids }
+        {**event.to_dict(), "favorited": event.eventID in favorited_event_ids, "imagePath": image_path.get(event.eventID)}
         for event in tempEvents
     ]
 

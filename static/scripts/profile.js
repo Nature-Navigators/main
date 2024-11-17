@@ -333,6 +333,7 @@ function hideSocialPost() {
 
 }
 
+/*
 function showEventPopup(eventString)
 {
     if(eventString != null && eventString != "")
@@ -352,6 +353,7 @@ function hideEventPopup()
     grayOut(false);
 
 }
+    */
 
 function showFollowerPopup()
 {
@@ -474,7 +476,7 @@ function setupEditModal(){
     hideEditEventPopup();
 }
 
-function showEventPopup(){
+function showEventModal(){
     document.getElementById("editModal").style.visibility = 'visible';
     grayOut(true);
 
