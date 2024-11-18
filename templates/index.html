@@ -35,7 +35,7 @@
                     <p>Find birds near you or anywhere else in the world!</p>
                 </div>
                 <form action="{{ url_for('map') }}" method="get">
-                    <button type="submit">Go!</button>
+                    <button class="blue_button" type="submit">Go!</button>
                 </form>
             </div>
             <div class="card">
@@ -48,7 +48,7 @@
                     <p>Are you feeling lucky? See a random bird's page!</p>
                 </div>
                 <form action="{{ url_for('bird_page', bird_name=bird_name) }}" method="get">
-                    <button type="submit">Go!</button>
+                    <button class="blue_button" type="submit">Go!</button>
                 </form>
             </div>
             <div class="card">
@@ -61,7 +61,7 @@
                     <p>Keep up with the bird community and birding events!</p>
                 </div>
                 <form action="{{ url_for('social') }}" method="get">
-                    <button type="submit">Go!</button>
+                    <button class="blue_button" type="submit">Go!</button>
                 </form>
             </div>
             

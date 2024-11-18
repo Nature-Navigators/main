@@ -372,12 +372,12 @@ body {
   }
   .popup {
     visibility:hidden;
-    top: 10%;
+    top: 5%;
     left: 25%;
     position:fixed;
     width:50%;
-    height:80%;
-    max-height: 80%;
+    height: 90%;
+    max-height: 90%;
     box-sizing:border-box;
     background: white;
     padding: 1em;
