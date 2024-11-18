@@ -101,7 +101,7 @@ class SignUpForm(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Password"})
-    confirm_password = PasswordField(validators=[InputRequired(), Length(min=1, max=200), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
+    confirm_password = PasswordField(validators=[InputRequired(), Length(min=1, max=200), EqualTo('password')], render_kw={"placeholder": "Confirm Password"})
     submit = SubmitField("Sign Up")
 
     def validate_username(self, username):
@@ -500,6 +500,9 @@ def profile_id(profile_id):
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
         new_name = request.form["edit_profile_name"]
+        last_name = request.form["edit_profile_last_name"]
+        pronouns = request.form["pronouns"]
+        bio = request.form["bio"]
         image = request.files["image_file_bytes"]
 
         try:
@@ -508,6 +511,15 @@ def profile_id(profile_id):
 
                 if current_profile.firstName != new_name:
                     current_profile.firstName = new_name
+
+                if current_profile.lastName != last_name:
+                    current_profile.lastName = last_name
+
+                if current_profile.pronouns != pronouns:
+                    current_profile.pronouns = pronouns
+
+                if current_profile.bio != bio:
+                    current_profile.bio = bio
 
                 # if an image is being uploaded
                 if image.filename != '':

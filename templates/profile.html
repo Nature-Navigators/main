@@ -93,13 +93,18 @@
               </div>
             {% endif %}
             
-            {% if user.firstName != None %}
+            {% if user.firstName != None and user.lastName != None %}
+              <h2 id="name">{{user.firstName|e}} {{user.lastName|e}}</h2>
+            {% elif user.firstName != None and user.lastName == None %}
               <h2 id="name">{{user.firstName|e}}</h2>
             {% else %}
               <h2 id="name">{{user.username|e}}</h2>
             {% endif %}
 
-            <p id="title">Professional Photographer</p>
+            {% if user.pronouns != None and user.pronouns != "None" %}
+            <p id="pronouns">{{user.pronouns|e}}</p>
+            {% endif %}
+
             {% if not loggedIn %}
               {% if isFollowing %}
               <form action="/profile/{{id}}" method="POST">
@@ -155,44 +160,7 @@
 
                 {% endif %}
               {% endfor %}
-              {% for post in socialPosts %}
-                <button onclick="showSocialPost('{{post|tojson|forceescape}}')"><img src="{{post.image|e}}" alt="Photo" /></button>
-              {% endfor %}
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird3.jpg" alt="Photo" />
-              <img src="/static/images/bird4.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird3.jpg" alt="Photo" />
-              <img src="/static/images/bird4.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird3.jpg" alt="Photo" />
-              <img src="/static/images/bird4.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird3.jpg" alt="Photo" />
-              <img src="/static/images/bird4.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird3.jpg" alt="Photo" />
-              <img src="/static/images/bird4.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
-              <img src="/static/images/bird3.jpg" alt="Photo" />
-              <img src="/static/images/bird4.jpg" alt="Photo" />
-              <img src="/static/images/bird1.jpg" alt="Photo" />
-              <img src="/static/images/bird2.jpg" alt="Photo" />
+              
             </div>
             <div class="badges" id="badges">
               <h3>My Badges</h3>
@@ -323,13 +291,34 @@
               </div>
             </div>
             <div class="text_div" id="edit_profile_form">
-              <h3>Name</h3>
-              <input name="edit_profile_name" placeholder="Enter your name" value="{{user.firstName|e}}">
-              <h3>Title</h3>
-              <input name="title" placeholder="Enter your title">
+              <h3>First Name</h3>
+              {% set fName = "" %}
+              {% if user.firstName != None %}
+                {% set fName = user.firstName|e %}
+              {% endif %}
+              <input name="edit_profile_name" placeholder="Enter your first name" value="{{fName}}">
+              <h3>Last Name</h3>
+
+              {% set lName = "" %}
+              {% if user.lastName != None %}
+                {% set lName = user.lastName|e %}
+              {% endif %}
+              <input name="edit_profile_last_name" placeholder="Enter your last name" value="{{lName}}">
+
+              {% set pnouns = "" %}
+              {% if user.pronouns != None %}
+                {% set pnouns = user.pronouns|e %}
+              {% endif %}
+              <h3>Pronouns</h3>
+              <input name="pronouns" placeholder="Enter your pronouns (e.g., she/her/hers)" value="{{pnouns}}">
+
+              {% set ubio = "" %}
+              {% if user.bio != None %}
+                {% set ubio = user.bio|e %}
+              {% endif %}
               <h3>Bio</h3>
-              <textarea name="bio" placeholder="Edit your bio">{{user.bio|e}}</textarea>
-              <button class="profile_button" onclick="saveProfileEdits()">Save</button>
+              <textarea name="bio" placeholder="Edit your bio">{{ubio}}</textarea>
+              <button class="profile_button" onclick="hideProfilePopup()">Save</button>
             </div>
           </div>
           </form>

@@ -10,7 +10,6 @@ profileButton.addEventListener("mouseout", () => {editProfileText.style.visibili
 
 //click events
 profileButton.addEventListener("click", () => {
-    setDefaultEditProfile();
     document.getElementById("edit_profile_popup").style.visibility = 'visible';
     grayOut(true);
 })
@@ -18,29 +17,6 @@ profileButton.addEventListener("click", () => {
 
 // ======================================== FUNCTIONS =================================================
 
-//set default profile edit popup values
-function setDefaultEditProfile() {
-    var profileForm = document.getElementById("edit_profile_form");
-    var inputs = profileForm.getElementsByTagName("input");
-    inputs[0].value = document.getElementById("name").innerHTML;
-    inputs[1].value = document.getElementById("title").innerHTML;
-
-    var bio = profileForm.getElementsByTagName("textarea")[0];
-    bio.value = document.querySelector(".content").getElementsByTagName("p")[0].innerText;
-}
-
-function saveProfileEdits() {
-    var profileForm = document.getElementById("edit_profile_form");
-    var inputs = profileForm.getElementsByTagName("input");
-
-    document.getElementById("name").innerText = inputs[0].value;
-    document.getElementById("title").innerText = inputs[1].value;
-
-    var bio = profileForm.getElementsByTagName("textarea")[0];
-    document.querySelector(".content").getElementsByTagName("p")[0].innerText = bio.value;
-
-    hideProfilePopup();
-}
 
 function hideProfilePopup() {
     document.getElementById("edit_profile_popup").style.visibility = 'hidden';
