@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
 </head>
 <body>  
     <div class="header">   
@@ -42,6 +43,10 @@
             </div>
         </div>
         <div id="map" class="image-section"></div>
+        <div id="loading-container">
+            <div class="spinner"></div>
+            <p class="loading-text">Loading Birds...</p>
+        </div>
     </div>
     <script>
         const googleMapsApiKey = "{{ google_maps_api_key }}";

@@ -3,6 +3,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.sql.expression import func
 import uuid
 import requests
+import random
 import folium
 import os
 import xyzservices.providers as xyz #Can use this to change map type
@@ -54,6 +55,13 @@ EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent'
 EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
 GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
 
+random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 
+                'Black-necked Stilt', 'Red-crested Cardinal', 'Black Noddy', 'Red Avadavat',
+                'Lesser Yellowlegs', 'Rosy-faced Lovebird', 'Eastern Rosella', 'Masked Lapwing',
+                'California Quail', 'Monk Parakeet', 'Killdeer', 'Indigo Bunting', 'Hooded Warbler',
+                'Bananaquit', 'Burrowing Owl', 'Carolina Wren', 'Painted Bunting', 'Talamanca Hummingbird',
+                'Keel-billed Toucan', 'Long-tailed Broadbill', 'Large-billed Crow', 'Stork-billed Kingfisher',
+                'Forest Wagtail']
 
 
 db.init_app(app)
@@ -145,7 +153,9 @@ class ResetPasswordForm(FlaskForm):
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    # return render_template("index.html")
+    bird_name = random.choice(random_birds)
+    return render_template('index.html', bird_name=bird_name)
 
 @app.route('/map')
 def map():
@@ -211,7 +221,8 @@ async def update_location():
         <a href="{bird_url}" target="_blank" style="display:block; width:100%; height:100%;">
             <b>{bird_name}</b> - Click for more details
         </a>
-        <img src="{image_urls[i]}" width="200"/>
+        <img src="{image_urls[i] if image_urls[i] else '/static/images/oop.png'}" 
+            width="{150 if not image_urls[i] else 200}" />
         '''
 
         folium.Marker(
@@ -341,52 +352,85 @@ async def getWikipediaImage(bird_name):
                 print(f"Failed to fetch data from Wikipedia. Status code: {response.status}")
     return None
 
-def getWikipediaPageContent(bird_name):
+async def getWikipediaPageContent(bird_name):
     formatted_bird_name = formatBirdName(bird_name)
     content_url = f'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles={formatted_bird_name}&format=json'
-    img_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=500'
-    
-    content_response = requests.get(content_url)
-    content = None
-    if content_response.status_code == 200:
-        content_data = content_response.json()
-        pages = content_data.get('query', {}).get('pages', {})
-        content = next(iter(pages.values())).get('extract', '')
-    else:
-        print(f"Failed to fetch content. Status code: {content_response.status}")
+    img_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=pageimages&format=json&pithumbsize=600'
+    images_url = f'https://en.wikipedia.org/w/api.php?action=query&titles={formatted_bird_name}&prop=images&format=json'
 
-    img_response = requests.get(img_url)
-    image_url = None
-    if img_response.status_code == 200:
-        img_data = img_response.json()
-        pages = img_data.get('query', {}).get('pages', {})
-        first_page = next(iter(pages.values()), {})
-        image_url = first_page.get('thumbnail', {}).get('source')
+    async with aiohttp.ClientSession() as session:
+        tasks = [
+            session.get(content_url),
+            session.get(img_url),
+            session.get(images_url)
+        ]
+        
+        responses = await asyncio.gather(*tasks)
+        
+        content_response = responses[0]
+        content = None
+        if content_response.status == 200:
+            content_data = await content_response.json()
+            pages = content_data.get('query', {}).get('pages', {})
+            content = next(iter(pages.values())).get('extract', '')
+        else:
+            print(f"Failed to fetch content. Status code: {content_response.status}")
 
-    else:
-        print(f"Failed to fetch image. Status code: {img_response.status}")
+        img_response = responses[1]
+        image_url = None
+        if img_response.status == 200:
+            img_data = await img_response.json()
+            pages = img_data.get('query', {}).get('pages', {})
+            first_page = next(iter(pages.values()), {})
+            image_url = first_page.get('thumbnail', {}).get('source')
+        else:
+            print(f"Failed to fetch image. Status code: {img_response.status}")
 
-    wiki = f'https://en.wikipedia.org/wiki/{formatted_bird_name}'
+        images_response = responses[2]
+        image_urls = []
+        if images_response.status == 200:
+            img_data = await images_response.json()
+            pages = img_data.get('query', {}).get('pages', {})
+            first_page = next(iter(pages.values()), {})
+            images = first_page.get('images', [])
 
-    return {
-        'content': content,
-        'imageUrl': image_url,
-        'wikiUrl': wiki
-    }
+            for img in images:
+                img_title = img.get('title')
+                if img_title:
+                    if img_title.startswith('File:'):
+                        img_filename = img_title[5:]
 
-def get_bird_info(bird_name):
-    bird_data = getWikipediaPageContent(bird_name)
+                        if img_filename.lower() == 'commons-logo.svg':
+                            continue
+
+                        bird_name_words = bird_name.lower().split()
+                        if any(word in img_filename.lower() for word in bird_name_words):
+                            file_url = f'https://en.wikipedia.org/wiki/Special:FilePath/{img_filename}'
+                            image_urls.append(file_url)
+
+        wiki = f'https://en.wikipedia.org/wiki/{formatted_bird_name}'
+
+        return {
+            'content': content,
+            'imageUrl': image_url,
+            'imageUrls': image_urls,
+            'wikiUrl': wiki
+        }
+
+async def get_bird_info(bird_name):
+    bird_data = await getWikipediaPageContent(bird_name)
     return {
         'imageUrl': bird_data['imageUrl'],
         'title': bird_name,
         'content': bird_data['content'],
+        'imageUrls': bird_data['imageUrls'],
         'wikiUrl': bird_data['wikiUrl']
     }
 
 @app.route('/bird/<bird_name>')
-def bird_page(bird_name):
-    bird_info = get_bird_info(bird_name)
-    return render_template('bird.html', bird=bird_info)
+async def bird_page(bird_name):
+    bird_data = await get_bird_info(bird_name)
+    return render_template('bird.html', bird=bird_data)
 
 @app.route('/signin', methods=['GET','POST'])
 

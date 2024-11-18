@@ -21,7 +21,7 @@
         <div id="mainHeader">
             <h2>Welcome to</h2>
             <h1>Featherly</h1>
-            <p id="subtitle">A site for bird watchers--old and new</p>
+            <p id="subtitle">A site for bird watchers, from fledglings to those in flight.</p>
         </div>
         <div id="cards">
             <div class="card">
@@ -29,8 +29,10 @@
                     <img class="cardImg" alt="location icon" src="{{url_for('static', filename='images/pin-loc.webp')}}">
                 </div>
                 <div class="cardText">
-                    <h3>Birds Near Me</h2>
-                    <p>View all the varied types of birds near your location!</p>
+                    <!-- <h3>Birds Near Me</h2>
+                    <p>View all the varied types of birds near your location!</p> -->
+                    <h3>Bird Map</h2>
+                    <p>Find birds near you or anywhere else in the world!</p>
                 </div>
                 <form action="{{ url_for('map') }}" method="get">
                     <button type="submit">Go!</button>
@@ -41,10 +43,11 @@
                     <img class="cardImg" alt="sparrow icon" src="{{url_for('static', filename='images/sparrow-icon.webp')}}">
                 </div>
                 <div class="cardText">
-                    <h3>Bird of the Day</h2>
-                    <p>See what the mystery bird of the day is!</p>
+                    <h3>Wing It</h2>
+                    <!-- <p>See what the mystery bird of the day is!</p> -->
+                    <p>Are you feeling lucky? See a random bird's page!</p>
                 </div>
-                <form action="{{ url_for('bird') }}" method="get">
+                <form action="{{ url_for('bird_page', bird_name=bird_name) }}" method="get">
                     <button type="submit">Go!</button>
                 </form>
             </div>
@@ -53,8 +56,9 @@
                     <img class="cardImg" alt="profile icon" src="{{url_for('static', filename='images/profile-icon.webp')}}">
                 </div>
                 <div class="cardText">
-                    <h3>Social Media</h2>
-                    <p>Talk about and post pictures of all the birds you see!</p>
+                    <h3>Get Social</h2>
+                    <!-- <p>Talk about and post pictures of all the birds you see!</p> -->
+                    <p>Keep up with the bird community and birding events!</p>
                 </div>
                 <form action="{{ url_for('social') }}" method="get">
                     <button type="submit">Go!</button>

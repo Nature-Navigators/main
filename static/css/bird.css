@@ -7,16 +7,41 @@
 body {
     font-family: Arial, sans-serif;
     background-color: white;
-    color: #333;
+    background-image: url('../images/clouds.jpg');
+    background-size: cover;
+    background-position: center center;
+    color: #000000;
 }
 
-header {
-    background-color: #8bd7da;
-    color: white;
-    padding: 10px 20px;
-    position: relative;
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: -1;
 }
 
+.header {
+    height: 70px;
+    width: 100%;
+    font-size: 24px;
+    padding-left: 20px;
+    padding-top: 10px;
+    background-image: url('../images/header.png');
+    background-size: cover;
+    background-position: center;
+    color: #eaeaea;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
 .header-container {
     display: flex;
     justify-content: space-between;
@@ -24,6 +49,9 @@ header {
 }
 
 .logo {
+    position: absolute;
+    top: 10px;
+    left: 20px;
     display: flex;
     align-items: center;
     color: #BCDADB;
@@ -43,10 +71,17 @@ header {
     color: rgb(0, 0, 0);
 }
 
+.nav-icons {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+}
+
 .nav-icons a {
-    color: white;
-    margin-left: 20px;
-    font-size: 1.5em;
+    color: rgb(255, 255, 255);
+    margin-left: 15px;
+    font-size: 1em;
     text-decoration: none;
 }
 
@@ -54,21 +89,220 @@ header {
     color: #ddd;
 }
 
-main {
-    padding-top: 10px;
+.bird-info-container {
+    padding: 30px;
+    margin-left: 30px;
+    margin-right: 30px;
 }
 
-.bird-info {
-    width: 100%;
-    padding: 20px;
+.bird-title-row {
+    margin-bottom: 30px;
 }
 
-.bird-info h1 {
+.bird-title-row h1 {
     font-size: 2.5em;
+    color: #000000;
+}
+
+.bird-content-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.bird-image {
+    flex: 1;
+    max-width: 50%;
+}
+
+.bird-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.bird-about {
+    flex: 2;
+    max-width: 50%;
+    margin-left: 30px;
+}
+
+.about-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
 }
 
-.bird-info p {
+.bird-about h2 {
+    font-size: 1.8em;
+    color: #000000;
+}
+
+.bird-about p {
     font-size: 1.2em;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.bird-about a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #499ec9;
+    color: white;
+    padding: 15px 15px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    border-radius: 15px;
+}
+
+.bird-about a i {
+    font-size: 1.5em;
+    margin-right: 10px;
+}
+
+.bird-about a:hover {
+    background-color: #0690b6;
+    transform: translateY(-2px);
+}
+
+.bird-images-gallery {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.bird-audios-gallery {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+.images-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.image-item {
+    flex: 1 1 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.image-item img, 
+.image-item video, 
+.image-item audio {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 5px solid #fff;
+    border-radius: 10px;
+    box-sizing: border-box;
+    padding: 7px;
+    
+}
+
+.gallery-title {
+    font-size: 2.5em;
+    color: #444444;
+    text-align: center;
+    margin: 0 0 20px 0;
+    background-color:#d6e5e9;
+    border: solid 5vmin #eee;
+    border-bottom-color: #fff;
+    border-left-color: #eee;
+    border-radius: 2px;
+    border-right-color: #eee;
+    border-top-color: #ddd;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.25) inset, 0 5px 10px 5px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    padding: 15px 20px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+.gallery-title::before {
+    content: "";
+    position: absolute;
+    top: -2vmin;
+    left: -2vmin;
+    right: -2vmin;
+    bottom: -2vmin;
+    border-radius: 2px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.25) inset;
+  }
+  
+.gallery-title::after {
+    content: "";
+    position: absolute;
+    top: -2.5vmin;
+    left: -2.5vmin;
+    right: -2.5vmin;
+    bottom: -2.5vmin;
+    border-radius: 2px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.25);
+  }
+  
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    margin: 5% auto;
+}
+
+.modal-media {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    color: white;
+    font-size: 60px;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #ddd;
+    cursor: pointer;
 }

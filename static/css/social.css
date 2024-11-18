@@ -481,7 +481,8 @@ p {
     justify-content: space-between;
     padding: 10px 20px;
     box-sizing:border-box;
-    background-color: #8bd7da;
+    /* background-color: #8bd7da; */
+    background-color: #499ec9;
 }
 
 .logo {
@@ -586,7 +587,7 @@ p {
   }
   
   input:checked + .slider {
-    background-color: #097c80;
+    background-color: #74d1ff;
   }
   
   input:focus + .slider {
