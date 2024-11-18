@@ -19,20 +19,22 @@
         </div>
 
         <div class="search-bars">
-            <div class="follower-toggle">
-                <p>Followers Only</p>
+            {% if loggedIn %}
+                <div class="follower-toggle">
+                    <p>Followers Only</p>
 
-                <form action="/social" method="POST">
-                    <label class="switch">
-                        {% if followersOnly %}
-                        <input onchange="this.form.submit()" type="checkbox" checked name="toggle" />
-                        {% else %}
-                        <input onchange="this.form.submit()" type="checkbox" name="toggle" />
-                        {% endif %}
-                        <span class="slider round"></span>
-                    </label>
-                </form>
-            </div>
+                    <form action="/social" method="POST">
+                        <label class="switch">
+                            {% if followersOnly %}
+                            <input onchange="this.form.submit()" type="checkbox" checked name="toggle" />
+                            {% else %}
+                            <input onchange="this.form.submit()" type="checkbox" name="toggle" />
+                            {% endif %}
+                            <span class="slider round"></span>
+                        </label>
+                    </form>
+                </div>
+            {% endif %}
 
             <div class="beige-search-bar">
                 <i class="fas fa-search icon-left"></i>

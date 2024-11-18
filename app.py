@@ -1029,7 +1029,7 @@ def social():
 
             shouldFillPosts = False
             
-        
+    # checkbox update    
     elif request.method == 'POST':
         # form has nothing in it if it's an "off" checkbox
         if len(request.form) == 0:
@@ -1049,7 +1049,6 @@ def social():
 
     dbPostGrabLimit = 50
 
-    #TODO: change to use DB 
     try:
         # user logged in and toggle should only be followers
         if current_user.is_authenticated and session['shouldOnlyFollowers'] and shouldFillPosts:
@@ -1096,10 +1095,13 @@ def social():
         for event in tempEvents
     ]
 
+    logged_in = current_user.is_authenticated
+
     context = {
         "events": serialized_events,
         "posts": posts,
-        "followersOnly": session['shouldOnlyFollowers']
+        "followersOnly": session['shouldOnlyFollowers'],
+        "loggedIn": logged_in
     }
 
     return render_template('social.html', **context)
