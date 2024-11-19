@@ -8,7 +8,7 @@
     <title>Profile Page</title>
 </head>
 <body>
-    <div class="header">
+  <div class="header">
       <header></header>
       <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
@@ -261,9 +261,12 @@
                 <h3>Upload an image</h3>
               </div>
               <div class="text_div">
+                <h3>Bird Species</h3>
                 <input name="add_bird_id" placeholder="Enter the species of the bird">
+                <h3>Location</h3>
                 <input list="cityList" id="location" name="add_location" placeholder="Enter the location of the bird">
                 <datalist id="cityList"></datalist>
+                <h3>Caption</h3>
                 <textarea name="add_photo_caption" placeholder="Write a caption here!"></textarea>
                 <button class="profile_button">Post</button>
               </div>

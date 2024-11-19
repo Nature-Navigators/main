@@ -66,9 +66,17 @@ body {
     max-width: 100%;
     position: relative;
     
-   
-    
   }
+  .container {
+    height: 70vh;
+  }
+
+  .header .container .right_column {
+    height: 200%;
+    overflow:auto;
+
+  }
+
 
   .blue_button {
     background: #0091ff;
@@ -231,9 +239,11 @@ body {
 
   .header .container .right_column .photos {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: repeat(auto-fit, minmax(200px, 200px));
     gap: 20px;
     height: 100%; 
+    justify-content: baseline;
     overflow: auto; 
   }
   .header .container .right_column .photos img {
@@ -362,12 +372,12 @@ body {
   }
   .popup {
     visibility:hidden;
-    top: 10%;
+    top: 5%;
     left: 25%;
     position:fixed;
     width:50%;
-    height:80%;
-    max-height: 80%;
+    height: 90%;
+    max-height: 90%;
     box-sizing:border-box;
     background: white;
     padding: 1em;
