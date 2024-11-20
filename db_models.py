@@ -325,9 +325,8 @@ class Comment(Base):
     dateCommented = db.Column(db.DateTime(timezone=True), nullable=False)
 
     postID = db.Column(db.Uuid, db.ForeignKey('post_table.postID'), nullable=False)
-    username = db.Column(db.String, db.ForeignKey('user_table.username'), nullable=False)  # Ensure username column is defined
+    username = db.Column(db.String, db.ForeignKey('user_table.username'), nullable=False)  
 
-    # Add relationships
     user = db.relationship('User', back_populates='comments', lazy='joined', foreign_keys=[username])
     post = db.relationship('Post', back_populates='comments', lazy='joined')
 
