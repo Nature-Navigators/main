@@ -33,19 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("toggle changed!");
         processLocation(searched_latitude, searched_longitude);
     });
-
-    document.getElementById('your-location').addEventListener('click', function() {
-        console.log("Go to your location button clicked!");
-        if(!userLatitude || !userLongitude){
-            getLocation();
-        }
-        else{
-            searched_latitude = userLatitude;
-            searched_longitude = userLongitude;
-            processLocation(userLatitude, userLongitude);
-            document.getElementById('search-input').value = '';
-        }
-    });
 });
 
 let bird_data = [];
