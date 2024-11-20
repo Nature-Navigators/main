@@ -1248,6 +1248,31 @@ def create_comment(post_id):
         return jsonify(response), 200
     else:
         return jsonify({'error': 'Post not found'}), 404
+    
+
+@app.route('/search_by_bird', methods=['POST'])
+def search_by_bird():
+    bird_id = request.form.get('birdIDSearch')
+    if not bird_id:
+        flash('birdID parameter is required', 'error')
+        return redirect(url_for('social'))
+
+    if session.get('shouldOnlyFollowers', True) and current_user.is_authenticated:
+        following_ids = [user.userID for user in current_user.following]
+        posts = db.session.scalars(select(Post).filter(Post.birdID == bird_id, Post.userID.in_(following_ids))).all()
+    else:
+        posts = db.session.scalars(select(Post).filter_by(birdID=bird_id)).all()
+
+    serialized_posts = [post.to_dict() for post in posts]
+
+    context = {
+        "posts": serialized_posts,
+        "followersOnly": session.get('shouldOnlyFollowers', True),
+        "loggedIn": current_user.is_authenticated
+    }
+
+    return render_template('social.html', **context)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
