@@ -17,7 +17,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import Email, InputRequired, Length, ValidationError, EqualTo
 from flask_bcrypt import Bcrypt
-from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage, PostLike, EventImage
+from db_models import db, User, Post, Event, Favorite, PostImage, ProfileImage, PostLike, EventImage, Comment
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
@@ -1228,6 +1228,26 @@ def get_like_status(post_id):
 
     liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
     return jsonify({'liked': liked, 'likes': post.likes_count}), 200
+
+
+@app.route('/create-comment/<post_id>', methods=['POST'])
+@login_required
+def create_comment(post_id):
+    text = request.form.get('comment')
+
+    if not text:
+        return jsonify({'error': 'Comment cannot be empty'}), 400
+
+    post_uuid = uuid.UUID(post_id)
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    if post:
+        comment = Comment(commentID=uuid.uuid4(), text=text, postID=post_uuid, username=current_user.username, dateCommented=datetime.now())
+        db.session.add(comment)
+        db.session.commit()
+        response = {'success': True, 'message': 'Comment added successfully!', 'username': current_user.username}
+        return jsonify(response), 200
+    else:
+        return jsonify({'error': 'Post not found'}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)
