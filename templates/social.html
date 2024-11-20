@@ -46,7 +46,10 @@
             </div>
             <div class="light-red-search-bar">
                 <i class="fas fa-search icon-left"></i>
-                <input type="text" placeholder="Search" />
+                <form action="/search_by_bird" method="POST">
+                    <input type="text" name="birdIDSearch" placeholder="Search by Bird ID" />
+                    <input type="submit" style="display: none" />
+                </form>
                 <img src="../static/images/birdicon.png" alt="Bird Icon" class="icon-right" />
             </div>
 
@@ -440,6 +443,83 @@
                 button.addEventListener('click', handleFavoriteClick);
             });
         }
+
+        document.getElementById('birdSearchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const birdID = document.getElementById('birdSearchInput').value.trim();
+            if (birdID) {
+                fetch(`/search_by_bird?birdID=${encodeURIComponent(birdID)}`)
+                    .then(response => response.json())
+                    .then(posts => {
+                        const mainFeed = document.querySelector('.mainFeed');
+                        mainFeed.innerHTML = '';
+                        if (posts.length > 0) {
+                            posts.forEach(post => {
+                                const postElement = document.createElement('div');
+                                postElement.classList.add('post');
+                                postElement.innerHTML = `
+                                    <div class="post-header">
+                                        <a href="/profile/${post.user.username}">
+                                            <div class="profile_pic_container">
+                                                <img id="profile_pic" src="${post.user.profileImage ? '/uploads/' + post.user.profileImage.name : '../static/images/profile-icon.webp'}" alt="Profile Picture" class="profile-pic" />
+                                            </div>
+                                            <div class="profile-info">
+                                                <div class="profile-name-time">
+                                                    <span class="profile-name">${post.user.username}</span>
+                                                    <span class="post-time">• ${new Date(post.datePosted).toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <img class="post-image" src="${post.images.length > 0 ? '/uploads/' + post.images[0].name : '../static/images/raven.png'}" alt="Post Image" />
+                                    <div class="post-info">
+                                        <div class="text-and-icons">
+                                            <div class="likes-and-icons">
+                                                <div class="post-icons">
+                                                    <button class="icon-button bird-button" data-bird-id="${post.birdID}">
+                                                        <img src="../static/images/birdID.png" alt="Bird Icon" class="bird-icon" width="20" height="22" />
+                                                    </button>
+                                                    <button class="icon-button placeholder-button" data-location-id="${post.locationID}">
+                                                        <img src="../static/images/placeholder.png" alt="Placeholder Icon" class="placeholder-icon" width="20" height="22" />
+                                                    </button>
+                                                    <button class="icon-button like-button" data-post-id="${post.postID}">
+                                                        <img src="../static/images/empty-heart.png" alt="Like Icon" class="like-icon" width="20" height="22" />
+                                                    </button>
+                                                </div>
+                                                <div class="likes" id="post_likes_${post.postID}">${post.likes_count} likes</div>
+                                            </div>
+                                            <p class="post-content">${post.caption}</p>
+                                            <form method="POST" action="/create-comment/${post.postID}" class="comment-form">
+                                                <input type="text" name="comment" placeholder="Add a comment..." class="comment-input" />
+                                                <button type="submit" class="send-icon">
+                                                    <img src="../static/images/send-solid.png" alt="Send Icon" width="20" height="20" />
+                                                </button>
+                                            </form>
+                                            <div class="comments-list">
+                                                ${post.comments.map(comment => `
+                                                    <div class="comment-box">
+                                                        <span class="comment-user">${comment.username}</span>
+                                                        <span class="comment-text">${comment.text}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                mainFeed.appendChild(postElement);
+                            });
+                        } else {
+                            mainFeed.innerHTML = `
+                                <div id="postFailed">
+                                    <h2>Looks like we couldn't find any posts</h2>
+                                    <p>Either refine your search, or follow someone new!</p>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => console.error('Error fetching posts:', error));
+            }
+        });
 </script>
     
 <!--
