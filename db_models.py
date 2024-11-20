@@ -58,7 +58,7 @@ class User(Base, UserMixin):
     #   lazy = joined means it joins the tables on select
     #   online i've read that selectin is good for many-to-many & one-to-many and joined is good for many-to-one
     posts:Mapped[List["Post"]] = relationship('Post', back_populates='user', lazy='selectin') # m
-    #comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
+    comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
     createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
     #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
     savedEvents = db.relationship('Favorite', back_populates='user', lazy='selectin') 
@@ -130,7 +130,7 @@ class Post(Base, UserMixin):
     # relationships + foreign keys
     userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
     user:Mapped["User"] = relationship('User', back_populates='posts', lazy='joined') # o
-    #comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
+    comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
     images: Mapped[List["PostImage"]] = relationship(back_populates='post', cascade="all, delete", passive_deletes=True)
 
     @property
@@ -317,3 +317,27 @@ class PostLike(Base):
             'userID': str(self.userID),
             'postID': str(self.postID)
         }
+
+class Comment(Base):
+    __tablename__ = 'comment_table'
+    commentID = db.Column(db.Uuid, primary_key=True)
+    text = db.Column(db.String(256), nullable=False)
+    dateCommented = db.Column(db.DateTime(timezone=True), nullable=False)
+
+    postID = db.Column(db.Uuid, db.ForeignKey('post_table.postID'), nullable=False)
+    username = db.Column(db.String, db.ForeignKey('user_table.username'), nullable=False)  
+
+    user = db.relationship('User', back_populates='comments', lazy='joined', foreign_keys=[username])
+    post = db.relationship('Post', back_populates='comments', lazy='joined')
+
+    serialize_rules = ('-user', '-post')
+    @property
+    def serialize(self):
+        return {
+            'commentID': str(self.commentID),
+            'text': self.text,
+            'dateCommented': self.dateCommented.isoformat(),
+            'postID': str(self.postID),
+            'username': self.username  
+        }
+

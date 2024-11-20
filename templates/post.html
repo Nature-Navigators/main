@@ -46,6 +46,22 @@
                 <div class="likes" id="post_likes_{{ post.postID }}">{{ post.likes_count }} likes</div>
             </div>
             <p class="post-content">{{ post.caption }}</p>
+            <!-- comment input form -->
+            <form method="POST" action="/create-comment/{{ post.postID }}" class="comment-form">
+                <input type="text" name="comment" placeholder="Add a comment..." class="comment-input" />
+                <button type="submit" class="send-icon">
+                    <img src="{{ url_for('static', filename='images/send-solid.png') }}" alt="Send Icon" width="20" height="20" />
+                </button>
+            </form>
+            <!-- Add comments section -->
+            <div class="comments-list">
+                {% for comment in post.comments %}
+                <div class="comment-box">
+                    <span class="comment-user">{{ comment.username }}</span>
+                    <span class="comment-text">{{ comment.text }}</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
@@ -53,6 +69,9 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        if (window.commentListenersAdded) return;
+        window.commentListenersAdded = true;
+
         setupLikeButtons();
         persistLikeButtons(); //on fetching the post again the likes should persist
 
@@ -83,6 +102,48 @@
                     width: 200,
                     showConfirmButton: false,
                     timer: 1000
+                });
+            });
+        });
+
+        // Handle comment form submission with AJAX
+        const commentForms = document.querySelectorAll('.comment-form');
+        commentForms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const postID = form.getAttribute('action').split('/').pop();
+                const commentInput = form.querySelector('.comment-input');
+                const commentText = commentInput.value.trim();
+
+                if (!commentText) {
+                    alert('Comment cannot be empty');
+                    return;
+                }
+
+                fetch(`/create-comment/${postID}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ comment: commentText })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // console.log('JSON response:', data); // Print the JSON response
+                    if (data.success) {
+                        const commentsList = form.nextElementSibling;
+                        const newComment = document.createElement('div');
+                        newComment.classList.add('comment-box');
+                        newComment.innerHTML = `<span class="comment-user">${data.username}</span> <span class="comment-text">${commentText}</span>`;
+                        commentsList.appendChild(newComment);
+                        commentInput.value = '';
+                    } else {
+                        alert(data.error || 'An error occurred while adding the comment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the comment');
                 });
             });
         });
