@@ -263,7 +263,22 @@ const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("image-input");
 
 dropZone.addEventListener("click", () => {
-    fileInput.click();
+    const image = e.target;
+    e.stopPropagation();
+
+    if (e.target === dropZone && !fileSelected) {
+        e.preventDefault();
+        fileInput.click();
+    } 
+
+    if (fileInput.value && fileSelected) {
+        e.preventDefault();
+    }
+
+    if (image && image.tagName.toLowerCase() === 'img') {
+        e.preventDefault();
+        fileInput.click();
+    }
 });
 
 dropZone.addEventListener("dragover", (e) => {
@@ -283,8 +298,8 @@ dropZone.addEventListener("drop", (e) => {
 });
 
 fileInput.addEventListener("change", (e) => {
+    e.preventDefault();
     const files = e.target.files;
-    console.log("File input changed, selected files:", files); //delete
     handleFiles(files);
 });
 
@@ -310,6 +325,7 @@ function handleFiles(files) {
                 preview.id = "uploaded-image"
                 dropZone.innerHTML = ""; // clear drop zone
                 dropZone.appendChild(preview);
+                fileSelected = true;
             };
             reader.readAsDataURL(file);
         } else {
