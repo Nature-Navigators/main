@@ -262,7 +262,7 @@ function handleFavoriteClick(event) {
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("image-input");
 
-dropZone.addEventListener("click", () => {
+dropZone.addEventListener("click", (e) => {
     const image = e.target;
     e.stopPropagation();
 
