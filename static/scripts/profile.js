@@ -379,7 +379,7 @@ function handleDeleteClick(event) {
         .then(data => {
             if (data.success) {
                 console.log("Event deleted successfully!");
-                button.closest('.event_img_details').remove();
+                location.reload();
             } else {
                 console.log("There was an issue deleting the event.");
                 console.log(data.message);

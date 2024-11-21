@@ -902,6 +902,11 @@ def delete_event():
 
     event = db.session.scalars(select(Event).filter_by(eventID=event_id, userID=current_user.userID)).first()
 
+    #remove entry in favorites table if deleted event is favorited
+    favorites = db.session.scalars(select(Favorite).filter_by(eventID=event_id)).all()
+    for favorite in favorites:
+        db.session.delete(favorite)
+
     if not event:
         return jsonify({'error': 'Event not found or you do not have permission to delete this event'}), 404
 
