@@ -860,22 +860,23 @@ def edit_event():
         imageName = data.get('imageName')
 
         if event_image:
-            #decode Base64 
-            #print(f"event_image exists!")
-            image_data = event_image.split(",")[1]  # remove "data:image/png;base64,"
-            image_binary = base64.b64decode(image_data)
+            if event_image.startswith("data"): #if starts with http do nothing, image already exists
+                #decode Base64 
+                
+                image_data = event_image.split(",")[1]  # remove "data:image/png;base64,"
+                image_binary = base64.b64decode(image_data)
 
-            # create file path
-            file_path = app.config["UPLOAD_PATH"] + "/" + imageName
-            
-            # Write image data to file and save
-            with open(file_path, "wb") as f:
-                f.write(image_binary)
+                # create file path
+                file_path = app.config["UPLOAD_PATH"] + "/" + imageName
+                
+                # Write image data to file and save
+                with open(file_path, "wb") as f:
+                    f.write(image_binary)
 
-            # Save image details in db
-            new_image = EventImage(imageID=uuid.uuid4(), eventID=event_id, name=imageName, imagePath=file_path)
-            db.session.add(new_image)
-            db.session.commit()
+                # Save image details in db
+                new_image = EventImage(imageID=uuid.uuid4(), eventID=event_id, name=imageName, imagePath=file_path)
+                db.session.add(new_image)
+                db.session.commit()
 
         return jsonify({'success': True, 'message': 'Event updated successfully!'})
     

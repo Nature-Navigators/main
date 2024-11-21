@@ -196,7 +196,7 @@
                         <h4>{{event.title|e}}</h4>
                         <span id="editBtn" class="edit-icon" EventID="{{event.eventID}}"></span>
                         <span class= "delete-icon" EventID="{{event.eventID}}"></span>
-                        <p>{{ event.eventDate }}</p> 
+                        <p>{{ event.eventDate| datetimeformat }}</p> 
                         <p>{{event.location|e}}</p>
                         <p style="margin-top:10px">{{event.description|e}}</p>
                       </br>
@@ -223,7 +223,7 @@
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
                         <span class= "favorite-icon favorited" EventID="{{event.eventID}}"></span>
-                        <p>{{ event.eventDate }}</p> 
+                        <p>{{ event.eventDate| datetimeformat }}</p> 
                         <p>{{event.location|e}}</p>
                         <p style="margin-top:10px">{{event.description|e}}</p>
                       </br>
