@@ -860,9 +860,17 @@ def edit_event():
         imageName = data.get('imageName')
 
         if event_image:
-            if event_image.startswith("data"): #if starts with http do nothing, image already exists
+            if event_image.startswith("data"): #if starts with http do nothing, image already exists in db
                 #decode Base64 
+
+                existing_image = db.session.scalars(select(EventImage).filter_by(eventID=event_id)).first()
+
+                #delete old img from database
+                if (existing_image):
+                    db.session.delete(existing_image)
+                    db.session.commit()
                 
+
                 image_data = event_image.split(",")[1]  # remove "data:image/png;base64,"
                 image_binary = base64.b64decode(image_data)
 
