@@ -44,7 +44,7 @@ import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = '4a0a3f65e0186d76a7cef61dd1a4ee7b'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')  
 
 app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
 app.config['UPLOAD_PATH'] = 'uploads'
