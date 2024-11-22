@@ -142,7 +142,6 @@
             <nav>
               <ul id = "mini_nav">
                 <li><a href="#" onclick="showGallery()">Gallery</a></li>
-                <li><a href="#" onclick="showBadges()">Badges</a></li>
                 <li><a href="#" onclick="showCreatedEvents()">Created Events</a></li>
                 <li><a href="#" onclick="showSavedEvents()">Saved Events</a></li>
               </ul>
@@ -162,23 +161,7 @@
               {% endfor %}
               
             </div>
-            <div class="badges" id="badges">
-              <h3>My Badges</h3>
-              <div id="badge_holder">
-                {% for badge in badges %}
-                <div class="badge_img_details">
-                  <div class="badge_img_container">
-                    <img src="{{badge.image|e}}" alt="badge image" class="badge_image"/>
-                  </div>
-                    <span>
-                      <h4>{{badge.name|e}}</h4>
-                      <p>{{badge.description|e}}</p>
-                    </span>
-                </div>
-                {% endfor %}
-              </div>
-                
-            </div>
+          
             <div class="events" id="createdEvents"> 
               <div id="created_event_holder">
                 {% for event in createdEvents %}

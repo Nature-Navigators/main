@@ -480,7 +480,6 @@ def signup():
     return render_template("signup.html", form=form, alert_message=alert_message)
 
 
-# TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 @login_required
 def profile_id(profile_id):

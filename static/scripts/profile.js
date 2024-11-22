@@ -26,7 +26,6 @@ function hideProfilePopup() {
 
 function showGallery() {
     document.getElementById('gallery').style.display = 'grid';
-    document.getElementById('badges').style.display = 'none';
     document.getElementById('createdEvents').style.display = 'none';
     document.getElementById('savedEvents').style.display = 'none';
 
@@ -34,32 +33,21 @@ function showGallery() {
   }
 
 
-function showBadges() {
-    document.getElementById('badges').style.display = 'block';
-    document.getElementById('gallery').style.display = 'none';
-    document.getElementById('createdEvents').style.display = 'none';
-    document.getElementById('savedEvents').style.display = 'none';
-
-
-    changeBoldedNav(1);
-}
 
 function showCreatedEvents() {
     document.getElementById('createdEvents').style.display = 'block';
     document.getElementById('savedEvents').style.display = 'none';
     document.getElementById('gallery').style.display = 'none';
-    document.getElementById('badges').style.display = 'none';
 
-    changeBoldedNav(2);
+    changeBoldedNav(1);
 }
 
 function showSavedEvents() {
     document.getElementById('savedEvents').style.display = 'block';
     document.getElementById('createdEvents').style.display = 'none';
     document.getElementById('gallery').style.display = 'none';
-    document.getElementById('badges').style.display = 'none';
 
-    changeBoldedNav(3);
+    changeBoldedNav(2);
 }
 
 function showPostPopup() {
