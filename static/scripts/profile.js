@@ -262,23 +262,8 @@ function handleFavoriteClick(event) {
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("image-input");
 
-dropZone.addEventListener("click", (e) => {
-    const image = e.target;
-    e.stopPropagation();
-
-    if (e.target === dropZone && !fileSelected) {
-        e.preventDefault();
-        fileInput.click();
-    } 
-
-    if (fileInput.value && fileSelected) {
-        e.preventDefault();
-    }
-
-    if (image && image.tagName.toLowerCase() === 'img') {
-        e.preventDefault();
-        fileInput.click();
-    }
+dropZone.addEventListener("click", () => {
+    fileInput.click();
 });
 
 dropZone.addEventListener("dragover", (e) => {
@@ -298,9 +283,19 @@ dropZone.addEventListener("drop", (e) => {
 });
 
 fileInput.addEventListener("change", (e) => {
-    e.preventDefault();
     const files = e.target.files;
+    //console.log("File input changed, selected files:", files); //delete
     handleFiles(files);
+});
+
+const closeModal = document.getElementById('closeModal');
+
+// Close modal when clicking close
+closeModal.addEventListener('click', () => {
+    hideEditEventPopup();
+    if (fileInput) {
+        fileInput.value = ""; // Reset the file input
+    }
 });
 
 //if click outside modal
@@ -308,6 +303,9 @@ const modal = document.getElementById('editModal');
 window.addEventListener('click', (event) => {
     if (event.target === modal) {
         hideEditEventPopup();
+        if (fileInput) {
+            fileInput.value = ""; // Reset the file input
+        }
     }
 });
 
@@ -325,7 +323,6 @@ function handleFiles(files) {
                 preview.id = "uploaded-image"
                 dropZone.innerHTML = ""; // clear drop zone
                 dropZone.appendChild(preview);
-                fileSelected = true;
             };
             reader.readAsDataURL(file);
         } else {
