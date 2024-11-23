@@ -1,3 +1,5 @@
+# Contains all the necessary database models
+
 from db import db
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
@@ -11,15 +13,6 @@ from sqlalchemy_serializer import SerializerMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from sqlalchemy import ForeignKey
 from sqlalchemy import Float
-
-
-# many-to-many association table connecting event & user
-# savedBy = db.Table(
-#     "savedBy",
-#     db.Model.metadata,
-#     db.Column("userID", db.ForeignKey("user_table.userID"), primary_key=True),
-#     db.Column("eventID", db.ForeignKey("event_table.eventID"), primary_key=True)
-# )
 
 
 class Base(SerializerMixin, DeclarativeBase):
@@ -49,8 +42,7 @@ class User(Base, UserMixin):
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
     # prevent recursion
-    serialize_rules = ('-posts.user.posts', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following.followedBy', '-followedBy.following')
-    #serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-savedEvents', '-createdEvents', '-following', '-followedBy')
+    serialize_rules = ('-posts.user.posts', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following', '-followedBy')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -60,7 +52,6 @@ class User(Base, UserMixin):
     posts:Mapped[List["Post"]] = relationship('Post', back_populates='user', lazy='selectin') # m
     comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
     createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
-    #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
     savedEvents = db.relationship('Favorite', back_populates='user', lazy='selectin') 
     profileImage:Mapped["ProfileImage"] = relationship(back_populates='user', lazy='selectin')
     
@@ -127,7 +118,6 @@ class Post(Base, UserMixin):
     locationID:Mapped[str] = mapped_column(nullable=False, default="unknown location")
     datePosted:Mapped[datetime.datetime] = mapped_column(nullable=True)
     serialize_rules = ('-images.post',)
-    # relationships + foreign keys
     userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
     user:Mapped["User"] = relationship('User', back_populates='posts', lazy='joined') # o
     comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
@@ -147,20 +137,6 @@ class Post(Base, UserMixin):
             'images': [image.serialize for image in self.images]
         }
 
-# class Comment(db.Model):
-#     __tablename__ = "comment_table"
-#     dateCommented = db.Column(db.DateTime(timezone=True))
-#     text = db.Column(db.String(256))
-
-#     # relationships + foreign keys
-#     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"), primary_key=True)
-#     postID = db.Column(db.Uuid, db.ForeignKey("post_table.postID"), primary_key=True)
-
-#     user = db.relationship('User', back_populates='comments', lazy='joined') # o
-#     post = db.relationship('Post', back_populates='comments', lazy='joined') # o
-
-
-
 class Event(Base):
     __tablename__ = "event_table"
     eventID = db.Column(db.Uuid, primary_key=True)
@@ -174,12 +150,10 @@ class Event(Base):
     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
 
     creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
-    #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
     favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
 
     serialize_rules = ('-creator', '-favorited_by', '-images')
 
-    #images = db.relationship("Image",secondary="eventimage_table",backref="events",lazy="selectin" )
     images: Mapped[List["EventImage"]] = relationship(back_populates='event', cascade="all, delete", passive_deletes=True)
 
     def to_dict(self):
@@ -241,19 +215,6 @@ class Image(Base):
         "polymorphic_on": "type"
     }
 
-
-#class EventImage(Base):
-#    __tablename__ = "eventimage_table"
-#    id = db.Column(db.Integer, primary_key=True)
-#    eventID = db.Column(db.Uuid, db.ForeignKey("event_table.eventID"), nullable=False)
-#    imageID = db.Column(db.Uuid, db.ForeignKey("image_table.imageID"), nullable=False)
-#
-#    event = db.relationship("Event", backref="event_images", lazy="joined")
-#    image = db.relationship("Image", lazy="joined")
-#
-#    __table_args__ = (
-#        db.UniqueConstraint("eventID", "imageID", name="unique_event_image_pair"),
-#)
 
 class EventImage(Image):
     __tablename__ = "eventimage_table"

@@ -15,7 +15,7 @@ profileButton.addEventListener("click", () => {
 })
 
 
-// ======================================== FUNCTIONS =================================================
+// ======================================== HIDE / SHOW FUNCTIONS =================================================
 
 
 function hideProfilePopup() {
@@ -138,24 +138,6 @@ function cleanJsonString(stringToClean)
     return returnStr;
 }
 
-//TODO: DELETE ME (replaced by showDatabasePost)
-function showSocialPost(postString) {
-
-    if(postString != null && postString != "")
-    {
-        let postJson = JSON.parse(postString);
-
-        //adjust the post popup's DOM 
-        document.getElementById("post_image").src = postJson["image"];
-        document.getElementById("post_likes").innerText = postJson["likes"] + " likes";
-        document.getElementById("post_content").innerText = postJson["content"];
-
-        //make it visible
-        document.getElementById("post_popup").style.visibility = 'visible';
-        grayOut(true);
-    
-    }
-}
 
 window.onload = rebindFavoriteIcons()
 window.onload = setupEditModal()
@@ -244,8 +226,6 @@ function handleFavoriteClick(event) {
     }
 }
 
-
-
 //for drag drop image
 const dropZone = document.getElementById("drop-zone");
 const fileInput = document.getElementById("image-input");
@@ -327,7 +307,6 @@ function clearImagePreview() {
                             <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">`;
 }
 
-
 function handleEditClick(event) {
     const button = event.target;
     const eventID = button.getAttribute('EventID'); 
@@ -364,8 +343,6 @@ function handleEditClick(event) {
     showEventModal(); //display modal with event data
 }
 
-
-
 function handleDeleteClick(event) {
     const button = event.target;
     const eventID = button.getAttribute('EventID'); 
@@ -398,28 +375,6 @@ function hideSocialPost() {
 
 }
 
-/*
-function showEventPopup(eventString)
-{
-    if(eventString != null && eventString != "")
-    {
-        let eventJson = JSON.parse(eventString);
-        //adjust the post popup's DOM 
-     
-        //make it visible
-        document.getElementById("event_popup").style.visibility = 'visible';
-        grayOut(true);
-    
-    }
-}
-function hideEventPopup()
-{
-    document.getElementById("event_popup").style.visibility = 'hidden';
-    grayOut(false);
-
-}
-    */
-
 function showFollowerPopup()
 {
     document.getElementById("follower_popup").style.visibility = 'visible';
@@ -433,6 +388,7 @@ function hideFollowerPopup() {
 }
 
 
+// determines if the background of the screen should be darker (for popups to "pop" visually)
 function grayOut(shouldGray)
 {
     if(shouldGray)
@@ -450,6 +406,7 @@ function grayOut(shouldGray)
     }
 }
 
+// determines which header (e.g., "Saved Events," "Created Events") should be bolded
 function changeBoldedNav(boldIndex)
 {
     let column = document.getElementById('mini_nav');
@@ -514,8 +471,6 @@ locationInput.addEventListener('input', () => {
             .catch(error => console.error('Error fetching cities:', error));
     }, 50);
 });
-
-
 
 function setupEditModal(){
     const editForm = document.getElementById('editForm');

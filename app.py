@@ -7,9 +7,7 @@ import random
 import folium
 import os
 import xyzservices.providers as xyz #Can use this to change map type
-from temp_data import *
 from urllib.parse import quote
-# from markupsafe import Markup
 from sqlalchemy.exc import IntegrityError
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -43,8 +41,10 @@ import base64
 import os
 from dotenv import load_dotenv
 
+# load environment vars
 load_dotenv()
 
+# config app
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') 
@@ -66,8 +66,9 @@ random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacan
                 'Keel-billed Toucan', 'Long-tailed Broadbill', 'Large-billed Crow', 'Stork-billed Kingfisher',
                 'Forest Wagtail']
 
-
+# init database
 db.init_app(app)
+
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 
@@ -78,6 +79,7 @@ geolocator = Nominatim(user_agent="event_locator")
 
 migrate = Migrate(app, db)
 
+# create database
 with app.app_context():
     db.create_all()
 
@@ -154,9 +156,9 @@ class ResetPasswordForm(FlaskForm):
                                      validators=[InputRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
 
+# route to the landing page
 @app.route('/')
 def index():
-    # return render_template("index.html")
     bird_name = random.choice(random_birds)
     return render_template('index.html', bird_name=bird_name)
 
@@ -336,7 +338,6 @@ def formatBirdName(bird_name):
 
     return formatted_name
 
-
 async def getWikipediaImage(bird_name):
 
     formatted_bird_name = bird_name
@@ -482,7 +483,7 @@ def signup():
 
     return render_template("signup.html", form=form, alert_message=alert_message)
 
-
+# routes to a profile page as /profile/username
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 @login_required
 def profile_id(profile_id):
@@ -490,6 +491,7 @@ def profile_id(profile_id):
     current_profile = None
     selected_id = None
     
+    # attempt to get the user object from the database by searching for the username (which is unique)
     try:
         selected_id = db.session.scalars(select(User.userID).where(User.username == profile_id)).first()
         if selected_id != None:
@@ -501,6 +503,7 @@ def profile_id(profile_id):
     # POST happens on "edit profile" submit
     if request.method == 'POST' and "edit_profile_name" in request.form:
         
+        # grab data from the form
         new_name = request.form["edit_profile_name"]
         last_name = request.form["edit_profile_last_name"]
         pronouns = request.form["pronouns"]
@@ -508,9 +511,10 @@ def profile_id(profile_id):
         image = request.files["image_file_bytes"]
 
         try:
-            # try to get the current profile from the DB based on username
+            # if the user exists & is the one logged in
             if selected_id != None and selected_id == current_user.userID:
 
+                # update anything that's changed                
                 if current_profile.firstName != new_name:
                     current_profile.firstName = new_name
 
@@ -547,10 +551,12 @@ def profile_id(profile_id):
                             return redirect(profile_id)
 
                 db.session.commit()
-                #print(db.session.scalars(select(Image.name)).all())
                 return redirect(profile_id)
+            
+            # user either doesn't exist or is not the one logged in
             else:
                 return redirect(profile_id)
+            
         #any additional errors
         except Exception as error:
             print(error)
@@ -558,6 +564,8 @@ def profile_id(profile_id):
 
     # POST happens on Add Photo submit button
     elif request.method == 'POST' and "add_photo_caption" in request.form:
+
+        # get data from the form
         bird_id = request.form.get('add_bird_id')
         location_id = request.form.get('add_location')
         new_caption = request.form.get('add_photo_caption')
@@ -595,8 +603,8 @@ def profile_id(profile_id):
 
             # the user didn't exist
             else:
-                #TODO: post failed is a pop up
-                return "User does not exist or user is not the one logged in; Posting image failed"
+                flash("Posting image failed", category="error")
+                return redirect(profile_id)
         
         #any additional errors
         except Exception as error:
@@ -651,7 +659,7 @@ def profile_id(profile_id):
 
         return redirect(profile_id)
 
-    # page is loaded normally
+    # page is loaded normally / no POST requests
     else:
 
         if selected_id != None:
@@ -670,9 +678,7 @@ def profile_id(profile_id):
                     }
                     for event in createdEvents
                 ] 
-                print(f"createdEvents:")
-                print(createdEvents)
-
+                
                 #get fav eventIDs
                 savedEventIDs = db.session.scalars(
                     select(Favorite.eventID).where(Favorite.userID == current_user.userID)
@@ -691,9 +697,8 @@ def profile_id(profile_id):
                     for event in savedEvents
                 ]
 
-                #posts = []
                 posts = user.to_dict()['posts']
-                #print(user.to_dict())
+
             except Exception as error:
                 print(traceback.format_exc())
                 return "Recursion error encountered"
@@ -701,7 +706,6 @@ def profile_id(profile_id):
             logged_in = current_user.username == profile_id  #if the logged_in user is viewing their own profile
             is_following = current_user.userID != selected_id and current_user in current_profile.followedBy
             context = {
-                "socialPosts": socialPosts,
                 "createdEvents": createdEvents,
                 "savedEvents": savedEvents,
                 "id" : profile_id,
@@ -730,9 +734,9 @@ def profile():
     return redirect(profile_path)
 
 
+# converts datetime to string
 @app.template_filter('datetimeformat')
 def datetimeformat(value):
-    #print(value)
     parsed_date = datetime.strptime(value, '%Y-%m-%d %H:%M')
     return parsed_date.strftime("%B %d, %Y at %I:%M %p")
 
@@ -750,14 +754,10 @@ def get_coordinates(city_state):
 @app.route('/create_event', methods=['POST', 'GET'])
 def create_event():
 
-    #print(f"user id: ")
-    #print(current_user.userID)
-
     if not current_user.is_authenticated: #identify loggedin/loggedout users 
         print(f"Not logged in")
         return jsonify({'error': 'Event not created, user not logged in'}), 401
     
-    #print(f"logged in!")
     print(f"user id: ")
     print(current_user.userID)
 
@@ -1023,6 +1023,7 @@ def social_location():
 @app.route('/social', methods=["GET","POST"])
 def social():   
 
+    # global variable that controls whether the "following only" toggle is on or ont
     if session.get('shouldOnlyFollowers') == None:
         session['shouldOnlyFollowers'] = True
 
@@ -1031,11 +1032,10 @@ def social():
     posts = []
     shouldFillPosts = True # False only on searching
 
-    # hit enter on the search bar
+    # user hit enter on the search bar
     if request.method == 'POST' and "usernameSearch" in request.form:
         text = request.form["usernameSearch"]
 
-        #TODO: LIKE (edit distance) instead of exact matches
         text = text.lower()
         if text != '':
             result = None
@@ -1134,9 +1134,10 @@ def social():
 
     return render_template('social.html', **context)
 
+# make a string into a datetime
 @app.template_filter()
 def format_datetime(value, format='medium'):
-    #print(value)
+
     convertedStr = datetime.strptime(value, '%Y-%m-%d %H:%M:%S') 
     if format == 'full':
         format="EEEE, d. MMMM y 'at' h:mm a"
@@ -1153,6 +1154,7 @@ def get_map_html():
     m = folium.Map(location=[37.7749, -122.4194], zoom_start=13)  # Example starting location
     return m._repr_html_()
 
+# used for getting uploaded images from the database via url_for
 @app.route('/uploads/<path:filename>')
 def download_file(filename):
     return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)

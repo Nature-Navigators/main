@@ -3,7 +3,7 @@ import uuid
 import imghdr
 from werkzeug.utils import secure_filename
 from sqlalchemy import select
-from db_models import db, User, Post, Event, Favorite, Image, PostImage
+from db_models import db, Image
 import os
 
 # determines what type of image format is given based on byte stream
@@ -15,7 +15,7 @@ def validate_image(stream):
         return None
     return "." + (format if format != "jpeg" else "jpg")
 
-
+# makes sure there's no duplicates
 def clean_image_filename(image):
     #handle the image upload
     filename = secure_filename(image.filename)
@@ -33,6 +33,7 @@ def clean_image_filename(image):
     filename = secure_filename(image.filename)
     return filename
 
+# uploading an image file into the database
 def upload_image(filename, image, config):
     file_ext = os.path.splitext(filename)[1]
 

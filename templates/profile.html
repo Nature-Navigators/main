@@ -1,3 +1,4 @@
+<!-- PROFILE PAGE -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,6 +94,7 @@
               </div>
             {% endif %}
             
+            <!-- USER NAME & BIO -->
             {% if user.firstName != None and user.lastName != None %}
               <h2 id="name">{{user.firstName|e}} {{user.lastName|e}}</h2>
             {% elif user.firstName != None and user.lastName == None %}
@@ -138,6 +140,8 @@
               </p>
             </div>
           </div>
+
+          <!-- RIGHT SIDE -->
           <div class="right_column">
             <nav>
               <ul id = "mini_nav">
@@ -149,6 +153,8 @@
               <button id="addPhoto" onclick="showPostPopup()">Add Photo</button>
             {% endif %}
             </nav>
+
+            <!-- GALLERY -->
             <div class="photos" id="gallery">
               <!-- the tojson and e filter automatically sanitizes any dangerous code -->
               {% for post in userPosts %}
@@ -162,6 +168,7 @@
               
             </div>
           
+            <!-- CREATED EVENTS -->
             <div class="events" id="createdEvents"> 
               <div id="created_event_holder">
                 {% for event in createdEvents %}
@@ -190,6 +197,7 @@
               
             </div>
 
+            <!-- SAVED EVENTS -->
             <div class="events" id="savedEvents"> 
               <div id="saved_event_holder">
                 {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
@@ -311,6 +319,7 @@
         </div>
         {% endif %}
 
+        <!-- Additional HTML popup files -->
         {% include "post_popup.html" with context %}
 
         {% include "event_popup.html" with context %}
