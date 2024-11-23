@@ -41,10 +41,13 @@ from folium.plugins import Search
 from folium.plugins import Geocoder
 import base64
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = os.environ['SECRET_KEY']  
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') 
 
 app.config['UPLOAD_EXTENSIONS'] = ['.jpg', '.png', '.webp', '.gif']
 app.config['UPLOAD_PATH'] = 'uploads'
@@ -52,8 +55,8 @@ app.logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
-EBIRD_API_KEY = os.environ['EBIRD_API_KEY']
-GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
+EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 
 random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 
                 'Black-necked Stilt', 'Red-crested Cardinal', 'Black Noddy', 'Red Avadavat',
@@ -1288,4 +1291,4 @@ def search_by_bird():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
