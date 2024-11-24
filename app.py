@@ -58,6 +58,7 @@ EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent'
 EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 
+# Below array contains hardcoded birds from which a random bird is chosen for the "Wing it" page
 random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 
                 'Black-necked Stilt', 'Red-crested Cardinal', 'Black Noddy', 'Red Avadavat',
                 'Lesser Yellowlegs', 'Rosy-faced Lovebird', 'Eastern Rosella', 'Masked Lapwing',
@@ -156,12 +157,14 @@ class ResetPasswordForm(FlaskForm):
                                      validators=[InputRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
 
-# route to the landing page
+# This route serves the homepage
+# It randomly selects a bird name from a list and renders the 'index.html' template
 @app.route('/')
 def index():
     bird_name = random.choice(random_birds)
     return render_template('index.html', bird_name=bird_name)
 
+# This route serves the map page and passes API keys for Google Maps and eBird to the front end
 @app.route('/map')
 def map():
     return render_template(
@@ -170,7 +173,8 @@ def map():
         ebird_api_key=EBIRD_API_KEY 
     )
 
-
+# Function that receives POST request from front end with location data
+# Retrieves nearby birds from eBird API and renders map
 @app.route('/update_location', methods=['POST'])
 async def update_location():
 
@@ -179,8 +183,9 @@ async def update_location():
     longitude = data['longitude']
     bird_data = []
     
-    birds_near_user = await getRecentBirds(latitude, longitude)
+    birds_near_user = await getRecentBirds(latitude, longitude) # Fetch recent bird sightings near specifies location
 
+    # Initialize folium map with user location, radius circle, full screen plugins
     m = folium.Map(location=[latitude, longitude], zoom_start=11)
     folium.Marker([latitude, longitude], tooltip='Your Location').add_to(m)
 
@@ -199,13 +204,15 @@ async def update_location():
     force_separate_button=True,
     ).add_to(m)
 
+    # Fetch images for each bird sighting from Wikipedia asynchronously
     tasks = []
     for bird in birds_near_user:
         bird_name = bird.get('comName')
         formatted_bird_name = formatBirdName(bird_name)
         tasks.append(getWikipediaImage(formatted_bird_name))
-    image_urls = await asyncio.gather(*tasks)
+    image_urls = await asyncio.gather(*tasks) # wait for all Wikipedia image fetch tasks to complete
 
+    # For each bird sighting add marker on map with a popup containing bird's information
     for i, bird in enumerate(birds_near_user):
         bird_name = bird.get('comName')
         bird_lat = bird.get('lat')
@@ -222,6 +229,7 @@ async def update_location():
             'url': f'/bird/{quote(bird_name)}'
         })
 
+        # content for the popup (link to more details and bird image)
         popup_content = f'''
         <a href="{bird_url}" target="_blank" style="display:block; width:100%; height:100%;">
             <b>{bird_name}</b> - Click for more details
@@ -230,7 +238,7 @@ async def update_location():
             width="{150 if not image_urls[i] else 200}" />
         '''
 
-        folium.Marker(
+        folium.Marker( # add marker to map
             location=[bird_lat, bird_long],
             tooltip=bird_name,
             icon=folium.Icon(color='orange'),
@@ -238,11 +246,12 @@ async def update_location():
             lazy=True
         ).add_to(m)
     
-    map_html = m._repr_html_()
+    map_html = m._repr_html_() # get html of map
 
     return jsonify(mapHtml=map_html, birdData=bird_data)
 
-def calculate_distance(lat1, lon1, lat2, lon2):
+# Helper function that takes in two coordinates and calculates distance between them in miles
+def calculate_distance(lat1, lon1, lat2, lon2): 
     #earth radius
     R = 3958.8
 
@@ -263,6 +272,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     distance = R * c
     return distance
 
+# This route allows the frontend to update map with bird sightings for the "All recent sightings" feature
 @app.route('/update_map_with_bird_sightings', methods=['POST'])
 def update_map_with_bird_sightings():
     data = request.get_json()
@@ -271,8 +281,8 @@ def update_map_with_bird_sightings():
     user_latitude = data['latitude']
     user_longitude = data['longitude']
 
+    # folium marker with user location, full screen plugin, and radis circle
     m = folium.Map(location=[user_latitude, user_longitude], zoom_start=11)
-
     folium.Marker([user_latitude, user_longitude], popup="Your Location").add_to(m)
 
     folium.plugins.Fullscreen(
@@ -295,6 +305,7 @@ def update_map_with_bird_sightings():
         bird_lng = sighting['lng']
         bird_name = sighting['comName']
 
+        # uses haversine formula for distance display in icon popup
         distance = calculate_distance(user_latitude, user_longitude, bird_lat, bird_lng)
         popup_text = f"<b>{bird_name}</b><br>Spotted {distance:.2f} miles from you"
         
@@ -309,6 +320,7 @@ def update_map_with_bird_sightings():
 
     return jsonify({'mapHtml': map_html})
 
+# Helper function that connects to eBird and gets recent bird sightings for a specified location
 async def getRecentBirds(latitude, longitude):
     headers = {
         'X-eBirdApiToken': EBIRD_API_KEY
@@ -318,14 +330,16 @@ async def getRecentBirds(latitude, longitude):
         'lng': longitude,
         'dist': 30  # Distance in km for observations
     }
-    
+
+    # Use aiohttp to asynchronously send a GET request to eBird API, used for speed optimization
     async with aiohttp.ClientSession() as session:
         async with session.get(EBIRD_API_RECENT_BIRDS_URL, headers=headers, params=params) as response:
             if response.status == 200:
                 return await response.json()
             else:
                 return []
-    
+
+# Helper function to format bird names to a specific format for compatibility with Wikipedia API   
 def formatBirdName(bird_name):
     bird_name = bird_name.replace(' ', '_')
 
@@ -814,7 +828,7 @@ def create_event():
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
 
-#get event details to display in editModal
+# get event details to display in editModal
 @app.route('/get_event_details/<eventID>', methods=['GET'])
 def get_event_details(eventID):
     event_id = uuid.UUID(eventID)
