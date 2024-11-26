@@ -10,37 +10,43 @@
 </head>
 
 <body class="signup">
+    <!-- Logo section -->
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
         <h1>Featherly</h1>
     </div>
+    <!-- Navigation icons -->
     <nav class="nav-icons">
         <a href="/" title="Home"><i class="fas fa-home"></i></a>
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
         <a href="/social" title="Social Media"><i class="fa-solid fa-users"></i></a>
     </nav>
+    <!-- Main container -->
     <div class="container">
         <div class="form-container">
             <div class="form-box">
+                <!-- Form header -->
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
-
+                <!-- Reset password form -->
                 <form id="signin-form" method="POST" action="">
                     {{ form.hidden_tag() }}
                     {{ form.password(placeholder="Enter New Password") }}
                     {{ form.confirm_password(placeholder="Confirm New Password") }}
-
+                    <!-- Submit button -->
                     <button id="button">Reset Password</button>
                     <script>
                         document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
+                    <!-- Error handling -->
                     {% if form.errors %}
                     <script>
                         alert("{{' Invalid or expired token.' if 'invalid' in form.errors else '' }}{{ 'Passwords do not match.' if 'password' in form.errors else '' }}{{ 'Invalid password.' if 'password' in form.errors else form.errors }}");
                     </script>
                     {% endif %}
+                    <!-- Additional links -->
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="">Forgot password?</a></p>
                 </form>
