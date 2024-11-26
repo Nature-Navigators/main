@@ -1,15 +1,18 @@
+/* General body styling */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #f6f7f8;
 }
 
+/* Container for the main layout */
 .container {
     display: flex;
-    flex-direction: row;
+    flex-direction: row; /* Flex direction changed to fix feed being skewed to the right */
     padding: 0px;
 }
 
+/* Sidebar styling */
 .sidebar {
     flex-basis: 30%;
     background-color: white;
@@ -18,12 +21,13 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 70px;
-    right:0px;
-    max-width:20%;
+    right: 0px;
+    max-width: 20%;
     height: 90vh;
     overflow: scroll;
 }
 
+/* Content area styling */
 .content {
     flex-basis: 80%;
     background-color: rgb(255, 255, 255);
@@ -31,26 +35,27 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Main feed styling */
 .mainFeed {
     margin-top: 80px;
     height: 90vh;
     width: 80%;
     box-sizing: border-box;
-    display:relative;
+    display: relative;
 }
 
-
-
+/* Post failed message styling */
 #postFailed {
     color: gray;
     text-align: center;
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content:center;
+    justify-content: center;
     align-items: center;
 }
 
+/* Individual post styling */
 .post {
     border-bottom: 1px solid #e6e6e6;
     padding: 10px 0;
@@ -62,30 +67,29 @@ body {
     font-size: medium;
 }
 
-
+/* Profile picture container styling */
 .profile_pic_container {
-    width:2.5em;
-    height:2.5em;
+    width: 2.5em;
+    height: 2.5em;
     min-width: 2.5em;
-    border-radius:50%;
-    overflow:hidden;
-    box-sizing:border-box;
-    padding:0;
+    border-radius: 50%;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 0;
     margin-right: 0.5em;
-
     display: inline-block;
 }
- .profile_pic_container img {
-    width: 100%;
-    
-    height:100%;
-    padding:0;
-    margin:0;
-    display:inline;
-    object-fit: cover;
 
+.profile_pic_container img {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: inline;
+    object-fit: cover;
 }
 
+/* Post header styling */
 .post-header {
     display: flex;
     justify-content: flex-start;
@@ -93,12 +97,10 @@ body {
     background-color: white;
     font-size: 14px;
     color: #333;
-    width: 100%; 
-    max-width: 97%; 
-    height:4.5em;
+    width: 100%;
+    max-width: 97%;
+    height: 4.5em;
     padding: 0.5em;
-    
-
 }
 
 .post-header a {
@@ -106,6 +108,7 @@ body {
     text-decoration: none;
 }
 
+/* Profile info styling */
 .profile-info {
     display: flex;
     align-items: center;
@@ -131,14 +134,16 @@ body {
     white-space: nowrap;
 }
 
+/* Post image styling */
 .post img {
     width: 100%;
     display: block;
     margin-bottom: 10px;
 }
 
+/* Text and icons styling */
 .text-and-icons {
-    margin-bottom: 10px; 
+    margin-bottom: 10px;
 }
 
 .likes-and-icons {
@@ -174,6 +179,7 @@ p {
     opacity: 0.7;
 }
 
+/* Comment section styling */
 .comment-section {
     padding: 15px;
     background-color: #f9f9f9;
@@ -223,6 +229,7 @@ p {
     text-decoration: none;
 }
 
+/* Events list styling */
 .events-list {
     list-style-type: none;
     padding: 0;
@@ -238,16 +245,17 @@ p {
 
 .event-image-container {
     position: relative;
-    height:160px;
+    height: 160px;
     border-radius: 5px;
     overflow: hidden;
 }
 
 .event-image {
-    max-width: 100%;  
+    max-width: 100%;
     height: auto;
 }
 
+/* Favorite icon styling */
 .favorite-icon {
     background-size: cover;
     cursor: pointer;
@@ -257,15 +265,12 @@ p {
     float: right;
 }
 
-/* Red heart  */
+/* Red heart when favorited */
 .favorite-icon.favorited {
     background-image: url('../images/filled-heart.png');
 }
 
-
-/* ================================ EVENT =======================================*/
-
-
+/* Event details styling */
 .event-details {
     padding-top: 10px;
 }
@@ -284,7 +289,7 @@ p {
     color: #555;
 }
 
-
+/* Create event button styling */
 .create-event-button {
     background: none;
     border: none;
@@ -322,29 +327,28 @@ p {
     cursor: pointer;
 }
 
-.events-headline{
-    width:100%;
-    height:max-content;
+/* Events headline styling */
+.events-headline {
+    width: 100%;
+    height: max-content;
     display: flex;
 }
 
-.events-headline p{
+.events-headline p {
     flex-basis: 92%;
-    padding:2px;
-    padding-left:0px;
+    padding: 2px;
+    padding-left: 0px;
     margin-bottom: 20px;
     font-size: 18px;
 }
 
-#createEventBtn{
-    width:max-content;
-    height:max-content;
+#createEventBtn {
+    width: max-content;
+    height: max-content;
     flex-basis: 8%;
 }
 
-
-/* ================================== NAVBAR ====================================== */
-
+/* Navbar styling */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -354,13 +358,13 @@ p {
 
 .navbar-left {
     display: flex;
-    gap: 10px; 
+    gap: 10px;
 }
 
 .beige-search-bar {
     display: flex;
     align-items: center;
-    background-color: #ffffff; 
+    background-color: #ffffff;
     border-radius: 20px;
     padding: 5px 10px;
     width: 250px;
@@ -384,7 +388,7 @@ p {
 .light-red-search-bar {
     display: flex;
     align-items: center;
-    background-color: #ffffff; 
+    background-color: #ffffff;
     border-radius: 20px;
     padding: 5px 10px;
     width: 250px;
@@ -428,16 +432,16 @@ p {
     cursor: pointer;
 }
 
+/* Header container styling */
 .header-container {
     position: fixed;
-    top:0;
+    top: 0;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 20px;
-    box-sizing:border-box;
-    /* background-color: #8bd7da; */
+    box-sizing: border-box;
     background-color: #499ec9;
 }
 
@@ -483,10 +487,9 @@ p {
     color: #ddd;
 }
 
-/* ======================== TOGGLE SWITCH (some from w3 schools) =============================== */
-
+/* Toggle switch styling */
 .follower-toggle {
-    display:flex;
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-right: 20px;
@@ -499,26 +502,26 @@ p {
 .follower-toggle p {
     margin-right: 0.5em;
     color: rgb(73, 73, 73);
-    font-size:14px;
+    font-size: 14px;
 }
 
- /* The switch - the box around the slider */
- .switch {
+/* The switch - the box around the slider */
+.switch {
     position: relative;
     display: inline-block;
     width: 60px;
     height: 34px;
-  }
-  
-  /* Hide default HTML checkbox */
-  .switch input {
+}
+
+/* Hide default HTML checkbox */
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
-  }
-  
-  /* The slider */
-  .slider {
+}
+
+/* The slider */
+.slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -528,9 +531,9 @@ p {
     background-color: #b5b8c6;
     -webkit-transition: .4s;
     transition: .4s;
-  }
-  
-  .slider:before {
+}
+
+.slider:before {
     position: absolute;
     content: "";
     height: 26px;
@@ -540,31 +543,32 @@ p {
     background-color: white;
     -webkit-transition: .4s;
     transition: .4s;
-  }
-  
-  input:checked + .slider {
+}
+
+input:checked + .slider {
     background-color: #74d1ff;
-  }
-  
-  input:focus + .slider {
+}
+
+input:focus + .slider {
     box-shadow: 0 0 1px #2196F3;
-  }
-  
-  input:checked + .slider:before {
+}
+
+input:checked + .slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
-  }
-  
-  /* Rounded sliders */
-  .slider.round {
-    border-radius: 34px;
-  }
-  
-  .slider.round:before {
-    border-radius: 50%;
-  }
+}
 
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Post image styling */
 .post-image {
-    object-fit: contain; 
+    object-fit: contain;
 }
