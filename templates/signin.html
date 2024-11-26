@@ -5,31 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Featherly - Sign In</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/authstyle.css')}}">
+\    <link rel="stylesheet" href="{{ url_for('static', filename='css/authstyle.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body class="signin">
+    <!-- Logo -->
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
         <h1>Featherly</h1>
     </div>
+    <!-- Navigation icons -->
     <nav class="nav-icons">
         <a href="/" title="Home"><i class="fas fa-home"></i></a>
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
         <a href="/social" title="Social Media"><i class="fa-solid fa-users"></i></a>
     </nav>
+    <!-- Main container -->
     <div class="container">
         <div class="form-container">
             <div class="form-box">
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
                 
-                    <form id="signin-form" method="POST" action="">
-                        {{ form.hidden_tag() }} 
-                        {{ form.email }}
-                        {{ form.username }}
-                        {{ form.password }}
+                <!-- Sign-in form -->
+                <form id="signin-form" method="POST" action="">
+                    {{ form.hidden_tag() }} 
+                    {{ form.email }}
+                    {{ form.username }}
+                    {{ form.password }}
                    
                     <button id="button">Sign In</button>
                     <script>
@@ -39,14 +43,14 @@
                     </script>
                     {% if form.errors %}
                     <script>
-                        //alert("{{ form.errors }}")
                         alert("{{  ' Invalid Username.' if 'username' in form.errors else '' }} \n {{ 'Invalid email.' if 'email' in form.errors else '' }} \n {{ 'Invalid password.' if 'password' in form.errors else '' }}");
                     </script>
                     {% endif %}
                     
+                    <!-- Links for sign up and password reset -->
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="/reset_request">Forgot password?</a></p>
-                    </form>
+                </form>
             </div>
         </div>
     </div>
