@@ -975,26 +975,6 @@ def unfavorite_event():
         return jsonify({'success': False, 'message': 'Event not found in favorites'})
 
 
-
-def haversine(lat1, lon1, lat2, lon2):
-    R = 3959.0
-    lat1 = radians(lat1)
-    lon1 = radians(lon1)
-    lat2 = radians(lat2)
-    lon2 = radians(lon2)
-
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-
-    #Haversine
-    #credit to https://medium.com/@manishsingh7163/calculating-distance-between-successive-latitude-longitude-coordinates-using-pandas-287c15bc5029
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    distance = R * c
-    return distance
-
-
 @app.route('/social_location', methods=['POST'])
 def social_location():
     data = request.get_json()
@@ -1024,11 +1004,14 @@ def social_location():
 
     #sort events by distance
     events_with_distance = [
-        (haversine(latitude, longitude, event.get('latitude'), event.get('longitude')), event)
+        (calculate_distance(latitude, longitude, event.get('latitude'), event.get('longitude')), event)
         for event in serialized_events
     ]
 
+    #x[0] holds the distance calculated, and the events are sorted according to it
     events_with_distance.sort(key=lambda x: x[0])
+
+    #extracts only event data to send to client
     sorted_events = [event for _, event in events_with_distance]
 
     return jsonify(sorted_events)
