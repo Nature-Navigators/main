@@ -147,18 +147,6 @@ class Post(Base, UserMixin):
             'images': [image.serialize for image in self.images]
         }
 
-# class Comment(db.Model):
-#     __tablename__ = "comment_table"
-#     dateCommented = db.Column(db.DateTime(timezone=True))
-#     text = db.Column(db.String(256))
-
-#     # relationships + foreign keys
-#     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"), primary_key=True)
-#     postID = db.Column(db.Uuid, db.ForeignKey("post_table.postID"), primary_key=True)
-
-#     user = db.relationship('User', back_populates='comments', lazy='joined') # o
-#     post = db.relationship('Post', back_populates='comments', lazy='joined') # o
-
 
 class Event(Base):
     __tablename__ = "event_table"
@@ -209,7 +197,7 @@ class Favorite(Base, db.Model):
 
     __table_args__ = (
         db.UniqueConstraint('userID', 'eventID', name='unique_user_event_pair'),
-    ) #ensure no duplicates
+    ) 
 
     def to_dict(self):
         return {}
@@ -221,7 +209,6 @@ class Favorite(Base, db.Model):
             'userID': str(self.userID),
             'eventID': str(self.eventID)
         }
-
 
 # base image class
 class Image(Base):
@@ -273,9 +260,11 @@ class PostLike(Base):
     userID = db.Column(db.Uuid, db.ForeignKey('user_table.userID'), nullable=False)
     postID = db.Column(db.Uuid, db.ForeignKey('post_table.postID'), nullable=False)
 
+    # relationships to User and Post for back references
     user = db.relationship('User', back_populates='liked_posts', lazy='joined')
     post = db.relationship('Post', back_populates='likes', lazy='joined')
 
+    # unique to prevent duplicates
     __table_args__ = (
         db.UniqueConstraint('userID', 'postID', name='unique_user_post_like'),
     )
