@@ -62,8 +62,8 @@ random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacan
                 'Forest Wagtail']
 
 db.init_app(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager()
+bcrypt = Bcrypt(app) # for password hashing
+login_manager = LoginManager() # to manage pages accessible only to logged in users
 
 login_manager.init_app(app)
 login_manager.login_view = "signin"
@@ -88,30 +88,43 @@ def load_user(user_id):
 def inject_user():
     return {'user': current_user}
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS']= True
-app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
-app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PW')
-mail = Mail(app)
+# configure flask-mail for sending emails
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  
+app.config['MAIL_PORT'] = 587  #  mail server port
+app.config['MAIL_USE_TLS'] = True  # TLS encryption
+# env varibles 
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')  
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PW')  
+mail = Mail(app)  # Initialize mail object with Flask app
 class SignUpForm(FlaskForm):
+    # Form fields for sign-up
+    # email, username, pw, confirm_pw mandatory fields
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Username"})
     password = PasswordField(validators=[InputRequired(), Length(min=1, max=200)], render_kw={"placeholder": "Password"})
     confirm_password = PasswordField(validators=[InputRequired(), Length(min=1, max=200), EqualTo('password')], render_kw={"placeholder": "Confirm_Password"})
     submit = SubmitField("Sign Up")
 
+    # Validation for username
+    # signing up requires unique username and email
     def validate_username(self, username):
+        # check if another account already exists with same username
+        # select user from db if their username matches the username entered in form
         exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
         if exists_user != None:
             raise ValidationError("Username already exists. Select a new username.")
 
+    # Validation for email
     def validate_email(self, email):
+        # select user if their email matches the email entered
+        # if user does exist raise validation error
         exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
         if exists_email != None:
             raise ValidationError("Email already exists. Use another email address.")
         
 class SignInForm(FlaskForm):
+    # Form fields for sign-in
+    # email, username, pw mandatory fields
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
     username = StringField(validators=[InputRequired(), Length(
         min=1, max=200)], render_kw={"placeholder":"Username"})
@@ -120,28 +133,41 @@ class SignInForm(FlaskForm):
     remember = BooleanField('Remember Me')
     submit = SubmitField("Login")     
 
+    # Validation for username
     def validate_username(self, username):
+        # select user if their username matches the username entered
         exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
         if exists_user == None:
             raise ValidationError("Username does not exist.")
     
+    # Validation for email
+
     def validate_email(self, email):
+        # select user if their email matches the email entered
+        # fetch from db
         exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
         if exists_email == None:
             raise ValidationError("Email does not exist.")
 
 class RequestResetForm(FlaskForm):
+    # Form fields for requesting password reset
+    # email required to request for reset pw
     email = StringField('Email', 
                         validators=[InputRequired(), Email()])
     submit = SubmitField('Request Password Reset')
 
+    # Validation for email
     def validate_email(self, email):
+        # select user if their email matches the email entered
         stmt = select(User).where(User.email == email.data)
+        # fetch user from the database
         exists_email = db.session.execute(stmt).scalars().first()
         if exists_email is None:
             raise ValidationError("Email not associated with any account, try signing up.")
         
 class ResetPasswordForm(FlaskForm):
+    # Form fields for resetting password
+    # pw required to reset pw
     password = PasswordField('Password', 
                              validators=[InputRequired()])
     confirm_password = PasswordField('Confirm Password', 
@@ -428,6 +454,218 @@ async def get_bird_info(bird_name):
 async def bird_page(bird_name):
     bird_data = await get_bird_info(bird_name)
     return render_template('bird.html', bird=bird_data)
+
+@app.route('/signin', methods=['GET','POST'])
+def signin():
+    # If the user is already authenticated, redirect them to their profile page
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    
+    # Create an instance of the sign-in form
+    form = SignInForm()
+    
+    # Check if the form is submitted and validated
+    if form.validate_on_submit():
+        # Query the database to find the user by username and email
+        found_id = db.session.scalars(select(User.userID).where(User.username == form.username.data, User.email == form.email.data)).first()
+        
+        # If the user is found
+        if found_id != None:
+            user = db.session.get(User, found_id)
+            
+            # Check if the provided password matches the stored password
+            if not bcrypt.check_password_hash(user.password, form.password.data):
+                # If the password is incorrect, add an error message to the form
+                form.password.errors.append("Incorrect password.")
+            else:
+                # If the password is correct, log in the user and redirect to their profile
+                login_user(user, remember=True)
+                profile_route = 'profile/' + user.username
+                return redirect(profile_route)
+        else:
+            # If the user is not found, raise validation error
+            raise ValidationError("Invalid username or email. Try signing up or check the information entered")
+    
+    # Render sign-in template with the form
+    return render_template("signin.html", form=form)
+
+@app.route('/logout')
+def logout():
+    # Log out the current user
+    logout_user()
+    # Redirect to the index page
+    return redirect(url_for('index'))
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    # If the user is already authenticated, redirect them to their profile page
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    
+    # Create an instance of the sign-up form
+    form = SignUpForm()
+    alert_message = ""
+
+    # Check if the form is submitted and validated
+    if form.validate_on_submit():
+        # Hash the provided password
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        
+        # Create a new user instance
+        new_user = User(userID=uuid.uuid4(), email=form.email.data, username=form.username.data, password=hashed_passwd)
+        
+        try:
+            # Add the new user to the database and commit the transaction
+            db.session.add(new_user)
+            db.session.commit()
+            # Redirect to the sign-in page
+            return redirect(url_for('signin'))
+        except IntegrityError:
+            # If there is an integrity error (e.g., username already exists), rollback the transaction
+            db.session.rollback()
+            alert_message = "Username already exists. Select a new username."
+
+    # Render the sign-up template with the form and alert message
+    return render_template("signup.html", form=form, alert_message=alert_message)
+
+def send_email(user):
+    try:
+        # Generate a password reset token for the user
+        token = user.get_reset_token()
+        # print(f"Generated token: {token}") 
+        
+        # Create a new email message
+        msg = Message('Password Reset Request', sender='noreply@featherly.com', recipients=[user.email])
+        msg.body = f'''To reset your password, click the following link:
+{url_for('reset_token', token=token, _external=True)}
+
+If you did not make this request, ignore this email
+'''
+        # Send the email
+        mail.send(msg)
+        # print("Email sent successfully")  # Debugging statement
+    except Exception as e:
+        # Print any errors that occur while sending the email
+        raise ValidationError("Error sending email")
+
+@app.route('/reset_request', methods=['GET', 'POST'])
+def reset_request():
+    # If the user is already authenticated, redirect them to their profile page
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    
+    # Create an instance of the password reset request form
+    form = RequestResetForm()
+    
+    # Check if the form is submitted and validated
+    if form.validate_on_submit():
+        # Query the database to find the user by email
+        user = db.session.scalars(select(User).where(User.email == form.email.data)).first()
+        
+        # If the user is found, send a password reset email
+        if user:
+            send_email(user)
+        else:
+            raise ValidationError('User not found')
+            
+        # Redirect to the sign-in page
+        return redirect(url_for('signin'))
+    
+    # Render the password reset request template with the form
+    return render_template('reset_req.html', title='Reset password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    # If the user is already authenticated, redirect them to their profile page
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    
+    # Verify the password reset token
+    user = User.verify_reset_token(token)
+    
+    # If the token is invalid or expired, raise a validation error and redirect to the reset request page
+    if user is None:
+        raise ValidationError('That is an invalid or expired token')
+        return redirect(url_for('reset_request'))
+    
+    # Create an instance of the password reset form
+    form = ResetPasswordForm()
+    
+    # Check if the form is submitted and validated
+    if form.validate_on_submit():
+        # Hash the new password
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        
+        # Update the user's password in the database
+        user.password = hashed_passwd
+        db.session.commit()
+        
+        # Redirect to the sign-in page
+        return redirect(url_for('signin'))
+    
+    # Render the password reset template with the form
+    return render_template('reset.html', title='Reset Password', form=form)
+
+@app.route('/api/posts/<post_id>/like', methods=['POST'])
+@login_required
+def like_post(post_id):
+    try:
+        # Convert the post ID to a UUID
+        post_uuid = uuid.UUID(post_id)
+    except ValueError:
+        # If the post ID is not a valid UUID, return an error response
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+    # Query the database to find the post by ID
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    
+    # If the post is not found, return an error response
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    # Query the database to find if the current user has already liked the post
+    like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
+
+    if like:
+        # If the user has already liked the post, remove the like and decrement the like count
+        db.session.delete(like)
+        post.likes_count -= 1
+        liked = False
+    else:
+        # If the user has not liked the post, add a new like and increment the like count
+        new_like = PostLike(userID=current_user.userID, postID=post_uuid)
+        db.session.add(new_like)
+        post.likes_count += 1
+        liked = True
+
+    # Commit the changes to the database
+    db.session.commit()
+    
+    # Return the updated like count and like status
+    return jsonify({'likes': post.likes_count, 'liked': liked}), 200
+
+@app.route('/api/posts/<post_id>/like/status', methods=['GET'])
+@login_required
+def get_like_status(post_id):
+    try:
+        # Convert the post ID to a UUID
+        post_uuid = uuid.UUID(post_id)
+    except ValueError:
+        # If the post ID is not a valid UUID, return an error response
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+    # Query the database to find the post by ID
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    
+    # If the post is not found, return an error response
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    # Check if the current user has liked the post
+    liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
+    
+    # Return the like status and like count
+    return jsonify({'liked': liked, 'likes': post.likes_count}), 200
 
 @app.route('/signin', methods=['GET','POST'])
 
@@ -826,7 +1064,7 @@ def unfavorite_event():
 def haversine(lat1, lon1, lat2, lon2):
     R = 3959.0
     lat1 = radians(lat1)
-    lon1 = radians(lon1)
+    lon1 = radians(lat1)
     lat2 = radians(lat2)
     lon2 = radians(lon2)
 
@@ -1013,90 +1251,142 @@ def download_file(filename):
 
 def send_email(user):
     try:
+        # Generate a password reset token for the user
         token = user.get_reset_token()
         print(f"Generated token: {token}")  # Debugging statement
+        
+        # Create a new email message
         msg = Message('Password Reset Request', sender='noreply@featherly.com', recipients=[user.email])
         msg.body = f'''To reset your password, click the following link:
 {url_for('reset_token', token=token, _external=True)}
 
 If you did not make this request, ignore this email
 '''
+        # Send the email
         mail.send(msg)
         print("Email sent successfully")  # Debugging statement
     except Exception as e:
+        # Print any errors that occur while sending the email
         print(f"Error sending email: {e}")  # Debugging statement
 
 @app.route('/reset_request', methods=['GET', 'POST'])
 def reset_request():
+    # If the user is already authenticated, redirect them to their profile page
     if current_user.is_authenticated:
         return redirect(url_for('profile'))
+    
+    # Create an instance of the password reset request form
     form = RequestResetForm()
+    
+    # Check if the form is submitted and validated
     if form.validate_on_submit():
+        # Query the database to find the user by email
         user = db.session.scalars(select(User).where(User.email == form.email.data)).first()
+        
+        # If the user is found, send a password reset email
         if user:
             send_email(user)
             print("send_email function called")  # Debugging statement
         else:
             print("User not found")  # Debugging statement
+        
+        # Redirect to the sign-in page
         return redirect(url_for('signin'))
+    
+    # Render the password reset request template with the form
     return render_template('reset_req.html', title='Reset password', form=form)
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_token(token):
+    # If the user is already authenticated, redirect them to their profile page
     if current_user.is_authenticated:
         return redirect(url_for('profile'))
+    
+    # Verify the password reset token
     user = User.verify_reset_token(token)
+    
+    # If the token is invalid or expired, raise a validation error and redirect to the reset request page
     if user is None:
         raise ValidationError('That is an invalid or expired token')
         return redirect(url_for('reset_request'))
+    
+    # Create an instance of the password reset form
     form = ResetPasswordForm()
+    
+    # Check if the form is submitted and validated
     if form.validate_on_submit():
+        # Hash the new password
         hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user.password = hashed_passwd        
+        
+        # Update the user's password in the database
+        user.password = hashed_passwd
         db.session.commit()
+        
+        # Redirect to the sign-in page
         return redirect(url_for('signin'))
+    
+    # Render the password reset template with the form
     return render_template('reset.html', title='Reset Password', form=form)
 
 @app.route('/api/posts/<post_id>/like', methods=['POST'])
 @login_required
 def like_post(post_id):
     try:
+        # Convert the post ID to a UUID
         post_uuid = uuid.UUID(post_id)
     except ValueError:
+        # If the post ID is not a valid UUID, return an error response
         return jsonify({'error': 'Invalid post ID format'}), 400
 
+    # Query the database to find the post by ID
     post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    
+    # If the post is not found, return an error response
     if not post:
         return jsonify({'error': 'Post not found'}), 404
 
+    # Query the database to find if the current user has already liked the post
     like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
 
     if like:
+        # If the user has already liked the post, remove the like and decrement the like count
         db.session.delete(like)
         post.likes_count -= 1
         liked = False
     else:
+        # If the user has not liked the post, add a new like and increment the like count
         new_like = PostLike(userID=current_user.userID, postID=post_uuid)
         db.session.add(new_like)
         post.likes_count += 1
         liked = True
 
+    # Commit the changes to the database
     db.session.commit()
+    
+    # Return the updated like count and like status
     return jsonify({'likes': post.likes_count, 'liked': liked}), 200
 
 @app.route('/api/posts/<post_id>/like/status', methods=['GET'])
 @login_required
 def get_like_status(post_id):
     try:
+        # Convert the post ID to a UUID
         post_uuid = uuid.UUID(post_id)
     except ValueError:
+        # If the post ID is not a valid UUID, return an error response
         return jsonify({'error': 'Invalid post ID format'}), 400
 
+    # Query the database to find the post by ID
     post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    
+    # If the post is not found, return an error response
     if not post:
         return jsonify({'error': 'Post not found'}), 404
 
+    # Check if the current user has liked the post
     liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
+    
+    # Return the like status and like count
     return jsonify({'liked': liked, 'likes': post.likes_count}), 200
 
 if __name__ == "__main__":
