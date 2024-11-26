@@ -141,7 +141,6 @@
                 {% for event in events %}
                 <div class="event_img_details">
                     <div class="event-image-container">
-                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
                         {% if event.imagePath %}
                         <img src="{{ event.imagePath }}" alt="{{ event.title|e }}" class="event-image" />
                         {% else %}
@@ -208,14 +207,15 @@
             }
         });
 
+        //clear dropzone and display default drop box
         function clearImagePreview() {
             const dropZone = document.getElementById("drop-zone");
             dropZone.innerHTML = `<img style="width:100px" src="../static/images/upload_image.png">
                                     <br>
                                     <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
                                     <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">`;
-            fileInput.value = "";
-            fileSelected = false;
+            fileInput.value = ""; //clear image data
+            fileSelected = false; //bool to show no image has been uploaded
         }
 
 
@@ -248,7 +248,7 @@
                             const state = place.adminName1 || ''; // 'adminName1' holds the state/ region
 
                             const option = document.createElement('option');
-                            option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                            option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`; //format entry
                             option.textContent = option.value;
                             cityList.appendChild(option);
                         });
@@ -296,6 +296,7 @@
             handleFiles(files);
         });
 
+        //recognizes when a new image is added to the dropzone
         fileInput.addEventListener("change", (e) => {
             e.preventDefault();
             const files = e.target.files;
@@ -305,18 +306,17 @@
         function handleFiles(files) {
             if (files.length > 0) {
                 const file = files[0];
-                console.log("retrieved file:",file);
                 if (file.type.startsWith("image/")) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        const preview = document.createElement("img");
+                        const preview = document.createElement("img"); //create new image element to save and preview the uploaded image 
                         preview.src = e.target.result;
                         preview.alt = file.name;
                         preview.style.maxWidth = "100%";
                         preview.id = "uploaded-image"
                         dropZone.innerHTML = ""; // clear drop zone
                         dropZone.appendChild(preview);
-                        fileSelected = true;
+                        fileSelected = true;  //bool to show dropzone has an image uploaded to it
                     };
                     reader.readAsDataURL(file);
                 } else {
@@ -332,14 +332,11 @@
             event.preventDefault();
             const formData = new FormData(eventForm);
 
-            //console.log("Image in FormData:", formData.get("image-input")); //delete
             const fileInput = document.getElementById("uploaded-image");
-            //console.log("Image file:", fileInput.src); //send img data
-            //console.log("Image file:", fileInput.alt); //send img name 
 
             const eventData = {
                 image: fileInput && fileInput.src ? fileInput.src : undefined,
-                imageName:fileInput && fileInput.alt ? fileInput.alt : undefined,
+                imageName:fileInput && fileInput.alt ? fileInput.alt : undefined, //image alt holds the name of the image file
                 title: formData.get('title'),
                 eventDate: formData.get('eventDate'),
                 time: formData.get('time'),
@@ -347,9 +344,6 @@
                 description: formData.get('description'),
             };
             
-
-            console.log(eventData); 
-
             // Send event data to the /create_event endpoint
             fetch('/create_event', {
                 method: 'POST',
@@ -378,8 +372,7 @@
                 console.error('Error creating event:', error);
             });
 
-            eventForm.reset();
-
+            eventForm.reset(); //clear event after submitting
             modal.style.display = 'none';
         });
 
@@ -391,8 +384,8 @@
             const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
             const isFavorited = button.classList.contains('favorited');
 
-            if (!isFavorited){
-                button.classList.add('favorited'); //prematurely show favorited
+            if (!isFavorited){ //if event is not favorited
+                button.classList.add('favorited'); //prematurely show favorited to reduce delay
                 fetch('/favorite_event', {
                     method: 'POST',
                     body: JSON.stringify({ eventID: eventID }),
@@ -401,7 +394,7 @@
                 .then(response => {
                     if (response.status === 401) {
                         alert("You need to log in to favorite events.");
-                        button.classList.remove('favorited');
+                        button.classList.remove('favorited'); //reset heart if failed to favorite
                         return null;
                     }
                     return response.json();
@@ -413,7 +406,7 @@
                         }
                         else{
                             console.log("There was an issue with favoriting the event.");
-                            button.classList.remove('favorited');
+                            button.classList.remove('favorited'); //reset heart if failed to favorite
                             console.log(data.message);
                             alert(data.message);
                         }
@@ -424,7 +417,7 @@
                     console.error('Error favoriting event:', error);
                 });
             }
-            else {
+            else { //if event is already favorited
                 button.classList.remove('favorited');
                 fetch('/unfavorite_event', {
                     method: 'POST',
@@ -446,7 +439,7 @@
                         }
                         else{
                             console.log("There was an issue with unfavoriting the event.");
-                            button.classList.add('favorited');
+                            button.classList.add('favorited'); //heart refilled upon failure to unfavorite
                             console.log(data.message);
                             alert(data.message);
                         }

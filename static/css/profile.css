@@ -3,8 +3,8 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    min-height: 100vh;
-    height:100%;
+    max-height: 110vh;
+    height: 110vh;
     font-family: "Poppins", sans-serif;
   }
   
@@ -72,9 +72,7 @@ body {
   }
 
   .header .container .right_column {
-    height: 200%;
-    overflow:auto;
-
+    height: 100%;
   }
 
 
@@ -314,7 +312,8 @@ body {
   .header .container .right_column #createdEvents {
     display:none;
     margin-left: 0.5em;
-
+    height: 62vh;
+    overflow-y: scroll;
   }
 
   .header .container .right_column #created_event_holder {
@@ -327,7 +326,8 @@ body {
   .header .container .right_column #savedEvents {
     display:none;
     margin-left: 0.5em;
-
+    height: 62vh;
+    overflow-y: scroll;
   }
 
   .header .container .right_column #saved_event_holder {
@@ -597,8 +597,8 @@ body {
     background-image: url('../images/empty-heart.png');
     width: 29px;
     height: 26px;
-    position: absolute;
-    right: 60px;
+    float: right;
+    margin-right: 18px;
   }
 
   .favorite-icon.favorited {
@@ -611,18 +611,18 @@ body {
     background-image: url('../images/trash-can-icon.png');
     width: 23px;
     height: 23px;
-    position: absolute;
-    right: 60px;
+    float: right;
+    margin-right: 18px;
   }
 
   .edit-icon {
     background-size: cover;
     background-image: url('../images/createicon.png'); 
-    width: 22px;
+    width: 23px;
     height: 23px;
     cursor: pointer;
-    position: absolute;
-    right: 100px;
+    float: right;
+    margin-right: 10px;
   }
 
   /* Modal styling */
@@ -693,6 +693,7 @@ body {
     margin: 0 0 5px;
     font-size: 16px;
     font-weight: bold;
+    display: inline-block;
   }
 
   .event-details p {

@@ -77,8 +77,6 @@
 
   .event-details {
     padding-top: 10px;
-    display: flex;
-    flex-direction: column;
   }
 
   .event-details h4 {

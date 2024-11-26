@@ -167,7 +167,7 @@ function handleFavoriteClick(event) {
             headers: { 'Content-Type': 'application/json' }
         })
         .then(response => {
-            if (response.status === 401) {
+            if (response.status === 401) { //specific error code for user not being logged in
                 alert("You need to log in to favorite events.");
                 button.classList.remove('favorited');
                 return null;
@@ -181,7 +181,7 @@ function handleFavoriteClick(event) {
                 }
                 else{
                     console.log("There was an issue with favoriting the event.");
-                    button.classList.remove('favorited');
+                    button.classList.remove('favorited');  //reset the heart if favoriting was not possible
                     console.log(data.message);
                 }
             }
@@ -214,7 +214,7 @@ function handleFavoriteClick(event) {
                 }
                 else{
                     console.log("There was an issue with unfavoriting the event.");
-                    button.classList.add('favorited');
+                    button.classList.add('favorited'); //undo the heart being reset, i.e fill heart
                     console.log(data.message);
                 }
             }
@@ -250,15 +250,15 @@ dropZone.addEventListener("drop", (e) => {
     handleFiles(files);
 });
 
+//recognizes when a new image is added to the dropzone
 fileInput.addEventListener("change", (e) => {
     const files = e.target.files;
-    //console.log("File input changed, selected files:", files); //delete
     handleFiles(files);
 });
 
 const closeModal = document.getElementById('closeModal');
 
-// Close modal when clicking close
+// Close modal when clicking close btn
 closeModal.addEventListener('click', () => {
     hideEditEventPopup();
     if (fileInput) {
@@ -266,7 +266,7 @@ closeModal.addEventListener('click', () => {
     }
 });
 
-//if click outside modal
+//if user clicks outside modal
 const modal = document.getElementById('editModal');
 window.addEventListener('click', (event) => {
     if (event.target === modal) {
@@ -280,11 +280,10 @@ window.addEventListener('click', (event) => {
 function handleFiles(files) {
     if (files.length > 0) {
         const file = files[0];
-        console.log("retrieved file:",file);
         if (file.type.startsWith("image/")) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const preview = document.createElement("img");
+                const preview = document.createElement("img"); //create new image element to save and preview the uploaded image 
                 preview.src = e.target.result;
                 preview.alt = file.name;
                 preview.style.maxWidth = "100%";
@@ -292,7 +291,7 @@ function handleFiles(files) {
                 dropZone.innerHTML = ""; // clear drop zone
                 dropZone.appendChild(preview);
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(file);  //converts file's binary and base64 data to a data:image format to send to server
         } else {
             alert("Please upload a valid image file.");
         }
@@ -301,6 +300,7 @@ function handleFiles(files) {
 
 function clearImagePreview() {
     const dropZone = document.getElementById("drop-zone");
+    //reset dropzone to show default/empty drop box area
     dropZone.innerHTML = `<img style="width:100px" src="../static/images/upload_image.png">
                             <br>
                             <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
@@ -331,7 +331,7 @@ function handleEditClick(event) {
                 preview.style.maxWidth = "100%";
                 preview.id = "uploaded-image";
 
-                // Clear any existing image in the drop zone and append the preview
+                // Clear any existing image in the drop zone and append the preview to display to user
                 dropZone.innerHTML = "";
                 dropZone.appendChild(preview);
             }
@@ -351,7 +351,7 @@ function handleDeleteClick(event) {
         fetch('/delete_event', {
             method: 'POST',
             body: JSON.stringify({ eventID: eventID }),
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' } //only eventId needed to find and delete event in db
         })
         .then(response => response.json())
         .then(data => {
@@ -463,7 +463,7 @@ locationInput.addEventListener('input', () => {
                     const state = place.adminName1 || ''; // 'adminName1' holds the state/region
 
                     const option = document.createElement('option');
-                    option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                    option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`; //format entry for display
                     option.textContent = option.value;
                     cityList.appendChild(option);
                 });
@@ -478,13 +478,11 @@ function setupEditModal(){
         event.preventDefault();
         const formData = new FormData(editForm);
         
-        const fileInput = document.getElementById("uploaded-image");
-            //console.log("Image file:", fileInput.src); //send img data
-            //console.log("Image file:", fileInput.alt); //send img name 
+        const fileInput = document.getElementById("uploaded-image"); //retrives image element created when the user uploads an image to the dropzone
 
         const eventData = {
             image: fileInput && fileInput.src ? fileInput.src : undefined,
-            imageName:fileInput && fileInput.alt ? fileInput.alt : undefined,
+            imageName:fileInput && fileInput.alt ? fileInput.alt : undefined, //image alt holds the name of the image file
             eventID : formData.get('eventID'),
             title: formData.get('title'),
             eventDate: formData.get('eventDate'),
@@ -492,9 +490,6 @@ function setupEditModal(){
             location: formData.get('location'),
             description: formData.get('description'),
         };
-
-        console.log("eventData in profile.js:")
-        console.log(eventData)
 
         fetch('/edit_event', {
             method: 'POST',

@@ -174,7 +174,6 @@
                 {% for event in createdEvents %}
                 <div class="event_img_details">
                     <div class="event-image-container">
-                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
                         {% if event.imagePath %}
                         <img src="../{{event.imagePath}}" alt="{{ event.title|e }}" class="event-image" />
                         {% else %}
@@ -184,8 +183,8 @@
                     </div>
                     <div class="event-details">
                         <h4>{{event.title|e}}</h4>
-                        <span id="editBtn" class="edit-icon" EventID="{{event.eventID}}"></span>
                         <span class= "delete-icon" EventID="{{event.eventID}}"></span>
+                        <span id="editBtn" class="edit-icon" EventID="{{event.eventID}}"></span>
                         <p>{{ event.eventDate| datetimeformat }}</p> 
                         <p>{{event.location|e}}</p>
                         <p style="margin-top:10px">{{event.description|e}}</p>
@@ -204,8 +203,8 @@
                 {% for event in savedEvents %}
                 <div class="event_img_details">
                     <div class="event-image-container">
-                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
                         {% if event.imagePath %}
+                        <!--use image file name to find and display image-->
                         <img src="../{{event.imagePath}}" alt="{{ event.title|e }}" class="event-image" />
                         {% else %}
                         <img src="../static/images/raven.png" alt="Default image" class="event-image default-image" />

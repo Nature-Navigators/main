@@ -57,6 +57,7 @@ logging.basicConfig(level=logging.INFO)
 EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent' 
 EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
+OPENCAGE_API_KEY = os.getenv('OPENCAGE_API_KEY') #for getting coordinates
 
 # Below array contains hardcoded birds from which a random bird is chosen for the "Wing it" page
 random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 
@@ -265,6 +266,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     dlon = lon2_rad - lon1_rad
     
     #haversine formula
+    #credit to https://medium.com/@manishsingh7163/calculating-distance-between-successive-latitude-longitude-coordinates-using-pandas-287c15bc5029
     a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     
@@ -748,7 +750,7 @@ def profile():
     return redirect(profile_path)
 
 
-# converts datetime to string
+# converts datetime to easily human-readable string
 @app.template_filter('datetimeformat')
 def datetimeformat(value):
     parsed_date = datetime.strptime(value, '%Y-%m-%d %H:%M')
@@ -756,7 +758,7 @@ def datetimeformat(value):
 
 
 def get_coordinates(city_state):
-    geolocator = OpenCage(api_key="029ce9756caf4c8ab64c155f894d651e")
+    geolocator = OpenCage(OPENCAGE_API_KEY)
     location = geolocator.geocode(city_state)
     if location:
         return location.latitude, location.longitude
@@ -772,9 +774,6 @@ def create_event():
         print(f"Not logged in")
         return jsonify({'error': 'Event not created, user not logged in'}), 401
     
-    print(f"user id: ")
-    print(current_user.userID)
-
     data = request.json
 
     event_image = data.get('image')
@@ -787,8 +786,8 @@ def create_event():
     location = data.get('location')
     latitude, longitude = get_coordinates(location)
 
-    event_date_str = data.get('eventDate')  # Assume this is in 'YYYY-MM-DD' format
-    event_time_str = data.get('time')  # Assume this is in 'HH:MM' format
+    event_date_str = data.get('eventDate')  
+    event_time_str = data.get('time') 
 
     # Combine date and time
     combined_datetime_str = f"{event_date_str} {event_time_str}"
@@ -828,7 +827,7 @@ def create_event():
         
     return jsonify({'success': True, 'message': 'Event created successfully!'})
 
-# get event details to display in editModal
+# get event details to display in editModal when user wants to edit an event
 @app.route('/get_event_details/<eventID>', methods=['GET'])
 def get_event_details(eventID):
     event_id = uuid.UUID(eventID)
@@ -875,9 +874,9 @@ def edit_event():
         event_image = data.get('image')
         imageName = data.get('imageName')
 
-        if event_image:
+        if event_image: 
             if event_image.startswith("data"): #if starts with http do nothing, image already exists in db
-                #decode Base64 
+                #if the event has a user uploaded image associated with it
 
                 existing_image = db.session.scalars(select(EventImage).filter_by(eventID=event_id)).first()
 
@@ -886,11 +885,11 @@ def edit_event():
                     db.session.delete(existing_image)
                     db.session.commit()
                 
-
+                #decode Base64 
                 image_data = event_image.split(",")[1]  # remove "data:image/png;base64,"
                 image_binary = base64.b64decode(image_data)
 
-                # create file path
+                # create file path. imageName contains name of the image file uploaded
                 file_path = app.config["UPLOAD_PATH"] + "/" + imageName
                 
                 # Write image data to file and save
@@ -916,6 +915,7 @@ def delete_event():
     data = request.json
     event_id = uuid.UUID(data.get('eventID'))
 
+    #find event where eventId matches the one sent and userID matches that of logged in user
     event = db.session.scalars(select(Event).filter_by(eventID=event_id, userID=current_user.userID)).first()
 
     #remove entry in favorites table if deleted event is favorited
@@ -987,6 +987,7 @@ def haversine(lat1, lon1, lat2, lon2):
     dlat = lat2 - lat1
 
     #Haversine
+    #credit to https://medium.com/@manishsingh7163/calculating-distance-between-successive-latitude-longitude-coordinates-using-pandas-287c15bc5029
     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
@@ -1030,7 +1031,6 @@ def social_location():
     events_with_distance.sort(key=lambda x: x[0])
     sorted_events = [event for _, event in events_with_distance]
 
-    #print(f"Filtered Events: {sorted_events}")
     return jsonify(sorted_events)
 
 
