@@ -1272,11 +1272,14 @@ def search_by_bird():
         flash('birdID parameter is required', 'error')
         return redirect(url_for('social'))
 
+    # to allow for partial matching 
+    bird_id = f"%{bird_id}%"
+
     if session.get('shouldOnlyFollowers', True) and current_user.is_authenticated:
         following_ids = [user.userID for user in current_user.following]
-        posts = db.session.scalars(select(Post).filter(Post.birdID == bird_id, Post.userID.in_(following_ids))).all()
+        posts = db.session.scalars(select(Post).filter(Post.birdID.ilike(bird_id), Post.userID.in_(following_ids))).all()
     else:
-        posts = db.session.scalars(select(Post).filter_by(birdID=bird_id)).all()
+        posts = db.session.scalars(select(Post).filter(Post.birdID.ilike(bird_id))).all()
 
     serialized_posts = [post.to_dict() for post in posts]
 
