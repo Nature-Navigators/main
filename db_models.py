@@ -261,10 +261,10 @@ class PostLike(Base):
     id = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.Uuid, db.ForeignKey('user_table.userID'), nullable=False)
     postID = db.Column(db.Uuid, db.ForeignKey('post_table.postID'), nullable=False)
-
+    # relationships to User and Post for back references
     user = db.relationship('User', back_populates='liked_posts', lazy='joined')
     post = db.relationship('Post', back_populates='likes', lazy='joined')
-
+    # unique to prevent duplicates
     __table_args__ = (
         db.UniqueConstraint('userID', 'postID', name='unique_user_post_like'),
     )
