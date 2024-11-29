@@ -1,15 +1,18 @@
+/* General body styling */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #f6f7f8;
 }
 
+/* Container for the main layout */
 .container {
     display: flex;
-    flex-direction: row;
+    flex-direction: row; /* Flex direction changed to fix feed being skewed to the right */
     padding: 0px;
 }
 
+/* Sidebar styling */
 .sidebar {
     flex-basis: 30%;
     background-color: white;
@@ -24,6 +27,7 @@ body {
     overflow: scroll;
 }
 
+/* Content area styling */
 .content {
     flex-basis: 80%;
     background-color: rgb(255, 255, 255);
@@ -31,6 +35,7 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Main feed styling */
 .mainFeed {
     margin-top: 80px;
     height: 90vh;
@@ -39,8 +44,7 @@ body {
     display:relative;
 }
 
-
-
+/* Post failed message styling */
 #postFailed {
     color: gray;
     text-align: center;
@@ -51,6 +55,7 @@ body {
     align-items: center;
 }
 
+/* Individual post styling */
 .post {
     border-bottom: 1px solid #e6e6e6;
     padding: 10px 0;
@@ -62,7 +67,7 @@ body {
     font-size: medium;
 }
 
-
+/* Profile picture container styling */
 .profile_pic_container {
     width:2.5em;
     height:2.5em;
@@ -75,6 +80,7 @@ body {
 
     display: inline-block;
 }
+
  .profile_pic_container img {
     width: 100%;
     
@@ -86,6 +92,7 @@ body {
 
 }
 
+/* Post header styling */
 .post-header {
     display: flex;
     justify-content: flex-start;
@@ -106,6 +113,7 @@ body {
     text-decoration: none;
 }
 
+/* Profile info styling */
 .profile-info {
     display: flex;
     align-items: center;
@@ -131,12 +139,14 @@ body {
     white-space: nowrap;
 }
 
+/* Post image styling */
 .post img {
     width: 100%;
     display: block;
     margin-bottom: 10px;
 }
 
+/* Text and icons styling */
 .text-and-icons {
     margin-bottom: 10px; 
 }
@@ -174,6 +184,7 @@ p {
     opacity: 0.7;
 }
 
+/* Comment section styling */
 .comment-section {
     padding: 15px;
     background-color: #f9f9f9;
@@ -237,6 +248,7 @@ p {
     margin-left: 5px;
 }
 
+/* Events list styling */
 .events-list {
     list-style-type: none;
     padding: 0;
@@ -272,6 +284,7 @@ p {
     margin-right: auto;
 }
 
+/* Favorite icon styling */
 .favorite-icon {
     background-size: cover;
     cursor: pointer;
@@ -315,6 +328,7 @@ p {
     cursor: pointer;
 }
 
+/* Create event button styling */
 .create-event-button img {
     width: 19px;
     height: 20px;
@@ -486,6 +500,7 @@ p {
     cursor: pointer;
 }
 
+/* Header container styling */
 .header-container {
     position: fixed;
     top:0;

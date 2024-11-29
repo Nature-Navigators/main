@@ -62,6 +62,7 @@ body.signup {
     width: 80vw;
     max-width: 600px;
     min-width: 300px;
+    /* increase height to fit in forget pw */
     height: 530px;
     padding: 20px;
     border-radius: 5px;
