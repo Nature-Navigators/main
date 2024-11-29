@@ -10,10 +10,12 @@
 </head>
 
 <body class="signup">
+    <!-- Logo section -->
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
         <h1>Featherly</h1>
     </div>
+    <!-- Navigation icons -->
     <nav class="nav-icons">
         <a href="/" title="Home"><i class="fas fa-home"></i></a>
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
@@ -26,17 +28,20 @@
                 <img class="nest" src="{{ url_for('static', filename='images/nest.png') }}" alt="Image">
             
                 <form id="signin-form" method="POST" action="">
+                    <!-- form fields -->
                     {{ form.hidden_tag() }}
                     {{ form.email }}
                     {{ form.username }}
                     {{ form.password }}
                     {{ form.confirm_password }}
+                    <!-- sign up button -->
                     <button id="button">Sign Up</button>
                     <script>
                         document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
+                    <!-- error handling -->
                     {% if form.errors %}
                     <script>
                         alert("{{  'Invalid Username!' if 'username' in form.errors else '' }} \n{{ 'Invalid email!' if 'email' in form.errors else '' }} \n{{ 'Invalid password!' if 'password' in form.errors else '' }} \n{{ 'Ensure your password match!' if 'confirm_password' in form.errors else '' }}");
@@ -49,7 +54,7 @@
                     {% endif %}
                     
 
-
+                    <!-- link to sign in page -->
                     <p class="link"><a href="/signin">Already have an account?</a></p>
                 </form>
             </div>
