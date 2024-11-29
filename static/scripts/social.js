@@ -97,7 +97,7 @@ function updateEventList(events) {
 
     // Set the generated HTML to the event holder
     eventHolder.innerHTML = htmlContent;
-
+    // to make sure likes persist after updating the event list
     rebindFavoriteIcons(); //rebind icons since innerhtml was replaced
     persistLikeButtons(); 
 }
@@ -107,16 +107,23 @@ function formatEventDate(eventDate) {
 }
 
 function setupLikeButtons() {
+     // Select all elements with the class 'like-button'
     const likeButtons = document.querySelectorAll('.like-button');
+    // Iterate over each like button
     likeButtons.forEach(button => {
+        // Add a click event listener to each button
         button.addEventListener('click', handleLikeButtonClick);
     });
 }
 
 function persistLikeButtons() {
+    // Select all elements with the class 'like-button'
     const likeButtons = document.querySelectorAll('.like-button');
+    // Iterate over each like button
     likeButtons.forEach(button => {
+        // Get the post ID from the data attribute
         const postId = button.getAttribute('data-post-id');
+        // Fetch the like status for the post
         fetch(`/api/posts/${postId}/like/status`, {
             method: 'GET',
             headers: {
@@ -125,11 +132,14 @@ function persistLikeButtons() {
             credentials: 'same-origin'
         })
         .then(response => response.json())
-        .then(data => {
+            .then(data => {
+            // Get the like icon element within the button
             const icon = button.querySelector('.like-icon');
+            // Set the icon source based on the like status
             icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
             icon.width = 20;
             icon.height = 22;
+            // Update the likes count element if it exists
             const likesCountElement = document.querySelector(`#post_likes_${postId}`);
             if (likesCountElement) {
                 likesCountElement.textContent = `${data.likes} likes`;
@@ -141,11 +151,14 @@ function persistLikeButtons() {
     });
 }
 
-function handleLikeButtonClick(event) {
+function handleLikeButtonClick(event) { 
+    // Get the button that was clicked
     const button = event.currentTarget;
+    // Get the post ID from the data attribute
     const postId = button.getAttribute('data-post-id');
+    // Get the like icon element within the button
     const icon = button.querySelector('.like-icon');
-
+    // send a POST request to the server to like/unlike the post
     fetch(`/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
@@ -163,9 +176,11 @@ function handleLikeButtonClick(event) {
     })
     .then(data => {
         if (data.likes !== undefined) {
+            // update icon based on like status
             icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
             icon.width = 20;
             icon.height = 22;
+            // if likes count element exists, update it
             const likesCountElement = document.querySelector(`#post_likes_${postId}`);
             if (likesCountElement) {
                 likesCountElement.textContent = `${data.likes} likes`;
