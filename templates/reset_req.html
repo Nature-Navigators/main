@@ -10,32 +10,38 @@
 </head>
 
 <body class="signin">
+    <!-- Logo of bird -->
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
         <h1>Featherly</h1>
     </div>
+    <!-- Navigation icons -->
     <nav class="nav-icons">
         <a href="/" title="Home"><i class="fas fa-home"></i></a>
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
         <a href="/social" title="Social Media"><i class="fa-solid fa-users"></i></a>
     </nav>
+    <!-- Main container for the form -->
     <div class="container">
         <div class="form-container">
             <div class="form-box">
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
 
+                <!-- Form for requesting password reset -->
                 <form id="signin-form" method="POST" action="">
                     {{ form.hidden_tag() }}
                     {{ form.email }}
                     <button id="button">Request reset password</button>
                     <script>
+                        // Submit the form when the button is clicked
                         document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
                     {% if form.errors %}
                     <script>
+                        // if user does not exist show alert 
                         alert("Email does not exist!");
                     </script>
                     {% endif %}
