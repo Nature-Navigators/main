@@ -10,10 +10,12 @@
 </head>
 
 <body class="signin">
+    <!-- Logo section -->
     <div class="logo">
         <img src="{{ url_for('static', filename='images/raven.png')}}" alt="Featherly Logo">
         <h1>Featherly</h1>
     </div>
+    <!-- Navigation icons -->
     <nav class="nav-icons">
         <a href="/" title="Home"><i class="fas fa-home"></i></a>
         <a href="/map" title="Map"><i class="fas fa-map"></i></a>
@@ -22,28 +24,31 @@
     <div class="container">
         <div class="form-container">
             <div class="form-box">
+                <!-- Form header and image -->
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
                 
                     <form id="signin-form" method="POST" action="">
+                        <!-- form fields -->
                         {{ form.hidden_tag() }} 
                         {{ form.email }}
                         {{ form.username }}
                         {{ form.password }}
-                   
+                    <!-- Submit button -->
                     <button id="button">Sign In</button>
                     <script>
+                        // Submit form on button click
                         document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
+                    <!-- Error handling -->
                     {% if form.errors %}
                     <script>
-                        //alert("{{ form.errors }}")
                         alert("{{  ' Invalid Username.' if 'username' in form.errors else '' }} \n {{ 'Invalid email.' if 'email' in form.errors else '' }} \n {{ 'Invalid password.' if 'password' in form.errors else '' }}");
                     </script>
                     {% endif %}
-                    
+                    <!-- Link to sign up page and to reset pw -->
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="/reset_request">Forgot password?</a></p>
                     </form>
