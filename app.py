@@ -1260,8 +1260,10 @@ def reset_token(token):
     return render_template('reset.html', title='Reset Password', form=form)
 
 @app.route('/api/posts/<post_id>/like', methods=['POST'])
-@login_required
 def like_post(post_id):
+    if not current_user.is_authenticated: #identify loggedin/loggedout users 
+        return jsonify({'error': 'user not logged in'}), 401
+    
     try:
         # Convert the post ID to a UUID
         post_uuid = uuid.UUID(post_id)
@@ -1274,6 +1276,7 @@ def like_post(post_id):
     # If the post is not found, return an error response
     if not post:
         return jsonify({'error': 'Post not found'}), 404
+    
     # Query the database to find if the current user has already liked the post
     like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
 
@@ -1307,7 +1310,7 @@ def get_like_status(post_id):
     # If the post is not found, return an error response
     if not post:
         return jsonify({'error': 'Post not found'}), 404
-
+    
     # Check if the current user has liked the post
     liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
     # Return the like status and like count
