@@ -394,6 +394,15 @@ body {
     top: 5%;
   }
 
+  #edit_profile_popup #life_list_span {
+    display: flex;
+    align-items: center;
+    gap: 0.1em;
+  }
+
+  #life_list_span input {
+    width: 3em;
+  }
 
   .popup h1 {
     width: 100%;

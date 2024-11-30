@@ -40,6 +40,7 @@ class User(Base, UserMixin):
     lastName: Mapped[str] = mapped_column( nullable=True)
     bio: Mapped[str] = mapped_column( nullable=True)
     pronouns: Mapped[str] = mapped_column( nullable=True)
+    lifeList:Mapped[int] = mapped_column(nullable=True)
 
     # prevent recursion
     serialize_rules = ('-posts.user.posts', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following', '-followedBy')
@@ -105,7 +106,8 @@ class User(Base, UserMixin):
             'profileImage': self.profileImage.serialize if self.profileImage else None,
             'following': [user.serialize for user in self.following],
             'followedBy': [user.serialize for user in self.followedBy],
-            'liked_posts': [like.serialize for like in self.liked_posts]
+            'liked_posts': [like.serialize for like in self.liked_posts],
+            'life_list': str(self.lifeList)
         }
 
 class Post(Base, UserMixin):

@@ -715,6 +715,7 @@ def profile_id(profile_id):
         pronouns = request.form["pronouns"]
         bio = request.form["bio"]
         image = request.files["image_file_bytes"]
+        life_list = request.form.get("life_list", type=int)
 
         try:
             # if the user exists & is the one logged in
@@ -732,6 +733,9 @@ def profile_id(profile_id):
 
                 if current_profile.bio != bio:
                     current_profile.bio = bio
+                
+                if current_profile.lifeList != life_list:
+                    current_profile.lifeList = life_list
 
                 # if an image is being uploaded
                 if image.filename != '':
@@ -1393,4 +1397,4 @@ def download_file(filename):
     return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
