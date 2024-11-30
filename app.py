@@ -1332,6 +1332,52 @@ def format_datetime(value, format='medium'):
         format="dd/MM/y 'at' h:mm a"
     return babel.dates.format_datetime(convertedStr, format)
 
+@app.route('/create-comment/<post_id>', methods=['POST'])
+@login_required
+def create_comment(post_id):
+    text = request.form.get('comment')
+
+    if not text:
+        return jsonify({'error': 'Comment cannot be empty'}), 400
+
+    post_uuid = uuid.UUID(post_id)
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    if post:
+        comment = Comment(commentID=uuid.uuid4(), text=text, postID=post_uuid, username=current_user.username, dateCommented=datetime.now())
+        db.session.add(comment)
+        db.session.commit()
+        response = {'success': True, 'message': 'Comment added successfully!', 'username': current_user.username}
+        return jsonify(response), 200
+    else:
+        return jsonify({'error': 'Post not found'}), 404
+    
+@app.route('/search_by_bird', methods=['POST'])
+def search_by_bird():
+    bird_id = request.form.get('birdIDSearch')
+    if not bird_id:
+        flash('birdID parameter is required', 'error')
+        return redirect(url_for('social'))
+
+    # to allow for partial matching 
+    bird_id = f"%{bird_id}%"
+
+    if session.get('shouldOnlyFollowers', True) and current_user.is_authenticated:
+        following_ids = [user.userID for user in current_user.following]
+        posts = db.session.scalars(select(Post).filter(Post.birdID.ilike(bird_id), Post.userID.in_(following_ids))).all()
+    else:
+        posts = db.session.scalars(select(Post).filter(Post.birdID.ilike(bird_id))).all()
+
+    serialized_posts = [post.to_dict() for post in posts]
+
+    context = {
+        "posts": serialized_posts,
+        "followersOnly": session.get('shouldOnlyFollowers', True),
+        "loggedIn": current_user.is_authenticated
+    }
+
+    return render_template('social.html', **context)
+    
+
 @app.route('/bird')
 def bird():
     return render_template("bird.html")
