@@ -442,13 +442,14 @@ const cityList = document.getElementById('cityList');
 // Debounce function to limit API calls
 let debounceTimeout;
 const debounce = (func, delay) => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(func, delay);
+    clearTimeout(debounceTimeout); // Clear the previous timeout
+    debounceTimeout = setTimeout(func, delay); // Set a new timeout
 };
 
+// Add event listener to the location input field
 locationInput.addEventListener('input', () => {
     debounce(() => {
-        const query = locationInput.value.trim();
+        const query = locationInput.value.trim(); // Get the trimmed input value
         if (query.length < 2) return; // Don't search before 2 chars typed
 
         // Fetch cities matching the input
@@ -465,11 +466,11 @@ locationInput.addEventListener('input', () => {
                     const option = document.createElement('option');
                     option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`; //format entry for display
                     option.textContent = option.value;
-                    cityList.appendChild(option);
+                    cityList.appendChild(option); // Append the option to the city list
                 });
             })
-            .catch(error => console.error('Error fetching cities:', error));
-    }, 50);
+            .catch(error => console.error('Error fetching cities:', error)); // Log any errors
+    }, 50); // Delay of 50 milliseconds
 });
 
 function setupEditModal(){

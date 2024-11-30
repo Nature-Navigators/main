@@ -20,6 +20,7 @@
         </a>
     </div>
 
+    <!-- Display post image if available, otherwise show logo image as post -->
     {% if post.images|length > 0 %}
     <img class="post-image" src="{{ url_for('download_file', filename=post.images[0].name) }}" alt="Post Image" />
     {% else %}
@@ -30,22 +31,29 @@
         <div class="text-and-icons">
             <div class="likes-and-icons">
                 <div class="post-icons">
+                    <!-- Bird button with birdID data attribute -->
                     <button class="icon-button bird-button" id="bird-button-{{ post.postID }}" data-post-id="{{ post.postID }}" data-bird-id="{{ post.birdID }}">
                         <img src="{{ url_for('static', filename='images/birdID.png') }}" alt="Bird Icon" class="bird-icon" width="20" height="22" />
                     </button>
+                    <!-- location button with locationID data attribute -->
                     <button class="icon-button placeholder-button" id="placeholder-button-{{ post.postID }}" data-post-id="{{ post.postID }}" data-location-id="{{ post.locationID }}">
                         <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Placeholder Icon" class="placeholder-icon" width="20" height="22" />
                     </button>
+                    <!-- Like button  -->
                     <button class="icon-button like-button" id="like-button" data-post-id="{{ post.postID }}">
+                                                                                                <!-- If post liked filled heart -->
                         {% if post.liked_by_user %}
                         <img src="{{ url_for('static', filename='images/filled-heart.png') }}" alt="Like Icon" class="like-icon" width="20" height="22" />
                         {% else %}
+                                                                                                <!-- else empty heart -->
                         <img src="{{ url_for('static', filename='images/empty-heart.png') }}" alt="Like Icon" class="like-icon" width="20" height="22" />
                         {% endif %}
                     </button>
                 </div>
+                <!-- Display the number of likes for the post -->
                 <div class="likes" id="post_likes_{{ post.postID }}">{{ post.likes_count }} likes</div>
             </div>
+            <!-- Display the post caption -->
             <p class="post-content">{{ post.caption }}</p>
             <!-- comment input form -->
             <form method="POST" action="/create-comment/{{ post.postID }}" class="comment-form">
@@ -67,6 +75,7 @@
     </div>
 </div>
 
+<!-- Include SweetAlert2 library for popups -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -74,20 +83,20 @@
         window.commentListenersAdded = true;
 
         setupLikeButtons();
-        persistLikeButtons(); //on fetching the post again the likes should persist
+        persistLikeButtons(); // on fetching the post again the likes should persist
 
         // Setup bird button popups using SweetAlert2
         const birdButtons = document.querySelectorAll('.bird-button');
         birdButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const birdID = button.getAttribute('data-bird-id'); // Fetch birdID from data attribute
-                const rect = button.getBoundingClientRect();
+                const rect = button.getBoundingClientRect(); // Get button position
                 Swal.fire({
-                    text: `Bird species: ${birdID}`,
+                    text: `Bird species: ${birdID}`, // Display bird id
                     position: 'center',
                     width: 200,
                     showConfirmButton: false,
-                    timer: 1000
+                    timer: 1000 // Auto close after 1 second
                 });
             });
         });
@@ -96,17 +105,61 @@
         const placeholderButtons = document.querySelectorAll('.placeholder-button');
         placeholderButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const locationID = button.getAttribute('data-location-id'); 
+                const locationID = button.getAttribute('data-location-id'); // Fetch locationID from data attribute
                 Swal.fire({
-                    text: `Location: ${locationID}`,
+                    text: `Location: ${locationID}`, // Display location
                     position: 'center',
                     width: 200,
                     showConfirmButton: false,
-                    timer: 1000
+                    timer: 1000 // Auto close after 1 second
                 });
             });
         });
 
+        // Handle comment form submission with AJAX
+        
+        const commentForms = document.querySelectorAll('.comment-form');
+        
+        commentForms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const postID = form.getAttribute('action').split('/').pop();
+                const commentInput = form.querySelector('.comment-input');
+                const commentText = commentInput.value.trim();
+
+                if (!commentText) {
+                    alert('Comment cannot be empty');
+                    return;
+                }
+
+                fetch(`/create-comment/${postID}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ comment: commentText })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // console.log('JSON response:', data); // Print the JSON response
+                    if (data.success) {
+                        const commentsList = form.nextElementSibling;
+                        const newComment = document.createElement('div');
+                        newComment.classList.add('comment-box');
+                        newComment.innerHTML = `<span class="comment-user">${data.username}</span> <span class="comment-text">${commentText}</span>`;
+                        commentsList.appendChild(newComment);
+                        commentInput.value = '';
+                    } else {
+                        alert(data.error || 'An error occurred while adding the comment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the comment');
+                });
+            });
+        });
+        /*
         // Handle comment form submission with AJAX
         const commentForms = document.querySelectorAll('.comment-form');
         commentForms.forEach(form => {
@@ -147,7 +200,8 @@
                     alert('An error occurred while adding the comment');
                 });
             });
-        });
+        });*/
     });
 </script>
+<!-- like fetching code in js -->
 <script src="{{ url_for('static', filename='scripts/social.js') }}"></script>
