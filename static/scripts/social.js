@@ -67,7 +67,6 @@ function sendLocation(position) {
     }
 }
 
-
 function updateEventList(events) {
     const eventHolder = document.getElementById('event_holder');
     let htmlContent = '';
@@ -107,7 +106,7 @@ function formatEventDate(eventDate) {
 }
 
 function setupLikeButtons() {
-     // Select all elements with the class 'like-button'
+    // Select all elements with the class 'like-button'
     const likeButtons = document.querySelectorAll('.like-button');
     // Iterate over each like button
     likeButtons.forEach(button => {
@@ -132,7 +131,7 @@ function persistLikeButtons() {
             credentials: 'same-origin'
         })
         .then(response => response.json())
-            .then(data => {
+        .then(data => {
             // Get the like icon element within the button
             const icon = button.querySelector('.like-icon');
             // Set the icon source based on the like status
@@ -146,7 +145,7 @@ function persistLikeButtons() {
             }
         })
         .catch(error => {
-            console.error('Error fetching like status:', error);
+            // Handle error silently
         });
     });
 }
@@ -167,15 +166,14 @@ function handleLikeButtonClick(event) {
         credentials: 'same-origin'
     })
     .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`Error: ${text}`);
-            });
+        if (response.status === 401) { //specific error code for user not being logged in
+            alert("You need to log in to like posts.");
+            return null;
         }
         return response.json();
     })
     .then(data => {
-        if (data.likes !== undefined) {
+        if (data && data.likes !== undefined) {
             // update icon based on like status
             icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
             icon.width = 20;
@@ -185,11 +183,9 @@ function handleLikeButtonClick(event) {
             if (likesCountElement) {
                 likesCountElement.textContent = `${data.likes} likes`;
             }
-        } else {
-            console.error('Error liking post:', data.error);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        // Handle error silently
     });
 }
