@@ -149,12 +149,12 @@
                         commentsList.appendChild(newComment);
                         commentInput.value = '';
                     } else {
-                        alert(data.error || 'An error occurred while adding the comment');
+                        alert(data.error || 'login to add comments');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while adding the comment');
+                    alert('login to add comments');
                 });
             });
         });
