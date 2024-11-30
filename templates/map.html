@@ -1,3 +1,4 @@
+<!-- HTML for the map page -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script> <!--Google maps API link-->
 </head>
 <body>  
     <div class="header">   
@@ -47,6 +48,7 @@
         </div>
     </div>
     <script>
+        //The below API keys are passed in from app.py and used in script.js
         const googleMapsApiKey = "{{ google_maps_api_key }}";
         const ebirdApiKey = "{{ ebird_api_key }}";
     </script>

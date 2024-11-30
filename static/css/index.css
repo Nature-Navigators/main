@@ -17,6 +17,21 @@ body {
     text-align:center;
     width: 55%;
 }
+
+.blue_button {
+    background: #0091ff;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: auto;
+  }
+
+  .blue_button:hover {
+    opacity: 0.8;
+  }
+
 .image-fader {
     width: 45%;
     position:relative;
@@ -80,7 +95,7 @@ body {
 }
 
 .cardText {
-    border-left: 3px solid rgba(76, 97, 255, 0.671);
+    border-left: 3px solid #a9daff;
     padding: 0em 1em 0em 1em;
     height: 11.5em;
     margin-bottom: 2em;
@@ -97,15 +112,7 @@ h1 {
     font-size: 5em;
     border-bottom: 3px solid rgba(22, 35, 127, 0.671);
 }
-button {
-    color: white;
-    background-color: rgb(80, 80, 164);
-    border: none;
-    padding: 1em 2em 1em 2em;
-}
-button:hover {
-    background-color: rgb(49, 49, 120);
-}
+
 
 @media screen and (max-width: 700px) {
     .image-fader {

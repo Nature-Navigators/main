@@ -1,3 +1,4 @@
+<!--SOCIAL MEDIA FEED-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -19,20 +20,22 @@
         </div>
 
         <div class="search-bars">
-            <div class="follower-toggle">
-                <p>Followers Only</p>
+            {% if loggedIn %}
+                <div class="follower-toggle">
+                    <p>Following Only</p>
 
-                <form action="/social" method="POST">
-                    <label class="switch">
-                        {% if followersOnly %}
-                        <input onchange="this.form.submit()" type="checkbox" checked name="toggle" />
-                        {% else %}
-                        <input onchange="this.form.submit()" type="checkbox" name="toggle" />
-                        {% endif %}
-                        <span class="slider round"></span>
-                    </label>
-                </form>
-            </div>
+                    <form action="/social" method="POST">
+                        <label class="switch">
+                            {% if followersOnly %}
+                            <input onchange="this.form.submit()" type="checkbox" checked name="toggle" />
+                            {% else %}
+                            <input onchange="this.form.submit()" type="checkbox" name="toggle" />
+                            {% endif %}
+                            <span class="slider round"></span>
+                        </label>
+                    </form>
+                </div>
+            {% endif %}
 
             <div class="beige-search-bar">
                 <i class="fas fa-search icon-left"></i>
@@ -44,7 +47,10 @@
             </div>
             <div class="light-red-search-bar">
                 <i class="fas fa-search icon-left"></i>
-                <input type="text" placeholder="Search" />
+                <form action="/search_by_bird" method="POST">
+                    <input type="text" name="birdIDSearch" placeholder="Search by Bird ID" />
+                    <input type="submit" style="display: none" />
+                </form>
                 <img src="../static/images/birdicon.png" alt="Bird Icon" class="icon-right" />
             </div>
 
@@ -85,25 +91,37 @@
     <div id="eventModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
-            <h2>Create Event</h2>
+            <h3>Create Event</h3>
             <form id="eventForm">
-                <label for="title">Event Name:</label>
+
+                <!--drag and drop image-->
+                <div id="image-upload-container">
+                    <label for="image-input" id="drop-zone">
+                        <img style="width:100px" src="../static/images/upload_image.png">
+                        <br>
+                        <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
+                        <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">
+                    </label>
+                </div>
+                <br>
+                
+                <label class="modal-label" for="title">Event Name:</label>
                 <input type="text" id="title" name="title" required><br><br>
 
-                <label for="eventDate">Event Date:</label>
+                <label class="modal-label" for="eventDate">Event Date:</label>
                 <input type="date" id="eventDate" name="eventDate" required><br><br>
 
-                <label for="time">Event Time:</label>
+                <label class="modal-label" for="time">Event Time:</label>
                 <input type="time" id="time" name="time" required><br><br>
 
-                <label for="location">Location</label>
+                <label class="modal-label" for="location">Location:</label>
                 <input style="width: 65%;" id="location" name="location" list="cityList" placeholder="Type a city..."
                     autocomplete="off">
                 <datalist id="cityList"></datalist>
                 <br><br>
 
 
-                <label for="description">Description:</label>
+                <label class="modal-label" for="description">Description:</label>
                 <textarea id="description" name="description" required></textarea><br><br>
 
 
@@ -120,13 +138,14 @@
                 </button>
             </div>
             <div id="event_holder">
-                {% set images = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg', 'bird4.jpg'] %}
                 {% for event in events %}
                 <div class="event_img_details">
                     <div class="event-image-container">
-                        <!--<img src={{event.image|e}}  alt={{event.name|e}} class="event-image" />-->
-                        <img src='../static/images/{{images[loop.index0 % images|length]}}' alt="{{event.title|e}}"
-                            class="event-image" />
+                        {% if event.imagePath %}
+                        <img src="{{ event.imagePath }}" alt="{{ event.title|e }}" class="event-image" />
+                        {% else %}
+                        <img src="../static/images/raven.png" alt="Default image" class="event-image default-image" />
+                        {% endif %}
 
                     </div>
                     <div class="event-details">
@@ -160,11 +179,13 @@
     <!-- 
     <script type="text/babel">
         const domNode = document.getElementById('app');
+    -->
 
-//Modal
+<script>
         const createEventBtn = document.getElementById('createEventBtn');
         const modal = document.getElementById('eventModal');
         const closeModal = document.getElementById('closeModal');
+        let fileSelected = false;
 
         createEventBtn.addEventListener('click', () => {
             modal.style.display = 'flex';
@@ -173,14 +194,29 @@
         // Close modal when clicking close
         closeModal.addEventListener('click', () => {
             modal.style.display = 'none';
+            clearImagePreview();
+            document.getElementById('eventForm').reset();
         });
 
         // Close modal if clicking outside of modal
         window.addEventListener('click', (event) => {
             if (event.target === modal) {
                 modal.style.display = 'none';
+                clearImagePreview();
+                document.getElementById('eventForm').reset();
             }
         });
+
+        //clear dropzone and display default drop box
+        function clearImagePreview() {
+            const dropZone = document.getElementById("drop-zone");
+            dropZone.innerHTML = `<img style="width:100px" src="../static/images/upload_image.png">
+                                    <br>
+                                    <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
+                                    <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">`;
+            fileInput.value = ""; //clear image data
+            fileSelected = false; //bool to show no image has been uploaded
+        }
 
 
         //for location dropdown
@@ -212,7 +248,7 @@
                             const state = place.adminName1 || ''; // 'adminName1' holds the state/ region
 
                             const option = document.createElement('option');
-                            option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                            option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`; //format entry
                             option.textContent = option.value;
                             cityList.appendChild(option);
                         });
@@ -222,6 +258,73 @@
         });
 
 
+        //for drag drop image
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("image-input");
+
+        dropZone.addEventListener("click", (e) => {
+            const image = e.target;
+            e.stopPropagation();
+            if (e.target === dropZone && !fileSelected) {
+                e.preventDefault();
+                fileInput.click();
+            } 
+
+            if (fileInput.value && fileSelected) {
+                e.preventDefault();
+            }
+
+            if (image && image.tagName.toLowerCase() === 'img') {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("drag-over");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("drag-over");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drag-over");
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        //recognizes when a new image is added to the dropzone
+        fileInput.addEventListener("change", (e) => {
+            e.preventDefault();
+            const files = e.target.files;
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith("image/")) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const preview = document.createElement("img"); //create new image element to save and preview the uploaded image 
+                        preview.src = e.target.result;
+                        preview.alt = file.name;
+                        preview.style.maxWidth = "100%";
+                        preview.id = "uploaded-image"
+                        dropZone.innerHTML = ""; // clear drop zone
+                        dropZone.appendChild(preview);
+                        fileSelected = true;  //bool to show dropzone has an image uploaded to it
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert("Please upload a valid image file.");
+                }
+            }
+        }
+
 
         // Handle form submission
         const eventForm = document.getElementById('eventForm');
@@ -229,17 +332,18 @@
             event.preventDefault();
             const formData = new FormData(eventForm);
 
+            const fileInput = document.getElementById("uploaded-image");
 
             const eventData = {
+                image: fileInput && fileInput.src ? fileInput.src : undefined,
+                imageName:fileInput && fileInput.alt ? fileInput.alt : undefined, //image alt holds the name of the image file
                 title: formData.get('title'),
                 eventDate: formData.get('eventDate'),
                 time: formData.get('time'),
                 location: formData.get('location'),
                 description: formData.get('description'),
             };
-
-            console.log(eventData); // Send  data to server for saving
-
+            
             // Send event data to the /create_event endpoint
             fetch('/create_event', {
                 method: 'POST',
@@ -258,6 +362,7 @@
                 if(data){
                     if (data.success) {
                         console.log(data.message); //  created successfully
+                        location.reload();
                     }
                     else
                         console.log(data.message); //not created
@@ -267,8 +372,7 @@
                 console.error('Error creating event:', error);
             });
 
-            eventForm.reset();
-
+            eventForm.reset(); //clear event after submitting
             modal.style.display = 'none';
         });
 
@@ -280,8 +384,8 @@
             const eventID = button.getAttribute('EventID'); // Get the event ID from the button's data attribute
             const isFavorited = button.classList.contains('favorited');
 
-            if (!isFavorited){
-                button.classList.add('favorited'); //prematurely show favorited
+            if (!isFavorited){ //if event is not favorited
+                button.classList.add('favorited'); //prematurely show favorited to reduce delay
                 fetch('/favorite_event', {
                     method: 'POST',
                     body: JSON.stringify({ eventID: eventID }),
@@ -290,7 +394,7 @@
                 .then(response => {
                     if (response.status === 401) {
                         alert("You need to log in to favorite events.");
-                        button.classList.remove('favorited');
+                        button.classList.remove('favorited'); //reset heart if failed to favorite
                         return null;
                     }
                     return response.json();
@@ -302,7 +406,7 @@
                         }
                         else{
                             console.log("There was an issue with favoriting the event.");
-                            button.classList.remove('favorited');
+                            button.classList.remove('favorited'); //reset heart if failed to favorite
                             console.log(data.message);
                             alert(data.message);
                         }
@@ -313,7 +417,7 @@
                     console.error('Error favoriting event:', error);
                 });
             }
-            else {
+            else { //if event is already favorited
                 button.classList.remove('favorited');
                 fetch('/unfavorite_event', {
                     method: 'POST',
@@ -335,7 +439,7 @@
                         }
                         else{
                             console.log("There was an issue with unfavoriting the event.");
-                            button.classList.add('favorited');
+                            button.classList.add('favorited'); //heart refilled upon failure to unfavorite
                             console.log(data.message);
                             alert(data.message);
                         }
@@ -355,195 +459,84 @@
             });
         }
 
-// Header Component
-        function Header() {
-            return (
-                <div className="header-container">
-                    <div className="logo">
-                        <img src="../static/images/raven.png" alt="Featherly Logo" />
-                        <h1>Featherly</h1>
-                    </div>
-                    <div className="search-bars">
-                        <div className="beige-search-bar">
-                            <i className="fas fa-search icon-left"></i>
-                            <input type="text" placeholder="Search" />
-                            <img src="../static/images/profile.png" alt="Profile Icon" className="icon-right" />
-                        </div>
-                        <div className="light-red-search-bar">
-                            <i className="fas fa-search icon-left"></i>
-                            <input type="text" placeholder="Search" />
-                            <img src="../static/images/birdicon.png" alt="Bird Icon" className="icon-right" />
-                        </div>
-                    </div>
-                    <nav className="nav-icons">
-                        <a href="/" title="Home"><i className="fas fa-home"></i></a>
-                        <a href="/map" title="Map"><i className="fas fa-map"></i></a>
-                        <a href="/profile" title="Profile"><i className="fa-solid fa-user"></i></a>
-                        {% if user.is_authenticated %}
-                            <a href="/logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
-                        {% else %}
-                            <a href="/signin" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
-                        {% endif %}
-
-                    </nav>
-                </div>
-            );
-        }
-
-        
-
-    function CommentSection({ comments, onAddComment, username }) {
-            const [comment, setComment] = React.useState(""); 
-            const [showAllComments, setShowAllComments] = React.useState(false); 
-            const handleAddComment = () => {
-                if (comment.trim() && username) { 
-                    onAddComment({ username, text: comment });
-                    setComment(""); 
-                }
-            };
-
-            const displayedComments = showAllComments ? comments : comments.slice(0, 2);
-
-            return (
-                <div>
-                    <div className="comment-box">
-                        <input
-                            type="text"
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            placeholder="Add a comment..."
-                            className="comment-input"
-                        />
-                        <button onClick={handleAddComment} className="send-icon">
-                            <img src="../static/images/send.svg" alt="Send" />
-                        </button>
-                    </div>
-
-                    <div className="comments-list">
-                        {displayedComments.map((c, index) => (
-                            <p key={index}>
-                                <strong>{c.username}:</strong> {c.text}
-                            </p>
-                        ))}
-                    </div>
-
-                    {/* if there are more than 2 comments, show "hide comments" option */}
-                    {comments.length > 2 && (
-                        <p className="view-comments" onClick={() => setShowAllComments(!showAllComments)}>
-                            {showAllComments ? `Hide comments` : `View all ${comments.length} comments`}
-                        </p>
-                    )}
-                </div>
-            );
-        }
-
-
-    function Post({ title, image, content, likes, comments, username }) {
-            const [commentList, setComments] = React.useState(comments || []);
-
-            const addComment = (comment) => {
-                setComments([...commentList, comment]);
-            };
-
-            return (
-                <div className="post">
-                    <div className="post-header">
-                        <img src="../static/images/raven.png" alt="Profile Picture" className="profile-pic" />
-
-                        <div className="profile-info">
-                            <div className="profile-name-time">
-                                <span className="profile-name">John Doe</span>
-                                <span className="post-time">• 2 hours ago</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <img src={image} alt="Post Image" />
-
-                    <div className="post-info">
-                        <div className="text-and-icons">
-                            <div className="likes-and-icons">
-                                <div className="likes">{likes} likes</div>
-                                <div className="post-icons">
-                                    <button className="icon-button" id="tweet-button">🐤</button>
-                                    <button className="icon-button" id="location-button">📍</button>
-                                    <button className="icon-button" id="like-button">❤️</button>
+        document.getElementById('birdSearchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const birdID = document.getElementById('birdSearchInput').value.trim();
+            if (birdID) {
+                fetch(`/search_by_bird?birdID=${encodeURIComponent(birdID)}`)
+                    .then(response => response.json())
+                    .then(posts => {
+                        const mainFeed = document.querySelector('.mainFeed');
+                        mainFeed.innerHTML = '';
+                        if (posts.length > 0) {
+                            posts.forEach(post => {
+                                const postElement = document.createElement('div');
+                                postElement.classList.add('post');
+                                postElement.innerHTML = `
+                                    <div class="post-header">
+                                        <a href="/profile/${post.user.username}">
+                                            <div class="profile_pic_container">
+                                                <img id="profile_pic" src="${post.user.profileImage ? '/uploads/' + post.user.profileImage.name : '../static/images/profile-icon.webp'}" alt="Profile Picture" class="profile-pic" />
+                                            </div>
+                                            <div class="profile-info">
+                                                <div class="profile-name-time">
+                                                    <span class="profile-name">${post.user.username}</span>
+                                                    <span class="post-time">• ${new Date(post.datePosted).toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <img class="post-image" src="${post.images.length > 0 ? '/uploads/' + post.images[0].name : '../static/images/raven.png'}" alt="Post Image" />
+                                    <div class="post-info">
+                                        <div class="text-and-icons">
+                                            <div class="likes-and-icons">
+                                                <div class="post-icons">
+                                                    <button class="icon-button bird-button" data-bird-id="${post.birdID}">
+                                                        <img src="../static/images/birdID.png" alt="Bird Icon" class="bird-icon" width="20" height="22" />
+                                                    </button>
+                                                    <button class="icon-button placeholder-button" data-location-id="${post.locationID}">
+                                                        <img src="../static/images/placeholder.png" alt="Placeholder Icon" class="placeholder-icon" width="20" height="22" />
+                                                    </button>
+                                                    <button class="icon-button like-button" data-post-id="${post.postID}">
+                                                        <img src="../static/images/empty-heart.png" alt="Like Icon" class="like-icon" width="20" height="22" />
+                                                    </button>
+                                                </div>
+                                                <div class="likes" id="post_likes_${post.postID}">${post.likes_count} likes</div>
+                                            </div>
+                                            <p class="post-content">${post.caption}</p>
+                                            <form method="POST" action="/create-comment/${post.postID}" class="comment-form">
+                                                <input type="text" name="comment" placeholder="Add a comment..." class="comment-input" />
+                                                <button type="submit" class="send-icon">
+                                                    <img src="../static/images/send-solid.png" alt="Send Icon" width="20" height="20" />
+                                                </button>
+                                            </form>
+                                            <div class="comments-list">
+                                                ${post.comments.map(comment => `
+                                                    <div class="comment-box">
+                                                        <span class="comment-user">${comment.username}</span>
+                                                        <span class="comment-text">${comment.text}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                mainFeed.appendChild(postElement);
+                            });
+                        } else {
+                            mainFeed.innerHTML = `
+                                <div id="postFailed">
+                                    <h2>Looks like we couldn't find any posts</h2>
+                                    <p>Either refine your search, or follow someone new!</p>
                                 </div>
-                            </div>
-                            <p>{content}</p>
-                        </div>
-                    </div>
-
-                    <CommentSection comments={commentList} onAddComment={addComment} username={username} />
-                </div>
-            );
-        }
-
-
-    // Main Content Component
-    function Content() {
-        const posts = [
-            {
-                content: "Saw a blue bird",
-                image: "../static/images/bird3.jpg",
-                likes: 120,
-                comments: [
-                    { username: "Mike", text: "Beautiful!" },
-                    { username: "Anna", text: "Where was this?" },
-                    { username: "John", text: "Amazing shot!" }
-                ],
-            },
-            {
-                content: "Saw a kingfisher",
-                image: "../static/images/bird2.jpg",
-                likes: 85,
-                comments: [
-                    { username: "Sarah", text: "Wow!" },
-                    { username: "David", text: "Great capture!" }
-                ],
-            },
-            {
-                content: "Saw a red bird",
-                image: "../static/images/bird1.jpg",
-                likes: 42,
-                comments: [
-                    { username: "Emily", text: "Love the colors!" },
-                    { username: "Alex", text: "Such a rare sight!" }
-                ],
-            },
-        ];
-
-        return (
-            <div className="content">
-                {posts.map((post, index) => (
-                    <Post
-                        key={index}
-                        title={post.title}
-                        image={post.image}
-                        content={post.content}
-                        likes={post.likes}
-                        comments={post.comments}
-                    />
-                ))}
-            </div>
-        );
-    }
-
-        // HomePage Component
-        function HomePage() {
-            return ( 
-                <div>
-                    <Header />
-                    <div className="container">
-                        <Content />
-                    </div>
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(domNode);
-        root.render(<HomePage />);
-    </script> -->
+                            `;
+                        }
+                    })
+                    .catch(error => console.error('Error fetching posts:', error));
+            }
+        });
+</script>
+    
 </body>
 
 </html>

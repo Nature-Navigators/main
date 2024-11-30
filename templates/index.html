@@ -1,3 +1,4 @@
+<!-- LANDING PAGE -->
 <!DOCTYPE html>
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css')}}">
@@ -29,13 +30,11 @@
                     <img class="cardImg" alt="location icon" src="{{url_for('static', filename='images/pin-loc.webp')}}">
                 </div>
                 <div class="cardText">
-                    <!-- <h3>Birds Near Me</h2>
-                    <p>View all the varied types of birds near your location!</p> -->
                     <h3>Bird Map</h2>
                     <p>Find birds near you or anywhere else in the world!</p>
                 </div>
                 <form action="{{ url_for('map') }}" method="get">
-                    <button type="submit">Go!</button>
+                    <button class="blue_button" type="submit">Go!</button>
                 </form>
             </div>
             <div class="card">
@@ -44,11 +43,10 @@
                 </div>
                 <div class="cardText">
                     <h3>Wing It</h2>
-                    <!-- <p>See what the mystery bird of the day is!</p> -->
                     <p>Are you feeling lucky? See a random bird's page!</p>
                 </div>
                 <form action="{{ url_for('bird_page', bird_name=bird_name) }}" method="get">
-                    <button type="submit">Go!</button>
+                    <button class="blue_button" type="submit">Go!</button>
                 </form>
             </div>
             <div class="card">
@@ -57,11 +55,10 @@
                 </div>
                 <div class="cardText">
                     <h3>Get Social</h2>
-                    <!-- <p>Talk about and post pictures of all the birds you see!</p> -->
                     <p>Keep up with the bird community and birding events!</p>
                 </div>
                 <form action="{{ url_for('social') }}" method="get">
-                    <button type="submit">Go!</button>
+                    <button class="blue_button" type="submit">Go!</button>
                 </form>
             </div>
             

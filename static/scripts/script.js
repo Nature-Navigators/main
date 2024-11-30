@@ -1,3 +1,9 @@
+/*
+    This file contains javascript logic for the map page - 
+    bird rectangles, search bars, map, toggle, bird data, etc
+*/
+
+//Event listener for changes to UI elements (ex. toggle, search bars, etc)
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page is loaded and ready.');
     const toggleLocation = document.getElementById('toggle-location');
@@ -7,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         types: ['geocode'],
     });
 
+    //Uses Google's Places API for suggestive locations
     autocomplete.addListener('place_changed', function() {
         const place = autocomplete.getPlace();
         if (place.geometry) {
@@ -14,13 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
             searched_longitude = place.geometry.location.lng();
             processLocation(searched_latitude, searched_longitude);
             toggleLocation.checked = true;
-        }
-    });
-
-    document.getElementById('search-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            toggleLocation.checked = true;
-            getCoordinates(this.value);
         }
     });
 
@@ -35,26 +35,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-let bird_data = [];
+let bird_data = []; //holds species specific bird data 
 
-//UF coords
+//hardcoded UF coordinates as default location if user denies location sharing
 let userLatitude = 29.6465;
 let userLongitude = -82.355659;
 
+//searched location set to the same as user location initially
 let searched_latitude = userLatitude;
 let searched_longitude = userLongitude;
 
 window.onload = onLoad();
 
 function onLoad() {
-    const toggleLocation = document.getElementById('toggle-location');
+    const toggleLocation = document.getElementById('toggle-location'); //'Display All Species' toggle turned on by default
     toggleLocation.checked = true;
     adjustWidth();
     getLocation();
 }
 
+//width adjustments for UI elements
 function adjustWidth() {
-    var sidebarSearch = document.getElementById("sidebar-search");
+    var sidebarSearch = document.getElementById("sidebar-search"); 
     var searchBox = document.getElementById("search-box");
     var windowWidth = window.innerWidth;
     var newWidth = (windowWidth * 0.30); 
@@ -64,50 +66,25 @@ function adjustWidth() {
 
 window.onresize = adjustWidth;
 
-function getLocation() {
+function getLocation() { //browser requests user geolocation
     navigator.geolocation.getCurrentPosition(storePosition, handleNoLocation);
 }
 
-function handleNoLocation() {
+function handleNoLocation() { //if user denies location sharing, default UF location is processed directly
     processLocation(userLatitude, userLongitude)
 } 
 
-function getCoordinates(address) {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleMapsApiKey}`;
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'OK') {
-                const toggleLocation = document.getElementById('toggle-location');
-                searched_latitude = data.results[0].geometry.location.lat;
-                console.log("searched lat:", searched_latitude);
-                searched_longitude = data.results[0].geometry.location.lng;
-                if(toggleLocation.checked){
-                    processLocation(searched_latitude, searched_longitude);
-                }
-                else{
-                    userLatitude = data.results[0].geometry.location.lat;
-                    userLongitude = data.results[0].geometry.location.lng;
-                    processLocation(userLatitude, userLongitude);  
-                }
-            } else {
-                console.error('Geocoding failed: ' + data.status);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-function storePosition(position) {
+function storePosition(position) { //if user allows location sharing, get coordinates, store in local storage, and process location
     userLatitude = position.coords.latitude;
     userLongitude = position.coords.longitude;
     searched_latitude = userLatitude;
     searched_longitude = userLongitude;
-    localStorage.setItem('userLatitude', userLatitude);
+    localStorage.setItem('userLatitude', userLatitude); 
     localStorage.setItem('userLongitude', userLongitude);
     processLocation(userLatitude, userLongitude);
 }
 
-async function fetchLocationData(latitude, longitude) {
+async function fetchLocationData(latitude, longitude) { //Calls update_location in app.py for a new set of coordinates and receives new map + bird data
     try {
         const response = await fetch('/update_location', {
             method: 'POST',
@@ -127,7 +104,7 @@ async function fetchLocationData(latitude, longitude) {
     }
 }
 
-function processLocation(latitude, longitude) {
+function processLocation(latitude, longitude) { //Calls above functional for a new set of coordinates and generates new bird rectangles
     console.log("Processing location:", latitude, longitude);
     fetchLocationData(latitude, longitude)
         .then(locationData => {
@@ -140,16 +117,16 @@ function processLocation(latitude, longitude) {
         });
 }
 
-function filterBirds(query) {
+function filterBirds(query) { //processes input in bird search bar on map page and generates new set of bird rectangles
     const filteredBirds = bird_data.filter(bird => 
         bird.title.toLowerCase().includes(query) || 
         bird.description.toLowerCase().includes(query)
     );
-    createRectangles(filteredBirds); // Update rectangles with filtered data
+    createRectangles(filteredBirds); //update rectangles with filtered data
 }
 
 
-function createRectangles(birdArray) {
+function createRectangles(birdArray) { //function that creates the html elements for bird rectangles and listens for click events in bird rectangles
     const scrollableList = document.getElementById('scrollableList');
     
     scrollableList.innerHTML = '';
@@ -158,12 +135,11 @@ function createRectangles(birdArray) {
         array = bird_data;
     }
 
-    array.forEach(rect => {
+    array.forEach(rect => { //loop through array of birds and generate rectangle for each bird
         const rectangle = document.createElement('div');
         rectangle.className = 'rectangle'; 
 
         const img = document.createElement('img');
-        // img.src = rect.imageUrl;
         img.src = rect.imageUrl ? rect.imageUrl : '../static/images/oop.png';
         img.alt = rect.title;
 
@@ -184,17 +160,13 @@ function createRectangles(birdArray) {
         const moreButton = document.createElement('button');
         moreButton.className = 'more-recent-button';
         moreButton.innerText = 'All recent sightings';
-        moreButton.onclick = (event) => {
+        moreButton.onclick = (event) => { //if all recent sightings button is clicked
             event.stopPropagation(); //prevent the rectangle click event
             let toggleLocation = document.getElementById('toggle-location');
             toggleLocation.checked = false;
-            fetchAllRecentSightings(rect.speciesCode);
+            fetchAllRecentSightings(rect.speciesCode); //calls function to get new bird data for recent sightings of a given species
         };
         rectangle.appendChild(moreButton);
-
-        // rectangle.onclick = () => {
-        //     window.location.href = rect.url;
-        // };
         
         rectangle.onclick = () => {
             window.open(rect.url, '_blank');
@@ -206,12 +178,13 @@ function createRectangles(birdArray) {
     });
 }
 
-function fetchAllRecentSightings(speciesCode) {
+function fetchAllRecentSightings(speciesCode) { //function for "all recent sightings" of a specific bird. takes in a species specific code as paramater
     if (!searched_latitude || !searched_longitude) {
         alert("Unable to retrieve location. Please try again.");
         return;
     }
 
+    //connect to eBird API endpoint for all recent sightings within last 30 days of a specific bird
     const url = `https://api.ebird.org/v2/data/obs/geo/recent/${speciesCode}?lat=${searched_latitude}&lng=${searched_longitude}`;
     const headers = {
         'X-eBirdApiToken': ebirdApiKey
@@ -221,7 +194,7 @@ function fetchAllRecentSightings(speciesCode) {
         .then(response => response.json())
         .then(data => {
             console.log("Received bird sightings:", data);
-            fetch('/update_map_with_bird_sightings', {
+            fetch('/update_map_with_bird_sightings', { //calls function in app.py that updates map with new bird icons for all recent sightings
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -234,7 +207,7 @@ function fetchAllRecentSightings(speciesCode) {
             })
             .then(response => response.json())
             .then(updatedMap => {
-                document.getElementById('map').innerHTML = updatedMap.mapHtml;
+                document.getElementById('map').innerHTML = updatedMap.mapHtml; //updates html of map with returned newly created map
             })
             .catch(error => {
                 console.error("Error updating the map:", error);

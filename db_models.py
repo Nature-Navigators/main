@@ -1,3 +1,5 @@
+# Contains all the necessary database models
+
 from db import db
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
@@ -11,15 +13,6 @@ from sqlalchemy_serializer import SerializerMixin
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from sqlalchemy import ForeignKey
 from sqlalchemy import Float
-
-
-# many-to-many association table connecting event & user
-# savedBy = db.Table(
-#     "savedBy",
-#     db.Model.metadata,
-#     db.Column("userID", db.ForeignKey("user_table.userID"), primary_key=True),
-#     db.Column("eventID", db.ForeignKey("event_table.eventID"), primary_key=True)
-# )
 
 
 class Base(SerializerMixin, DeclarativeBase):
@@ -49,8 +42,7 @@ class User(Base, UserMixin):
     pronouns: Mapped[str] = mapped_column( nullable=True)
 
     # prevent recursion
-    serialize_rules = ('-posts.user.posts', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following.followedBy', '-followedBy.following')
-    #serialize_rules = ('-posts.user.posts','-profileImage.user', '-savedEvents.user', '-savedEvents', '-createdEvents', '-following', '-followedBy')
+    serialize_rules = ('-posts.user.posts', '-profileImage.user', '-savedEvents.user', '-createdEvents.user', '-following', '-followedBy')
 
     #relationships:
     #   back_populates: establishes that the one-to-many is also a many-to-one
@@ -58,9 +50,8 @@ class User(Base, UserMixin):
     #   lazy = joined means it joins the tables on select
     #   online i've read that selectin is good for many-to-many & one-to-many and joined is good for many-to-one
     posts:Mapped[List["Post"]] = relationship('Post', back_populates='user', lazy='selectin') # m
-    #comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
+    comments = db.relationship('Comment', back_populates='user', lazy='selectin') # m
     createdEvents = db.relationship('Event', back_populates='creator', lazy='selectin') # m
-    #savedEvents = db.relationship('Event', secondary=savedBy, back_populates='usersSaved') # m
     savedEvents = db.relationship('Favorite', back_populates='user', lazy='selectin') 
     profileImage:Mapped["ProfileImage"] = relationship(back_populates='user', lazy='selectin')
     
@@ -127,10 +118,9 @@ class Post(Base, UserMixin):
     locationID:Mapped[str] = mapped_column(nullable=False, default="unknown location")
     datePosted:Mapped[datetime.datetime] = mapped_column(nullable=True)
     serialize_rules = ('-images.post',)
-    # relationships + foreign keys
     userID:Mapped[uuid.UUID] = mapped_column(db.ForeignKey("user_table.userID"), nullable=False)
     user:Mapped["User"] = relationship('User', back_populates='posts', lazy='joined') # o
-    #comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
+    comments = db.relationship('Comment', back_populates='post', lazy='selectin') # m
     images: Mapped[List["PostImage"]] = relationship(back_populates='post', cascade="all, delete", passive_deletes=True)
 
     @property
@@ -147,11 +137,9 @@ class Post(Base, UserMixin):
             'images': [image.serialize for image in self.images]
         }
 
-
 class Event(Base):
     __tablename__ = "event_table"
     eventID = db.Column(db.Uuid, primary_key=True)
-    #datePosted = db.Column(db.DateTime(timezone=True))
     eventDate = db.Column(db.DateTime(timezone=True), nullable=False)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(256))
@@ -162,10 +150,11 @@ class Event(Base):
     userID = db.Column(db.Uuid, db.ForeignKey("user_table.userID"))
 
     creator = db.relationship('User', back_populates='createdEvents', lazy='joined') #o
-    #usersSaved = db.relationship('User', secondary=savedBy, back_populates='savedEvents') #m
     favorited_by = db.relationship('Favorite', back_populates='event', lazy='selectin') 
 
-    serialize_rules = ('-creator', '-favorited_by')
+    serialize_rules = ('-creator', '-favorited_by', '-images')
+
+    images: Mapped[List["EventImage"]] = relationship(back_populates='event', cascade="all, delete", passive_deletes=True)
 
     def to_dict(self):
         return {
@@ -176,7 +165,8 @@ class Event(Base):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'description': self.description,
-            'userID': self.userID
+            'userID': self.userID,
+            'images': [image.to_dict() for image in self.images]
         }
 
     def __repr__(self):
@@ -222,6 +212,17 @@ class Image(Base):
     __mapper_args__ = {
         "polymorphic_identity": "image",
         "polymorphic_on": "type"
+    }
+
+
+class EventImage(Image):
+    __tablename__ = "eventimage_table"
+    imageID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("image_table.imageID"), primary_key=True)
+    eventID: Mapped[uuid.UUID] = mapped_column(db.ForeignKey("event_table.eventID", ondelete="CASCADE"), nullable=False)
+
+    event: Mapped["Event"] = relationship(back_populates="images")
+    __mapper_args__ = {
+        "polymorphic_identity": "event_image"
     }
 
 class PostImage(Image):
@@ -278,3 +279,27 @@ class PostLike(Base):
             'userID': str(self.userID),
             'postID': str(self.postID)
         }
+
+class Comment(Base):
+    __tablename__ = 'comment_table'
+    commentID = db.Column(db.Uuid, primary_key=True)
+    text = db.Column(db.String(256), nullable=False)
+    dateCommented = db.Column(db.DateTime(timezone=True), nullable=False)
+
+    postID = db.Column(db.Uuid, db.ForeignKey('post_table.postID'), nullable=False)
+    username = db.Column(db.String, db.ForeignKey('user_table.username'), nullable=False)  
+
+    user = db.relationship('User', back_populates='comments', lazy='joined', foreign_keys=[username])
+    post = db.relationship('Post', back_populates='comments', lazy='joined')
+
+    serialize_rules = ('-user', '-post')
+    @property
+    def serialize(self):
+        return {
+            'commentID': str(self.commentID),
+            'text': self.text,
+            'dateCommented': self.dateCommented.isoformat(),
+            'postID': str(self.postID),
+            'username': self.username  
+        }
+

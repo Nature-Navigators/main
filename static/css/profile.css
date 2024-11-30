@@ -3,8 +3,8 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    min-height: 100vh;
-    height:100%;
+    max-height: 110vh;
+    height: 110vh;
     font-family: "Poppins", sans-serif;
   }
   
@@ -66,9 +66,15 @@ body {
     max-width: 100%;
     position: relative;
     
-   
-    
   }
+  .container {
+    height: 70vh;
+  }
+
+  .header .container .right_column {
+    height: 100%;
+  }
+
 
   .blue_button {
     background: #0091ff;
@@ -231,9 +237,11 @@ body {
 
   .header .container .right_column .photos {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: repeat(auto-fit, minmax(200px, 200px));
     gap: 20px;
     height: 100%; 
+    justify-content: baseline;
     overflow: auto; 
   }
   .header .container .right_column .photos img {
@@ -304,7 +312,8 @@ body {
   .header .container .right_column #createdEvents {
     display:none;
     margin-left: 0.5em;
-
+    height: 62vh;
+    overflow-y: scroll;
   }
 
   .header .container .right_column #created_event_holder {
@@ -317,7 +326,8 @@ body {
   .header .container .right_column #savedEvents {
     display:none;
     margin-left: 0.5em;
-
+    height: 62vh;
+    overflow-y: scroll;
   }
 
   .header .container .right_column #saved_event_holder {
@@ -362,12 +372,12 @@ body {
   }
   .popup {
     visibility:hidden;
-    top: 10%;
+    top: 5%;
     left: 25%;
     position:fixed;
     width:50%;
-    height:80%;
-    max-height: 80%;
+    height: 90%;
+    max-height: 90%;
     box-sizing:border-box;
     background: white;
     padding: 1em;
@@ -587,8 +597,8 @@ body {
     background-image: url('../images/empty-heart.png');
     width: 29px;
     height: 26px;
-    position: absolute;
-    right: 60px;
+    float: right;
+    margin-right: 18px;
   }
 
   .favorite-icon.favorited {
@@ -601,8 +611,76 @@ body {
     background-image: url('../images/trash-can-icon.png');
     width: 23px;
     height: 23px;
-    position: absolute;
-    right: 60px;
+    float: right;
+    margin-right: 18px;
+  }
+
+  .edit-icon {
+    background-size: cover;
+    background-image: url('../images/createicon.png'); 
+    width: 23px;
+    height: 23px;
+    cursor: pointer;
+    float: right;
+    margin-right: 10px;
+  }
+
+  /* Modal styling */
+  .modal {
+    display: flex;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+  }
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+  }
+
+  .close {
+    float: right;
+    cursor: pointer;
+  }
+
+  
+  #drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 90%;
+    height: 150px;
+    overflow-y: scroll;
+    display: inline-block;
+  }
+
+  #drop-zone.drag-over {
+    background-color: #f0f0f0;
+    border-color: #333;
+  }
+
+  #drop-zone img {
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  #drop-zone p {
+    font-size: 16px;
+    color: #333;
   }
 
 
@@ -615,6 +693,7 @@ body {
     margin: 0 0 5px;
     font-size: 16px;
     font-weight: bold;
+    display: inline-block;
   }
 
   .event-details p {

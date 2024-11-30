@@ -1,4 +1,4 @@
-
+<!-- Popup on the profile page that appears when you click the numbers around "following / followers" -->
 <div id="follower_popup" class="popup">
 
     <link rel="stylesheet" href="{{url_for('static', filename='css/follower_popup.css')}}">
@@ -13,7 +13,7 @@
                 <span><a href="#" onclick="clickFollowerFollowing(false)"><h3 id="followersHeader">Followers</h3></a></span>
             </div>
 
-            
+            <!-- FOLLOWING -->
             <div id="followingList" class="follower_list">
                 {% for f in user.following %}
 
@@ -27,7 +27,6 @@
                         {% endif %}
                     </div>
                     <p>{{f.username|e}}</p>
-                    <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
                     <form action="/profile/{{f.username|e}}">
                         <button class="blue_button unfollow_list_btn">View</button>
                     </form>
@@ -35,6 +34,7 @@
                 {% endfor %}
             </div>
 
+            <!-- FOLLOWED BY -->
             <div id="followersList" class="follower_list" style="display:none;">
                 <!-- "f" meaning follower / following -->
                 {% for f in user.followedBy %}
@@ -49,7 +49,6 @@
                         {% endif %}
                     </div>
                     <p>{{f.username|e}}</p>
-                    <!--<button class="gray_button unfollow_list_btn">Unfollow</button>-->
                     <form action="/profile/{{f.username|e}}">
                         <button class="blue_button unfollow_list_btn">View</button>
                     </form>

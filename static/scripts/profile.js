@@ -10,37 +10,13 @@ profileButton.addEventListener("mouseout", () => {editProfileText.style.visibili
 
 //click events
 profileButton.addEventListener("click", () => {
-    setDefaultEditProfile();
     document.getElementById("edit_profile_popup").style.visibility = 'visible';
     grayOut(true);
 })
 
 
-// ======================================== FUNCTIONS =================================================
+// ======================================== HIDE / SHOW FUNCTIONS =================================================
 
-//set default profile edit popup values
-function setDefaultEditProfile() {
-    var profileForm = document.getElementById("edit_profile_form");
-    var inputs = profileForm.getElementsByTagName("input");
-    inputs[0].value = document.getElementById("name").innerHTML;
-    inputs[1].value = document.getElementById("title").innerHTML;
-
-    var bio = profileForm.getElementsByTagName("textarea")[0];
-    bio.value = document.querySelector(".content").getElementsByTagName("p")[0].innerText;
-}
-
-function saveProfileEdits() {
-    var profileForm = document.getElementById("edit_profile_form");
-    var inputs = profileForm.getElementsByTagName("input");
-
-    document.getElementById("name").innerText = inputs[0].value;
-    document.getElementById("title").innerText = inputs[1].value;
-
-    var bio = profileForm.getElementsByTagName("textarea")[0];
-    document.querySelector(".content").getElementsByTagName("p")[0].innerText = bio.value;
-
-    hideProfilePopup();
-}
 
 function hideProfilePopup() {
     document.getElementById("edit_profile_popup").style.visibility = 'hidden';
@@ -50,7 +26,6 @@ function hideProfilePopup() {
 
 function showGallery() {
     document.getElementById('gallery').style.display = 'grid';
-    document.getElementById('badges').style.display = 'none';
     document.getElementById('createdEvents').style.display = 'none';
     document.getElementById('savedEvents').style.display = 'none';
 
@@ -58,32 +33,21 @@ function showGallery() {
   }
 
 
-function showBadges() {
-    document.getElementById('badges').style.display = 'block';
-    document.getElementById('gallery').style.display = 'none';
-    document.getElementById('createdEvents').style.display = 'none';
-    document.getElementById('savedEvents').style.display = 'none';
-
-
-    changeBoldedNav(1);
-}
 
 function showCreatedEvents() {
     document.getElementById('createdEvents').style.display = 'block';
     document.getElementById('savedEvents').style.display = 'none';
     document.getElementById('gallery').style.display = 'none';
-    document.getElementById('badges').style.display = 'none';
 
-    changeBoldedNav(2);
+    changeBoldedNav(1);
 }
 
 function showSavedEvents() {
     document.getElementById('savedEvents').style.display = 'block';
     document.getElementById('createdEvents').style.display = 'none';
     document.getElementById('gallery').style.display = 'none';
-    document.getElementById('badges').style.display = 'none';
 
-    changeBoldedNav(3);
+    changeBoldedNav(2);
 }
 
 function showPostPopup() {
@@ -174,30 +138,16 @@ function cleanJsonString(stringToClean)
     return returnStr;
 }
 
-//TODO: DELETE ME (replaced by showDatabasePost)
-function showSocialPost(postString) {
-
-    if(postString != null && postString != "")
-    {
-        let postJson = JSON.parse(postString);
-
-        //adjust the post popup's DOM 
-        document.getElementById("post_image").src = postJson["image"];
-        document.getElementById("post_likes").innerText = postJson["likes"] + " likes";
-        document.getElementById("post_content").innerText = postJson["content"];
-
-        //make it visible
-        document.getElementById("post_popup").style.visibility = 'visible';
-        grayOut(true);
-    
-    }
-}
 
 window.onload = rebindFavoriteIcons()
+window.onload = setupEditModal()
 
 function rebindFavoriteIcons() {
     document.querySelectorAll('.favorite-icon').forEach(button => {
         button.addEventListener('click', handleFavoriteClick);
+    });
+    document.querySelectorAll('.edit-icon').forEach(button => {
+        button.addEventListener('click', handleEditClick);
     });
     document.querySelectorAll('.delete-icon').forEach(button => {
         button.addEventListener('click', handleDeleteClick);
@@ -217,7 +167,7 @@ function handleFavoriteClick(event) {
             headers: { 'Content-Type': 'application/json' }
         })
         .then(response => {
-            if (response.status === 401) {
+            if (response.status === 401) { //specific error code for user not being logged in
                 alert("You need to log in to favorite events.");
                 button.classList.remove('favorited');
                 return null;
@@ -231,7 +181,7 @@ function handleFavoriteClick(event) {
                 }
                 else{
                     console.log("There was an issue with favoriting the event.");
-                    button.classList.remove('favorited');
+                    button.classList.remove('favorited');  //reset the heart if favoriting was not possible
                     console.log(data.message);
                 }
             }
@@ -264,7 +214,7 @@ function handleFavoriteClick(event) {
                 }
                 else{
                     console.log("There was an issue with unfavoriting the event.");
-                    button.classList.add('favorited');
+                    button.classList.add('favorited'); //undo the heart being reset, i.e fill heart
                     console.log(data.message);
                 }
             }
@@ -276,6 +226,123 @@ function handleFavoriteClick(event) {
     }
 }
 
+//for drag drop image
+const dropZone = document.getElementById("drop-zone");
+const fileInput = document.getElementById("image-input");
+
+dropZone.addEventListener("click", () => {
+    fileInput.click();
+});
+
+dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("drag-over");
+});
+
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("drag-over");
+});
+
+dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("drag-over");
+    const files = e.dataTransfer.files;
+    handleFiles(files);
+});
+
+//recognizes when a new image is added to the dropzone
+fileInput.addEventListener("change", (e) => {
+    const files = e.target.files;
+    handleFiles(files);
+});
+
+const closeModal = document.getElementById('closeModal');
+
+// Close modal when clicking close btn
+closeModal.addEventListener('click', () => {
+    hideEditEventPopup();
+    if (fileInput) {
+        fileInput.value = ""; // Reset the file input
+    }
+});
+
+//if user clicks outside modal
+const modal = document.getElementById('editModal');
+window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+        hideEditEventPopup();
+        if (fileInput) {
+            fileInput.value = ""; // Reset the file input
+        }
+    }
+});
+
+function handleFiles(files) {
+    if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.createElement("img"); //create new image element to save and preview the uploaded image 
+                preview.src = e.target.result;
+                preview.alt = file.name;
+                preview.style.maxWidth = "100%";
+                preview.id = "uploaded-image"
+                dropZone.innerHTML = ""; // clear drop zone
+                dropZone.appendChild(preview);
+            };
+            reader.readAsDataURL(file);  //converts file's binary and base64 data to a data:image format to send to server
+        } else {
+            alert("Please upload a valid image file.");
+        }
+    }
+}
+
+function clearImagePreview() {
+    const dropZone = document.getElementById("drop-zone");
+    //reset dropzone to show default/empty drop box area
+    dropZone.innerHTML = `<img style="width:100px" src="../static/images/upload_image.png">
+                            <br>
+                            <p class="modal-label">Drag & Drop an Image or Click to Upload</p>
+                            <input type="file" name="image-input" id="image-input" accept="image/*" style="display: none;">`;
+}
+
+function handleEditClick(event) {
+    const button = event.target;
+    const eventID = button.getAttribute('EventID'); 
+    clearImagePreview();
+
+    fetch(`/get_event_details/${eventID}`)  // route to get event details
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('eventID').value = data.eventID;
+            document.getElementById('title').value = data.title;
+            document.getElementById('eventDate').value = data.eventDate.split('T')[0];
+            document.getElementById('time').value = data.eventDate.split('T')[1].substring(0, 5);
+            document.getElementById('location').value = data.location;
+            document.getElementById('description').value = data.description;
+
+            if (data.imagePath) {
+                const preview = document.createElement("img");
+                preview.src = "../" +data.imagePath;  // Use the correct path from event data
+                console.log("preview");
+                console.log(preview.src);
+                preview.alt = data.imageName;  // Assuming imageName is provided
+                preview.style.maxWidth = "100%";
+                preview.id = "uploaded-image";
+
+                // Clear any existing image in the drop zone and append the preview to display to user
+                dropZone.innerHTML = "";
+                dropZone.appendChild(preview);
+            }
+
+            document.getElementById('editModal').style.visibility = 'visible';
+
+        });
+
+    showEventModal(); //display modal with event data
+}
+
 function handleDeleteClick(event) {
     const button = event.target;
     const eventID = button.getAttribute('EventID'); 
@@ -284,13 +351,13 @@ function handleDeleteClick(event) {
         fetch('/delete_event', {
             method: 'POST',
             body: JSON.stringify({ eventID: eventID }),
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' } //only eventId needed to find and delete event in db
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 console.log("Event deleted successfully!");
-                button.closest('.event_img_details').remove();
+                location.reload();
             } else {
                 console.log("There was an issue deleting the event.");
                 console.log(data.message);
@@ -308,26 +375,6 @@ function hideSocialPost() {
 
 }
 
-function showEventPopup(eventString)
-{
-    if(eventString != null && eventString != "")
-    {
-        let eventJson = JSON.parse(eventString);
-        //adjust the post popup's DOM 
-     
-        //make it visible
-        document.getElementById("event_popup").style.visibility = 'visible';
-        grayOut(true);
-    
-    }
-}
-function hideEventPopup()
-{
-    document.getElementById("event_popup").style.visibility = 'hidden';
-    grayOut(false);
-
-}
-
 function showFollowerPopup()
 {
     document.getElementById("follower_popup").style.visibility = 'visible';
@@ -341,6 +388,7 @@ function hideFollowerPopup() {
 }
 
 
+// determines if the background of the screen should be darker (for popups to "pop" visually)
 function grayOut(shouldGray)
 {
     if(shouldGray)
@@ -358,6 +406,7 @@ function grayOut(shouldGray)
     }
 }
 
+// determines which header (e.g., "Saved Events," "Created Events") should be bolded
 function changeBoldedNav(boldIndex)
 {
     let column = document.getElementById('mini_nav');
@@ -415,7 +464,7 @@ locationInput.addEventListener('input', () => {
                     const state = place.adminName1 || ''; // 'adminName1' holds the state/region
 
                     const option = document.createElement('option');
-                    option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`;
+                    option.value = `${cityName}, ${state ? state + ', ' : ''}${country}`; //format entry for display
                     option.textContent = option.value;
                     cityList.appendChild(option); // Append the option to the city list
                 });
@@ -424,3 +473,51 @@ locationInput.addEventListener('input', () => {
     }, 50); // Delay of 50 milliseconds
 });
 
+function setupEditModal(){
+    const editForm = document.getElementById('editForm');
+    editForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(editForm);
+        
+        const fileInput = document.getElementById("uploaded-image"); //retrives image element created when the user uploads an image to the dropzone
+
+        const eventData = {
+            image: fileInput && fileInput.src ? fileInput.src : undefined,
+            imageName:fileInput && fileInput.alt ? fileInput.alt : undefined, //image alt holds the name of the image file
+            eventID : formData.get('eventID'),
+            title: formData.get('title'),
+            eventDate: formData.get('eventDate'),
+            time: formData.get('time'),
+            location: formData.get('location'),
+            description: formData.get('description'),
+        };
+
+        fetch('/edit_event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Event updated successfully!');
+                location.reload(); 
+            } else {
+                console.error('Error updating event:', data.message);
+            }
+        });
+    });
+
+    hideEditEventPopup();
+}
+
+function showEventModal(){
+    document.getElementById("editModal").style.visibility = 'visible';
+    grayOut(true);
+
+}
+
+function hideEditEventPopup() {
+    document.getElementById('editModal').style.visibility = 'hidden';
+    grayOut(false);
+}

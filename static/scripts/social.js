@@ -15,10 +15,10 @@ function getLocation() {
         },
         (error) => {
             console.warn("Geolocation failed or denied, using IP-based location as fallback.");
-            fetchLocationViaIP();
+            fetchLocationViaIP(); // IP location is much less accurate, only if geolocation fails.
         },
         {
-            timeout: 100,     
+            timeout: 5000,     
         }
     );
 }
@@ -47,10 +47,7 @@ function sendLocation(position) {
     latitude = position.coords.latitude;
     longitude = position.coords.longitude;
 
-    console.log("sending location")
-    console.log(latitude)
-    console.log(longitude)
-
+    //endpoint filters events by proximity and returns list
     if (latitude && longitude) {
         fetch('/social_location', {
             method: 'POST',
@@ -64,7 +61,6 @@ function sendLocation(position) {
         })
         .then(response => response.json())
         .then(filteredEvents => {
-            console.log('Filtered events received:', filteredEvents);
             updateEventList(filteredEvents);
         })
         .catch(error => console.error('Error with location:', error));
@@ -75,22 +71,20 @@ function sendLocation(position) {
 
 
 function updateEventList(events) {
-    console.log("updating Events");
     const eventHolder = document.getElementById('event_holder');
-    
     let htmlContent = '';
 
-    
-    events.forEach((event, index) => {
-        const imageFile = `bird${(index % 4) + 1}.jpg`;  // Replace with logic for images
+    //clears html and recreates it with sorted events in order
+    events.forEach((event) => {
+        const imageFile = event.imagePath ? event.imagePath : `../static/images/raven.png`;
+        const defaultclass = event.imagePath ? ``:  `default-image`        
         const formattedDate = formatEventDate(event.eventDate); 
         const fav = event.favorited ? 'favorited' : '';
         
         htmlContent += `
             <div class="event_img_details">
                 <div class="event-image-container">
-                    <img src='../static/images/${imageFile}' alt="${event.title}" class="event-image" />
-                </div>
+                    <img src='${imageFile}' alt="${event.title}" class="event-image ${defaultclass}" />                </div>
                 <div class="event-details">
                     <h4>${event.title}</h4>
                     <span class="favorite-icon ${fav}" EventID="${event.eventID}"></span>
@@ -106,12 +100,12 @@ function updateEventList(events) {
     // Set the generated HTML to the event holder
     eventHolder.innerHTML = htmlContent;
     // to make sure likes persist after updating the event list
-    rebindFavoriteIcons();
+    rebindFavoriteIcons(); //rebind icons since innerhtml was replaced
     persistLikeButtons(); 
 }
 
 function formatEventDate(eventDate) {
-    return moment(eventDate).format("MMMM DD, YYYY [at] hh:mm A");
+    return moment(eventDate).format("MMMM DD, YYYY [at] hh:mm A");  //same format as datetimeformat used in html files
 }
 
 function setupLikeButtons() {

@@ -191,7 +191,7 @@ p {
 .comment-box {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .comment-input {
@@ -213,6 +213,7 @@ p {
 
 .comments-list {
     margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .comments-list p {
@@ -227,6 +228,32 @@ p {
 
 .view-comments:hover {
     text-decoration: none;
+}
+
+.comment-form {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.send-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.comment-form {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.send-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
 }
 
 /* Events list styling */
@@ -248,11 +275,29 @@ p {
     height: 160px;
     border-radius: 5px;
     overflow: hidden;
+    display: flex;
+    justify-content: center; 
+    align-items: center;    
 }
 
 .event-image {
+    width: 100%;
     max-width: 100%;
     height: auto;
+}
+
+.default-image {
+    height:100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.default-image {
+    height:100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Favorite icon styling */
@@ -322,9 +367,73 @@ p {
     width: 400px;
 }
 
+.modal-label{
+    font-size:16px;
+}
+
 .close {
     float: right;
     cursor: pointer;
+}
+
+#drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 90%;
+    height: 150px;
+    overflow-y: scroll;
+    display: inline-block;
+  }
+
+#drop-zone.drag-over {
+    background-color: #f0f0f0;
+    border-color: #333;
+}
+
+#drop-zone img {
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+#drop-zone p {
+    font-size: 16px;
+    color: #333;
+}
+
+#drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 90%;
+    height: 150px;
+    overflow-y: scroll;
+    display: inline-block;
+  }
+
+#drop-zone.drag-over {
+    background-color: #f0f0f0;
+    border-color: #333;
+}
+
+#drop-zone img {
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+#drop-zone p {
+    font-size: 16px;
+    color: #333;
 }
 
 /* Events headline styling */
@@ -571,4 +680,23 @@ input:checked + .slider:before {
 /* Post image styling */
 .post-image {
     object-fit: contain;
+}
+
+.comments-list {
+    margin-top: 10px;
+}
+
+.comment-box {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.comment-user {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.comment-text {
+    color: #333;
 }

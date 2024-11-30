@@ -1,7 +1,9 @@
-
+<!-- Popup that appears when you click on a post on a profile's gallery -->
 <div id="post_popup" class="post_popup popup">
 
     <link rel="stylesheet" href="{{url_for('static', filename='css/post_popup.css')}}">
+
+    <!-- HEADER -->
     <div id="popup_header">
         <button id="cancel_button" onclick="hideSocialPost()" class="img_button"><img src="{{url_for('static', filename='images/cancel_icon.png')}}"></button>          
         
@@ -9,6 +11,8 @@
         <button id="delete_button" onclick="deletePost()" class="img_button"><img src="{{url_for('static', filename='images/trash-can-icon.png')}}"></button>
         {% endif %}
     </div>
+
+    <!-- BODY -->
     <div class="post_popup_body">
         <div class="post">
             <div class="post-header">
@@ -38,7 +42,7 @@
    
   </div>
 
-    
+<!-- DELETE CONFIRMATION -->    
   <div id="confirmation_popup" class="popup">
     <p>Are you sure you want to delete this post?</p>
     <div>
