@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session, g
 from sqlalchemy import select, desc
 from sqlalchemy.sql.expression import func
 import uuid
@@ -58,6 +58,11 @@ EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent'
 EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 OPENCAGE_API_KEY = os.getenv('OPENCAGE_API_KEY') #for getting coordinates
+
+@app.before_request
+def before_request():
+    g.geo_user = os.getenv('GEO_USER') #save geonames username for api calls
+
 
 # Below array contains hardcoded birds from which a random bird is chosen for the "Wing it" page
 random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 

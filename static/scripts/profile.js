@@ -453,8 +453,10 @@ locationInput.addEventListener('input', () => {
         const query = locationInput.value.trim(); // Get the trimmed input value
         if (query.length < 2) return; // Don't search before 2 chars typed
 
+        const username = "{{g.geo_user}}"; //get username for geonames from .env
+
         // Fetch cities matching the input
-        fetch(`http://api.geonames.org/searchJSON?formatted=true&q=${query}&maxRows=40&lang=en&username=salonikaranth`)
+        fetch(`http://api.geonames.org/searchJSON?formatted=true&q=${query}&maxRows=40&lang=en&username=${username}`)
             .then(response => response.json())
             .then(data => {
                 cityList.innerHTML = ''; // Clear previous options

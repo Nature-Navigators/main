@@ -3,7 +3,6 @@ window.onload = onLoad;
 function onLoad() {
     getLocation();
     setupLikeButtons();
-    persistLikeButtons();
 }
 
 function getLocation() {
@@ -16,6 +15,7 @@ function getLocation() {
             fetchLocationViaIP(); // IP location is much less accurate, only if geolocation fails.
         },
         {
+            enableHighAccuracy: false,
             timeout: 5000,     
         }
     );
@@ -59,6 +59,7 @@ function sendLocation(position) {
         })
         .then(response => response.json())
         .then(filteredEvents => {
+            persistLikeButtons();// allow likes to populate since fetch social location is done
             updateEventList(filteredEvents);
         })
         .catch(error => console.error('Error with location:', error));
@@ -98,7 +99,6 @@ function updateEventList(events) {
     eventHolder.innerHTML = htmlContent;
     // to make sure likes persist after updating the event list
     rebindFavoriteIcons(); //rebind icons since innerhtml was replaced
-    persistLikeButtons(); 
 }
 
 function formatEventDate(eventDate) {
