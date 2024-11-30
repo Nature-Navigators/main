@@ -458,15 +458,18 @@
                 button.addEventListener('click', handleFavoriteClick);
             });
         }
-
-        document.getElementById('birdSearchForm').addEventListener('submit', function(event) {
+    // select birdSearchForm 
+    document.getElementById('birdSearchForm').addEventListener('submit', function (event) {
+            // prevent reload
             event.preventDefault();
             const birdID = document.getElementById('birdSearchInput').value.trim();
             if (birdID) {
+                // fetch birds matching query through search_by_bird/birdID
                 fetch(`/search_by_bird?birdID=${encodeURIComponent(birdID)}`)
                     .then(response => response.json())
                     .then(posts => {
                         const mainFeed = document.querySelector('.mainFeed');
+                        // clear mainfeed
                         mainFeed.innerHTML = '';
                         if (posts.length > 0) {
                             posts.forEach(post => {
@@ -534,7 +537,7 @@
                     })
                     .catch(error => console.error('Error fetching posts:', error));
             }
-        });
+        });  
 </script>
     
 </body>

@@ -173,7 +173,7 @@ function handleLikeButtonClick(event) {
         return response.json();
     })
     .then(data => {
-        if (data && data.likes !== undefined) {
+        if (data.likes !== undefined) {
             // update icon based on like status
             icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
             icon.width = 20;
