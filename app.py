@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session
+from flask import Flask, render_template, url_for, redirect, request, jsonify, redirect, send_from_directory, flash, session, g
 from sqlalchemy import select, desc
 from sqlalchemy.sql.expression import func
 import uuid
@@ -58,6 +58,11 @@ EBIRD_API_RECENT_BIRDS_URL = 'https://api.ebird.org/v2/data/obs/geo/recent'
 EBIRD_API_KEY = os.getenv('EBIRD_API_KEY')
 GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 OPENCAGE_API_KEY = os.getenv('OPENCAGE_API_KEY') #for getting coordinates
+
+@app.before_request
+def before_request():
+    g.geo_user = os.getenv('GEO_USER') #save geonames username for api calls
+
 
 # Below array contains hardcoded birds from which a random bird is chosen for the "Wing it" page
 random_birds = ['Black-winged Stilt', 'Laughing Kookaburra', 'Comb-crested Jacana', 
@@ -666,28 +671,39 @@ def like_post(post_id):
     # Return the updated like count and like status
     return jsonify({'likes': post.likes_count, 'liked': liked}), 200
 
-@app.route('/api/posts/<post_id>/like/status', methods=['GET'])
-@login_required
-def get_like_status(post_id):
+
+@app.route('/api/posts/like/status', methods=['POST'])
+def get_like_status():
     try:
-        # Convert the post ID to a UUID
-        post_uuid = uuid.UUID(post_id)
+        #get the list of post IDs
+        data = request.get_json()
+        post_ids = data.get('postIds',[])
+        
+        #convert post IDs to uuids and find in the database
+        post_uuids =[uuid.UUID(post_id) for post_id in post_ids]
+        posts = db.session.scalars(select(Post).filter(Post.postID.in_(post_uuids))).all()
+        
+        response = {}
+        if not current_user.is_authenticated: #identify loggedout users 
+            for post in posts:
+                liked = False #the user is not logged in, so like status cannot be checked
+                response[str(post.postID)] = {
+                    'liked': liked,
+                    'likes': post.likes_count
+                }
+        else : 
+            for post in posts:
+                liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post.postID)).first() is not None
+                response[str(post.postID)] = {
+                    'liked': liked,
+                    'likes': post.likes_count
+                }
+        return jsonify(response), 200
+    
     except ValueError:
-        # If the post ID is not a valid UUID, return an error response
+        # Handle invalid post ID formats
         return jsonify({'error': 'Invalid post ID format'}), 400
 
-    # Query the database to find the post by ID
-    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
-    
-    # If the post is not found, return an error response
-    if not post:
-        return jsonify({'error': 'Post not found'}), 404
-
-    # Check if the current user has liked the post
-    liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first() is not None
-    
-    # Return the like status and like count
-    return jsonify({'liked': liked, 'likes': post.likes_count}), 200
 
 # TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
