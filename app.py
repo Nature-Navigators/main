@@ -581,103 +581,6 @@ If you did not make this request, ignore this email
         # Print any errors that occur while sending the email
         raise ValidationError("Error sending email")
 
-@app.route('/reset_request', methods=['GET', 'POST'])
-def reset_request():
-    # If the user is already authenticated, redirect them to their profile page
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    
-    # Create an instance of the password reset request form
-    form = RequestResetForm()
-    
-    # Check if the form is submitted and validated
-    if form.validate_on_submit():
-        # Query the database to find the user by email
-        user = db.session.scalars(select(User).where(User.email == form.email.data)).first()
-        
-        # If the user is found, send a password reset email
-        if user:
-            send_email(user)
-        else:
-            raise ValidationError('User not found')
-            
-        # Redirect to the sign-in page
-        return redirect(url_for('signin'))
-    
-    # Render the password reset request template with the form
-    return render_template('reset_req.html', title='Reset password', form=form)
-
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_token(token):
-    # If the user is already authenticated, redirect them to their profile page
-    if current_user.is_authenticated:
-        return redirect(url_for('profile'))
-    
-    # Verify the password reset token
-    user = User.verify_reset_token(token)
-    
-    # If the token is invalid or expired, raise a validation error and redirect to the reset request page
-    if user is None:
-        raise ValidationError('That is an invalid or expired token')
-        return redirect(url_for('reset_request'))
-    
-    # Create an instance of the password reset form
-    form = ResetPasswordForm()
-    
-    # Check if the form is submitted and validated
-    if form.validate_on_submit():
-        # Hash the new password
-        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        
-        # Update the user's password in the database
-        user.password = hashed_passwd
-        db.session.commit()
-        
-        # Redirect to the sign-in page
-        return redirect(url_for('signin'))
-    
-    # Render the password reset template with the form
-    return render_template('reset.html', title='Reset Password', form=form)
-
-@app.route('/api/posts/<post_id>/like', methods=['POST'])
-@login_required
-def like_post(post_id):
-    try:
-        # Convert the post ID to a UUID
-        post_uuid = uuid.UUID(post_id)
-    except ValueError:
-        # If the post ID is not a valid UUID, return an error response
-        return jsonify({'error': 'Invalid post ID format'}), 400
-
-    # Query the database to find the post by ID
-    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
-    
-    # If the post is not found, return an error response
-    if not post:
-        return jsonify({'error': 'Post not found'}), 404
-
-    # Query the database to find if the current user has already liked the post
-    like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
-
-    if like:
-        # If the user has already liked the post, remove the like and decrement the like count
-        db.session.delete(like)
-        post.likes_count -= 1
-        liked = False
-    else:
-        # If the user has not liked the post, add a new like and increment the like count
-        new_like = PostLike(userID=current_user.userID, postID=post_uuid)
-        db.session.add(new_like)
-        post.likes_count += 1
-        liked = True
-
-    # Commit the changes to the database
-    db.session.commit()
-    
-    # Return the updated like count and like status
-    return jsonify({'likes': post.likes_count, 'liked': liked}), 200
-
-
 @app.route('/api/posts/like/status', methods=['POST'])
 def get_like_status():
     try:
@@ -1472,39 +1375,6 @@ def like_post(post_id):
     # Return the updated like count and like status
     return jsonify({'likes': post.likes_count, 'liked': liked}), 200
 
-@app.route('/api/posts/like/status', methods=['POST'])
-def get_like_status():
-    try:
-        #get the list of post IDs
-        data = request.get_json()
-        post_ids = data.get('postIds',[])
-        
-        #convert post IDs to uuids and find in the database
-        post_uuids =[uuid.UUID(post_id) for post_id in post_ids]
-        posts = db.session.scalars(select(Post).filter(Post.postID.in_(post_uuids))).all()
-        
-        response = {}
-        if not current_user.is_authenticated: #identify loggedout users 
-            for post in posts:
-                liked = False #the user is not logged in, so like status cannot be checked
-                response[str(post.postID)] = {
-                    'liked': liked,
-                    'likes': post.likes_count
-                }
-        else : 
-            for post in posts:
-                liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post.postID)).first() is not None
-                response[str(post.postID)] = {
-                    'liked': liked,
-                    'likes': post.likes_count
-                }
-        return jsonify(response), 200
-    
-    except ValueError:
-        # Handle invalid post ID formats
-        return jsonify({'error': 'Invalid post ID format'}), 400
-
-
 @app.route('/create-comment/<post_id>', methods=['POST'])
 @login_required
 def create_comment(post_id):
@@ -1549,21 +1419,6 @@ def search_by_bird():
     }
 
     return render_template('social.html', **context)
-    
-
-@app.route('/bird')
-def bird():
-    return render_template("bird.html")
-
-def get_map_html():
-    # This function can be used to create and return the initial map HTML
-    m = folium.Map(location=[37.7749, -122.4194], zoom_start=13)  # Example starting location
-    return m._repr_html_()
-
-# used for getting uploaded images from the database via url_for
-@app.route('/uploads/<path:filename>')
-def download_file(filename):
-    return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
