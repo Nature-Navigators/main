@@ -94,17 +94,23 @@
               </div>
             {% endif %}
             
-            <!-- USER NAME & BIO -->
-            {% if user.firstName != None and user.lastName != None %}
-              <h2 id="name">{{user.firstName|e}} {{user.lastName|e}}</h2>
-            {% elif user.firstName != None and user.lastName == None %}
-              <h2 id="name">{{user.firstName|e}}</h2>
-            {% else %}
-              <h2 id="name">{{user.username|e}}</h2>
+            <!-- USER NAME & BIO & LIFE LIST -->
+            {% set displayName = user.username|e %} 
+
+            {% if user.firstName != None and user.lastName != None and user.firstName != ""%}
+              {% set displayName = user.firstName|e + " " + user.lastName|e %}
+            {% elif user.firstName != None and user.lastName == None and user.firstName != "" %}
+              {% set displayName = user.firstName|e %}
             {% endif %}
 
+            <h2 id="name">{{displayName}}</h2>
+            
             {% if user.pronouns != None and user.pronouns != "None" %}
             <p id="pronouns">{{user.pronouns|e}}</p>
+            {% endif %}
+
+            {% if user.lifeList != None and user.lifeList > 0 %}
+            <h4>{{displayName}} has seen {{user.lifeList}} species of birds!</h4>
             {% endif %}
 
             {% if not loggedIn %}
@@ -251,6 +257,7 @@
                 <h3>Upload an image</h3>
               </div>
               <div class="text_div">
+                <!-- add input field to form for bird id and location  -->
                 <h3>Bird Species</h3>
                 <!-- add input field to form for bird id and location  -->
                 <input name="add_bird_id" placeholder="Enter the species of the bird">
@@ -312,6 +319,16 @@
               {% endif %}
               <h3>Bio</h3>
               <textarea name="bio" placeholder="Edit your bio">{{ubio}}</textarea>
+
+              {% set ulist = 0 %}
+              {% if user.lifeList != None %}
+                {% set ulist = user.lifeList|e %}
+              {% endif %}
+              <h3>Life List</h3>
+              <span id="life_list_span">
+                <p>Species Seen: </p>
+                <input type="number" min="0" step="1" name="life_list" placeholder="0" value="{{ulist}}">
+              </span>
               <button class="profile_button" onclick="hideProfilePopup()">Save</button>
             </div>
           </div>

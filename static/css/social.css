@@ -21,8 +21,8 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 70px;
-    right:0px;
-    max-width:20%;
+    right: 0px;
+    max-width: 20%;
     height: 90vh;
     overflow: scroll;
 }
@@ -41,7 +41,7 @@ body {
     height: 90vh;
     width: 80%;
     box-sizing: border-box;
-    display:relative;
+    display: relative;
 }
 
 /* Post failed message styling */
@@ -51,7 +51,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content:center;
+    justify-content: center;
     align-items: center;
 }
 
@@ -69,27 +69,24 @@ body {
 
 /* Profile picture container styling */
 .profile_pic_container {
-    width:2.5em;
-    height:2.5em;
+    width: 2.5em;
+    height: 2.5em;
     min-width: 2.5em;
-    border-radius:50%;
-    overflow:hidden;
-    box-sizing:border-box;
-    padding:0;
+    border-radius: 50%;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 0;
     margin-right: 0.5em;
-
     display: inline-block;
 }
 
- .profile_pic_container img {
+.profile_pic_container img {
     width: 100%;
-    
-    height:100%;
-    padding:0;
-    margin:0;
-    display:inline;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    display: inline;
     object-fit: cover;
-
 }
 
 /* Post header styling */
@@ -100,12 +97,10 @@ body {
     background-color: white;
     font-size: 14px;
     color: #333;
-    width: 100%; 
-    max-width: 97%; 
-    height:4.5em;
+    width: 100%;
+    max-width: 97%;
+    height: 4.5em;
     padding: 0.5em;
-    
-
 }
 
 .post-header a {
@@ -148,7 +143,7 @@ body {
 
 /* Text and icons styling */
 .text-and-icons {
-    margin-bottom: 10px; 
+    margin-bottom: 10px;
 }
 
 .likes-and-icons {
@@ -248,6 +243,19 @@ p {
     margin-left: 5px;
 }
 
+.comment-form {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.send-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
 /* Events list styling */
 .events-list {
     list-style-type: none;
@@ -264,7 +272,7 @@ p {
 
 .event-image-container {
     position: relative;
-    height:160px;
+    height: 160px;
     border-radius: 5px;
     overflow: hidden;
     display: flex;
@@ -273,8 +281,16 @@ p {
 }
 
 .event-image {
-    width: 100%;  
+    width: 100%;
+    max-width: 100%;
     height: auto;
+}
+
+.default-image {
+    height:100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .default-image {
@@ -294,15 +310,12 @@ p {
     float: right;
 }
 
-/* Red heart  */
+/* Red heart when favorited */
 .favorite-icon.favorited {
     background-image: url('../images/filled-heart.png');
 }
 
-
-/* ================================ EVENT =======================================*/
-
-
+/* Event details styling */
 .event-details {
     padding-top: 10px;
 }
@@ -321,7 +334,7 @@ p {
     color: #555;
 }
 
-
+/* Create event button styling */
 .create-event-button {
     background: none;
     border: none;
@@ -394,29 +407,58 @@ p {
     color: #333;
 }
 
-.events-headline{
-    width:100%;
-    height:max-content;
+#drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 90%;
+    height: 150px;
+    overflow-y: scroll;
+    display: inline-block;
+  }
+
+#drop-zone.drag-over {
+    background-color: #f0f0f0;
+    border-color: #333;
+}
+
+#drop-zone img {
+    max-width: 80%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+#drop-zone p {
+    font-size: 16px;
+    color: #333;
+}
+
+/* Events headline styling */
+.events-headline {
+    width: 100%;
+    height: max-content;
     display: flex;
 }
 
-.events-headline p{
+.events-headline p {
     flex-basis: 92%;
-    padding:2px;
-    padding-left:0px;
+    padding: 2px;
+    padding-left: 0px;
     margin-bottom: 20px;
     font-size: 18px;
 }
 
-#createEventBtn{
-    width:max-content;
-    height:max-content;
+#createEventBtn {
+    width: max-content;
+    height: max-content;
     flex-basis: 8%;
 }
 
-
-/* ================================== NAVBAR ====================================== */
-
+/* Navbar styling */
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -426,13 +468,13 @@ p {
 
 .navbar-left {
     display: flex;
-    gap: 10px; 
+    gap: 10px;
 }
 
 .beige-search-bar {
     display: flex;
     align-items: center;
-    background-color: #ffffff; 
+    background-color: #ffffff;
     border-radius: 20px;
     padding: 5px 10px;
     width: 250px;
@@ -456,7 +498,7 @@ p {
 .light-red-search-bar {
     display: flex;
     align-items: center;
-    background-color: #ffffff; 
+    background-color: #ffffff;
     border-radius: 20px;
     padding: 5px 10px;
     width: 250px;
@@ -503,14 +545,13 @@ p {
 /* Header container styling */
 .header-container {
     position: fixed;
-    top:0;
+    top: 0;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 20px;
-    box-sizing:border-box;
-    /* background-color: #8bd7da; */
+    box-sizing: border-box;
     background-color: #499ec9;
 }
 
@@ -556,10 +597,9 @@ p {
     color: #ddd;
 }
 
-/* ======================== TOGGLE SWITCH (some from w3 schools) =============================== */
-
+/* Toggle switch styling */
 .follower-toggle {
-    display:flex;
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-right: 20px;
@@ -572,26 +612,26 @@ p {
 .follower-toggle p {
     margin-right: 0.5em;
     color: rgb(73, 73, 73);
-    font-size:14px;
+    font-size: 14px;
 }
 
- /* The switch - the box around the slider */
- .switch {
+/* The switch - the box around the slider */
+.switch {
     position: relative;
     display: inline-block;
     width: 60px;
     height: 34px;
-  }
-  
-  /* Hide default HTML checkbox */
-  .switch input {
+}
+
+/* Hide default HTML checkbox */
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
-  }
-  
-  /* The slider */
-  .slider {
+}
+
+/* The slider */
+.slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -601,9 +641,9 @@ p {
     background-color: #b5b8c6;
     -webkit-transition: .4s;
     transition: .4s;
-  }
-  
-  .slider:before {
+}
+
+.slider:before {
     position: absolute;
     content: "";
     height: 26px;
@@ -613,33 +653,34 @@ p {
     background-color: white;
     -webkit-transition: .4s;
     transition: .4s;
-  }
-  
-  input:checked + .slider {
+}
+
+input:checked + .slider {
     background-color: #74d1ff;
-  }
-  
-  input:focus + .slider {
+}
+
+input:focus + .slider {
     box-shadow: 0 0 1px #2196F3;
-  }
-  
-  input:checked + .slider:before {
+}
+
+input:checked + .slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
-  }
-  
-  /* Rounded sliders */
-  .slider.round {
-    border-radius: 34px;
-  }
-  
-  .slider.round:before {
-    border-radius: 50%;
-  }
+}
 
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Post image styling */
 .post-image {
-    object-fit: contain; 
+    object-fit: contain;
 }
 
 .comments-list {

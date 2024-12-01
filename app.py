@@ -126,6 +126,8 @@ class SignUpForm(FlaskForm):
     def validate_username(self, username):
         # check if another account already exists with same username
         # select user from db if their username matches the username entered in form
+        # check if another account already exists with same username
+        # select user from db if their username matches the username entered in form
         exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
         if exists_user != None:
             raise ValidationError("Username already exists. Select a new username.")
@@ -133,11 +135,15 @@ class SignUpForm(FlaskForm):
     def validate_email(self, email):
         # select user if their email matches the email entered
         # if user does exist raise validation error
+        # select user if their email matches the email entered
+        # if user does exist raise validation error
         exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
         if exists_email != None:
             raise ValidationError("Email already exists. Use another email address.")
    
 class SignInForm(FlaskForm):
+    # Form fields for sign-in
+    # email, username, pw mandatory fields
     # Form fields for sign-in
     # email, username, pw mandatory fields
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
@@ -151,11 +157,14 @@ class SignInForm(FlaskForm):
     # Validation for username
     def validate_username(self, username):
         # select user if their username matches the username entered
+        # select user if their username matches the username entered
         exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
         if exists_user == None:
             raise ValidationError("Username does not exist.")
     # Validation for email
     def validate_email(self, email):
+        # select user if their email matches the email entered
+        # fetch from db
         # select user if their email matches the email entered
         # fetch from db
         exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
@@ -165,19 +174,25 @@ class SignInForm(FlaskForm):
 class RequestResetForm(FlaskForm):
     # Form fields for requesting password reset
     # email required to request for reset pw
+    # Form fields for requesting password reset
+    # email required to request for reset pw
     email = StringField('Email', 
                         validators=[InputRequired(), Email()])
     submit = SubmitField('Request Password Reset')
     # Validation for email
     def validate_email(self, email):
         # select user if their email matches the email entered
+        # select user if their email matches the email entered
         stmt = select(User).where(User.email == email.data)
+        # fetch user from the database
         # fetch user from the database
         exists_email = db.session.execute(stmt).scalars().first()
         if exists_email is None:
             raise ValidationError("Email not associated with any account, try signing up.")
         
 class ResetPasswordForm(FlaskForm):
+    # Form fields for resetting password
+    # pw required to reset pw
     # Form fields for resetting password
     # pw required to reset pw
     password = PasswordField('Password', 
@@ -481,7 +496,6 @@ async def bird_page(bird_name):
     return render_template('bird.html', bird=bird_data)
 
 @app.route('/signin', methods=['GET','POST'])
-
 def signin():
      # If the user is already authenticated, redirect them to their profile page
     if current_user.is_authenticated:
@@ -520,6 +534,7 @@ def logout():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     # If the user is already authenticated, redirect them to their profile page
+    # If the user is already authenticated, redirect them to their profile page
     if current_user.is_authenticated:
         return redirect(url_for('profile'))
     # Create an instance of the sign-up form
@@ -533,8 +548,10 @@ def signup():
         new_user = User(userID=uuid.uuid4(),email=form.email.data, username=form.username.data, password=hashed_passwd)
         
         try:
+            # Add the new user to the database and commit the transaction
             db.session.add(new_user)
             db.session.commit()
+            # Redirect to the sign-in page
             # Redirect to the sign-in page
             return redirect(url_for('signin'))
         except IntegrityError:
@@ -544,7 +561,157 @@ def signup():
             # Render the sign-up template with the form and alert message
     return render_template("signup.html", form=form, alert_message=alert_message)
 
-# routes to a profile page as /profile/username
+def send_email(user):
+    try:
+        # Generate a password reset token for the user
+        token = user.get_reset_token()
+        # print(f"Generated token: {token}") 
+        
+        # Create a new email message
+        msg = Message('Password Reset Request', sender='noreply@featherly.com', recipients=[user.email])
+        msg.body = f'''To reset your password, click the following link:
+{url_for('reset_token', token=token, _external=True)}
+
+If you did not make this request, ignore this email
+'''
+        # Send the email
+        mail.send(msg)
+        # print("Email sent successfully")  # Debugging statement
+    except Exception as e:
+        # Print any errors that occur while sending the email
+        raise ValidationError("Error sending email")
+
+@app.route('/reset_request', methods=['GET', 'POST'])
+def reset_request():
+    # If the user is already authenticated, redirect them to their profile page
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    
+    # Create an instance of the password reset request form
+    form = RequestResetForm()
+    
+    # Check if the form is submitted and validated
+    if form.validate_on_submit():
+        # Query the database to find the user by email
+        user = db.session.scalars(select(User).where(User.email == form.email.data)).first()
+        
+        # If the user is found, send a password reset email
+        if user:
+            send_email(user)
+        else:
+            raise ValidationError('User not found')
+            
+        # Redirect to the sign-in page
+        return redirect(url_for('signin'))
+    
+    # Render the password reset request template with the form
+    return render_template('reset_req.html', title='Reset password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    # If the user is already authenticated, redirect them to their profile page
+    if current_user.is_authenticated:
+        return redirect(url_for('profile'))
+    
+    # Verify the password reset token
+    user = User.verify_reset_token(token)
+    
+    # If the token is invalid or expired, raise a validation error and redirect to the reset request page
+    if user is None:
+        raise ValidationError('That is an invalid or expired token')
+        return redirect(url_for('reset_request'))
+    
+    # Create an instance of the password reset form
+    form = ResetPasswordForm()
+    
+    # Check if the form is submitted and validated
+    if form.validate_on_submit():
+        # Hash the new password
+        hashed_passwd = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        
+        # Update the user's password in the database
+        user.password = hashed_passwd
+        db.session.commit()
+        
+        # Redirect to the sign-in page
+        return redirect(url_for('signin'))
+    
+    # Render the password reset template with the form
+    return render_template('reset.html', title='Reset Password', form=form)
+
+@app.route('/api/posts/<post_id>/like', methods=['POST'])
+@login_required
+def like_post(post_id):
+    try:
+        # Convert the post ID to a UUID
+        post_uuid = uuid.UUID(post_id)
+    except ValueError:
+        # If the post ID is not a valid UUID, return an error response
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+    # Query the database to find the post by ID
+    post = db.session.scalars(select(Post).filter_by(postID=post_uuid)).first()
+    
+    # If the post is not found, return an error response
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+
+    # Query the database to find if the current user has already liked the post
+    like = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post_uuid)).first()
+
+    if like:
+        # If the user has already liked the post, remove the like and decrement the like count
+        db.session.delete(like)
+        post.likes_count -= 1
+        liked = False
+    else:
+        # If the user has not liked the post, add a new like and increment the like count
+        new_like = PostLike(userID=current_user.userID, postID=post_uuid)
+        db.session.add(new_like)
+        post.likes_count += 1
+        liked = True
+
+    # Commit the changes to the database
+    db.session.commit()
+    
+    # Return the updated like count and like status
+    return jsonify({'likes': post.likes_count, 'liked': liked}), 200
+
+
+@app.route('/api/posts/like/status', methods=['POST'])
+def get_like_status():
+    try:
+        #get the list of post IDs
+        data = request.get_json()
+        post_ids = data.get('postIds',[])
+        
+        #convert post IDs to uuids and find in the database
+        post_uuids =[uuid.UUID(post_id) for post_id in post_ids]
+        posts = db.session.scalars(select(Post).filter(Post.postID.in_(post_uuids))).all()
+        
+        response = {}
+        if not current_user.is_authenticated: #identify loggedout users 
+            for post in posts:
+                liked = False #the user is not logged in, so like status cannot be checked
+                response[str(post.postID)] = {
+                    'liked': liked,
+                    'likes': post.likes_count
+                }
+        else : 
+            for post in posts:
+                liked = db.session.scalars(select(PostLike).filter_by(userID=current_user.userID, postID=post.postID)).first() is not None
+                response[str(post.postID)] = {
+                    'liked': liked,
+                    'likes': post.likes_count
+                }
+        return jsonify(response), 200
+    
+    except ValueError:
+        # Handle invalid post ID formats
+        return jsonify({'error': 'Invalid post ID format'}), 400
+
+
+# TODO: adjust when we have users & logged-in users in the DB
 @app.route('/profile/<profile_id>', methods=['POST', 'GET'])
 @login_required
 def profile_id(profile_id):
@@ -570,6 +737,7 @@ def profile_id(profile_id):
         pronouns = request.form["pronouns"]
         bio = request.form["bio"]
         image = request.files["image_file_bytes"]
+        life_list = request.form.get("life_list", type=int)
 
         try:
             # if the user exists & is the one logged in
@@ -587,6 +755,9 @@ def profile_id(profile_id):
 
                 if current_profile.bio != bio:
                     current_profile.bio = bio
+                
+                if current_profile.lifeList != life_list:
+                    current_profile.lifeList = life_list
 
                 # if an image is being uploaded
                 if image.filename != '':
@@ -1353,7 +1524,6 @@ def create_comment(post_id):
     else:
         return jsonify({'error': 'Post not found'}), 404
     
-
 @app.route('/search_by_bird', methods=['POST'])
 def search_by_bird():
     bird_id = request.form.get('birdIDSearch')
@@ -1379,7 +1549,21 @@ def search_by_bird():
     }
 
     return render_template('social.html', **context)
+    
 
+@app.route('/bird')
+def bird():
+    return render_template("bird.html")
+
+def get_map_html():
+    # This function can be used to create and return the initial map HTML
+    m = folium.Map(location=[37.7749, -122.4194], zoom_start=13)  # Example starting location
+    return m._repr_html_()
+
+# used for getting uploaded images from the database via url_for
+@app.route('/uploads/<path:filename>')
+def download_file(filename):
+    return send_from_directory(app.config["UPLOAD_PATH"], filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

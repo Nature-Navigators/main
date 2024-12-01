@@ -27,11 +27,10 @@
             <div class="form-box">
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
-
                 <!-- Form for requesting password reset -->
                 <form id="signin-form" method="POST" action="">
-                    {{ form.hidden_tag() }}
-                    {{ form.email }}
+                    {{ form.hidden_tag() }} <!-- Hidden CSRF token -->
+                    {{ form.email }} <!-- Email input field -->
                     <button id="button">Request reset password</button>
                     <script>
                         // Submit the form when the button is clicked
@@ -41,7 +40,7 @@
                     </script>
                     {% if form.errors %}
                     <script>
-                        // if user does not exist show alert 
+                        // Alert the user if the email does not exist
                         alert("Email does not exist!");
                     </script>
                     {% endif %}

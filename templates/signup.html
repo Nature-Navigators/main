@@ -24,6 +24,7 @@
     <div class="container">
         <div class="form-container">
             <div class="form-box">
+                <!-- Form header and image -->
                 <h2>Come find your nest.</h2>
                 <img class="nest" src="{{ url_for('static', filename='images/nest.png') }}" alt="Image">
             
@@ -37,16 +38,20 @@
                     <!-- sign up button -->
                     <button id="button">Sign Up</button>
                     <script>
+                        // Submit form on button click
                         document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
-                    <!-- error handling -->
+                    
+                    <!-- Error handling -->
                     {% if form.errors %}
                     <script>
                         alert("{{  'Invalid Username!' if 'username' in form.errors else '' }} \n{{ 'Invalid email!' if 'email' in form.errors else '' }} \n{{ 'Invalid password!' if 'password' in form.errors else '' }} \n{{ 'Ensure your password match!' if 'confirm_password' in form.errors else '' }}");
                     </script>
                     {% endif %}
+                    
+                    <!-- Alert message -->
                     {% if alert_message %}
                     <script>
                         alert("{{ alert_message }}");

@@ -1,6 +1,8 @@
 window.onload = onLoad;
 
 function onLoad() {
+    // This function is called when the window loads. It initializes the location fetching,
+    // sets up the like buttons, and ensures their state is persisted.
     getLocation();
     setupLikeButtons();
     persistLikeButtons();
@@ -160,14 +162,15 @@ function persistLikeButtons() {
     });
 }
 
-function handleLikeButtonClick(event) { 
+function handleLikeButtonClick(event) {
     // Get the button that was clicked
     const button = event.currentTarget;
     // Get the post ID from the data attribute
     const postId = button.getAttribute('data-post-id');
     // Get the like icon element within the button
     const icon = button.querySelector('.like-icon');
-    // send a POST request to the server to like/unlike the post
+
+    // Send a POST request to like/unlike the post
     fetch(`/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
@@ -184,11 +187,11 @@ function handleLikeButtonClick(event) {
     })
     .then(data => {
         if (data.likes !== undefined) {
-            // update icon based on like status
+            // Update the icon source based on the like status
             icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
             icon.width = 20;
             icon.height = 22;
-            // if likes count element exists, update it
+            // Update the likes count element if it exists
             const likesCountElement = document.querySelector(`#post_likes_${postId}`);
             if (likesCountElement) {
                 likesCountElement.textContent = `${data.likes} likes`;

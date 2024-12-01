@@ -28,13 +28,11 @@
                 <!-- Form header -->
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
-                
                 <!-- Reset password form -->
                 <form id="signin-form" method="POST" action="">
                     {{ form.hidden_tag() }}
                     {{ form.password(placeholder="Enter New Password") }}
                     {{ form.confirm_password(placeholder="Confirm New Password") }}
-                    
                     <!-- Submit button -->
                     <button id="button">Reset Password</button>
                     <script>
@@ -42,11 +40,13 @@
                             document.getElementById("signin-form").submit();
                         });
                     </script>
+                    <!-- Error handling -->
                     {% if form.errors %}
                     <script>
                         alert("{{' Invalid or expired token.' if 'invalid' in form.errors else '' }}{{ 'Passwords do not match.' if 'password' in form.errors else '' }}{{ 'Invalid password.' if 'password' in form.errors else form.errors }}");
                     </script>
                     {% endif %}
+                    <!-- Additional links -->
                     <p class="link"><a href="/signup">Need to create an account?</a></p>
                     <p class="forgot"><a href="">Forgot password?</a></p>
                 </form>
