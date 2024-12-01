@@ -41,11 +41,11 @@
                     </button>
                     <!-- Like button  -->
                     <button class="icon-button like-button" id="like-button" data-post-id="{{ post.postID }}">
-                                                                                                <!-- If post liked filled heart -->
+                        <!-- if post liked already by user visiting page filled heart -->
                         {% if post.liked_by_user %}
                         <img src="{{ url_for('static', filename='images/filled-heart.png') }}" alt="Like Icon" class="like-icon" width="20" height="22" />
                         {% else %}
-                                                                                                <!-- else empty heart -->
+                        <!-- else empty heart -->
                         <img src="{{ url_for('static', filename='images/empty-heart.png') }}" alt="Like Icon" class="like-icon" width="20" height="22" />
                         {% endif %}
                     </button>
@@ -82,9 +82,9 @@
 
         if (window.commentListenersAdded) return;
         window.commentListenersAdded = true;
-
+        // Initialize like buttons
         setupLikeButtons();
-        persistLikeButtons(); // on fetching the post again the likes should persist
+        //persistLikeButtons(); //on fetching the post again the likes should persist
 
         // Setup bird button popups using SweetAlert2
         const birdButtons = document.querySelectorAll('.bird-button');
@@ -97,7 +97,7 @@
                     position: 'center',
                     width: 200,
                     showConfirmButton: false,
-                    timer: 1000 // Auto close after 1 second
+                    timer: 1000 // closes after a sec by itself
                 });
             });
         });
@@ -106,7 +106,8 @@
         const placeholderButtons = document.querySelectorAll('.placeholder-button');
         placeholderButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const locationID = button.getAttribute('data-location-id'); // Fetch locationID from data attribute
+                // Fetch locationID from data attribute
+                const locationID = button.getAttribute('data-location-id'); 
                 Swal.fire({
                     text: `Location: ${locationID}`, // Display location
                     position: 'center',
@@ -151,57 +152,15 @@
                         commentsList.appendChild(newComment);
                         commentInput.value = '';
                     } else {
-                        alert(data.error || 'An error occurred while adding the comment');
+                        alert(data.error || 'login to add comments');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while adding the comment');
+                    // console.error('Error:', error);
+                    alert('login to add comments');
                 });
             });
         });
-        /*
-        // Handle comment form submission with AJAX
-        const commentForms = document.querySelectorAll('.comment-form');
-        commentForms.forEach(form => {
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const postID = form.getAttribute('action').split('/').pop();
-                const commentInput = form.querySelector('.comment-input');
-                const commentText = commentInput.value.trim();
-
-                if (!commentText) {
-                    alert('Comment cannot be empty');
-                    return;
-                }
-
-                fetch(`/create-comment/${postID}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({ comment: commentText })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // console.log('JSON response:', data); // Print the JSON response
-                    if (data.success) {
-                        const commentsList = form.nextElementSibling;
-                        const newComment = document.createElement('div');
-                        newComment.classList.add('comment-box');
-                        newComment.innerHTML = `<span class="comment-user">${data.username}</span> <span class="comment-text">${commentText}</span>`;
-                        commentsList.appendChild(newComment);
-                        commentInput.value = '';
-                    } else {
-                        alert(data.error || 'An error occurred while adding the comment');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while adding the comment');
-                });
-            });
-        });*/
     });
 </script>
 <!-- like fetching code in js -->

@@ -443,7 +443,8 @@ const cityList = document.getElementById('cityList');
 let debounceTimeout;
 const debounce = (func, delay) => {
     clearTimeout(debounceTimeout); // Clear the previous timeout
-    debounceTimeout = setTimeout(func, delay); // Set a new timeout
+    // set new timeout if prev time out was interrupted 
+    debounceTimeout = setTimeout(func, delay); 
 };
 
 // Add event listener to the location input field
@@ -471,7 +472,7 @@ locationInput.addEventListener('input', () => {
                     cityList.appendChild(option); // Append the option to the city list
                 });
             })
-            .catch(error => console.error('Error fetching cities:', error)); // Log any errors
+            .catch(error => console.error('Error fetching cities:', error));  // Log any errors
     }, 50); // Delay of 50 milliseconds
 });
 

@@ -70,7 +70,6 @@ function sendLocation(position) {
     }
 }
 
-
 function updateEventList(events) {
     const eventHolder = document.getElementById('event_holder');
     let htmlContent = '';
@@ -180,10 +179,9 @@ function handleLikeButtonClick(event) {
         credentials: 'same-origin'
     })
     .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`Error: ${text}`);
-            });
+        if (response.status === 401) { //specific error code for user not being logged in
+            alert("You need to log in to like posts.");
+            return null;
         }
         return response.json();
     })
@@ -198,11 +196,9 @@ function handleLikeButtonClick(event) {
             if (likesCountElement) {
                 likesCountElement.textContent = `${data.likes} likes`;
             }
-        } else {
-            console.error('Error liking post:', data.error);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        // Handle error silently
     });
 }

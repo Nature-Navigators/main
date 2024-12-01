@@ -25,6 +25,7 @@
     <div class="container">
         <div class="form-container">
             <div class="form-box">
+                <!-- Form header and image -->
                 <h2>Welcome back to your perch!</h2>
                 <img class="perch" src="{{ url_for('static', filename='images/perch.png') }}" alt="Image">
                 
@@ -37,10 +38,12 @@
                    
                     <button id="button">Sign In</button>
                     <script>
+                        // Submit form on button click
                         document.getElementById("button").addEventListener("click", function () {
                             document.getElementById("signin-form").submit();
                         });
                     </script>
+                    <!-- Error handling -->
                     {% if form.errors %}
                     <script>
                         alert("{{  ' Invalid Username.' if 'username' in form.errors else '' }} \n {{ 'Invalid email.' if 'email' in form.errors else '' }} \n {{ 'Invalid password.' if 'password' in form.errors else '' }}");
