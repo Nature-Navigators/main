@@ -3,6 +3,7 @@ window.onload = onLoad;
 function onLoad() {
     getLocation();
     setupLikeButtons();
+    persistLikeButtons();
 }
 
 function getLocation() {
@@ -59,7 +60,6 @@ function sendLocation(position) {
         })
         .then(response => response.json())
         .then(filteredEvents => {
-            persistLikeButtons();// allow likes to populate since fetch social location is done
             updateEventList(filteredEvents);
         })
         .catch(error => console.error('Error with location:', error));
@@ -118,35 +118,45 @@ function setupLikeButtons() {
 function persistLikeButtons() {
     // Select all elements with the class 'like-button'
     const likeButtons = document.querySelectorAll('.like-button');
-    // Iterate over each like button
+
+    const postIds = [];
     likeButtons.forEach(button => {
         // Get the post ID from the data attribute
-        const postId = button.getAttribute('data-post-id');
-        // Fetch the like status for the post
-        fetch(`/api/posts/${postId}/like/status`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Get the like icon element within the button
-            const icon = button.querySelector('.like-icon');
-            // Set the icon source based on the like status
-            icon.src = data.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
-            icon.width = 20;
-            icon.height = 22;
-            // Update the likes count element if it exists
-            const likesCountElement = document.querySelector(`#post_likes_${postId}`);
-            if (likesCountElement) {
-                likesCountElement.textContent = `${data.likes} likes`;
+        postIds.push(button.getAttribute('data-post-id'));
+    });
+
+    // send one request with all postIDs
+    fetch(`/api/posts/like/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({postIds}) //send postIDs to endpoint
+    })
+    .then(response => response.json())
+    .then(data =>{
+        likeButtons.forEach(button => {
+            const postId = button.getAttribute('data-post-id');
+            const postData =data[postId]; // get data for the specific post
+
+            if (postData) {
+                const icon = button.querySelector('.like-icon');
+                // Set the icon source based on the like status
+                icon.src = postData.liked ? "/static/images/filled-heart.png" : "/static/images/empty-heart.png";
+                icon.width = 20;
+                icon.height = 22;
+
+                // Update the likes count if it exists
+                const likesCountElement = document.querySelector(`#post_likes_${postId}`);
+                if (likesCountElement) {
+                    likesCountElement.textContent = `${postData.likes} likes`;
+                }
             }
-        })
-        .catch(error => {
-            // Handle error silently
         });
+    })
+    .catch(error => {
+        // Handle error silently
     });
 }
 
