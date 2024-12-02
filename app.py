@@ -126,8 +126,6 @@ class SignUpForm(FlaskForm):
     def validate_username(self, username):
         # check if another account already exists with same username
         # select user from db if their username matches the username entered in form
-        # check if another account already exists with same username
-        # select user from db if their username matches the username entered in form
         exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
         if exists_user != None:
             raise ValidationError("Username already exists. Select a new username.")
@@ -135,15 +133,11 @@ class SignUpForm(FlaskForm):
     def validate_email(self, email):
         # select user if their email matches the email entered
         # if user does exist raise validation error
-        # select user if their email matches the email entered
-        # if user does exist raise validation error
         exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
         if exists_email != None:
             raise ValidationError("Email already exists. Use another email address.")
    
 class SignInForm(FlaskForm):
-    # Form fields for sign-in
-    # email, username, pw mandatory fields
     # Form fields for sign-in
     # email, username, pw mandatory fields
     email = StringField(validators=[InputRequired(), Email(), Length(max=120)], render_kw={"placeholder": "Email"})  
@@ -157,14 +151,11 @@ class SignInForm(FlaskForm):
     # Validation for username
     def validate_username(self, username):
         # select user if their username matches the username entered
-        # select user if their username matches the username entered
         exists_user = db.session.scalars(select(User.userID).where(User.username == username.data)).first()
         if exists_user == None:
             raise ValidationError("Username does not exist.")
     # Validation for email
     def validate_email(self, email):
-        # select user if their email matches the email entered
-        # fetch from db
         # select user if their email matches the email entered
         # fetch from db
         exists_email = db.session.scalars(select(User.userID).where(User.email == email.data)).first()
@@ -174,25 +165,19 @@ class SignInForm(FlaskForm):
 class RequestResetForm(FlaskForm):
     # Form fields for requesting password reset
     # email required to request for reset pw
-    # Form fields for requesting password reset
-    # email required to request for reset pw
     email = StringField('Email', 
                         validators=[InputRequired(), Email()])
     submit = SubmitField('Request Password Reset')
     # Validation for email
     def validate_email(self, email):
         # select user if their email matches the email entered
-        # select user if their email matches the email entered
         stmt = select(User).where(User.email == email.data)
-        # fetch user from the database
         # fetch user from the database
         exists_email = db.session.execute(stmt).scalars().first()
         if exists_email is None:
             raise ValidationError("Email not associated with any account, try signing up.")
         
 class ResetPasswordForm(FlaskForm):
-    # Form fields for resetting password
-    # pw required to reset pw
     # Form fields for resetting password
     # pw required to reset pw
     password = PasswordField('Password', 
@@ -397,6 +382,7 @@ def formatBirdName(bird_name):
 
     return formatted_name
 
+# Gets main wikipedia image based on the bird name
 async def getWikipediaImage(bird_name):
 
     formatted_bird_name = bird_name
@@ -415,6 +401,7 @@ async def getWikipediaImage(bird_name):
                 print(f"Failed to fetch data from Wikipedia. Status code: {response.status}")
     return None
 
+# Gets main wikipedia page contents (image, description, media) based on the bird name
 async def getWikipediaPageContent(bird_name):
     formatted_bird_name = formatBirdName(bird_name)
     content_url = f'https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles={formatted_bird_name}&format=json'
@@ -480,6 +467,7 @@ async def getWikipediaPageContent(bird_name):
             'wikiUrl': wiki
         }
 
+# async gets bird info by bird name
 async def get_bird_info(bird_name):
     bird_data = await getWikipediaPageContent(bird_name)
     return {
@@ -490,6 +478,7 @@ async def get_bird_info(bird_name):
         'wikiUrl': bird_data['wikiUrl']
     }
 
+# generates the bird web page by bird name for queried bird
 @app.route('/bird/<bird_name>')
 async def bird_page(bird_name):
     bird_data = await get_bird_info(bird_name)
@@ -534,7 +523,6 @@ def logout():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     # If the user is already authenticated, redirect them to their profile page
-    # If the user is already authenticated, redirect them to their profile page
     if current_user.is_authenticated:
         return redirect(url_for('profile'))
     # Create an instance of the sign-up form
@@ -551,7 +539,6 @@ def signup():
             # Add the new user to the database and commit the transaction
             db.session.add(new_user)
             db.session.commit()
-            # Redirect to the sign-in page
             # Redirect to the sign-in page
             return redirect(url_for('signin'))
         except IntegrityError:
